@@ -7,8 +7,15 @@ import json
 import sys
 from pathlib import Path
 
-from failroute.analyzer import scan_path, scan_repo
+from failroute.analyzer import Finding, scan_path, scan_repo
 from failroute.sarif import to_sarif_json
+
+
+def _version() -> str:
+    from importlib import metadata
+
+    return metadata.version("failroute")
+
 
 _EPILOG = """\
 exit status:
@@ -65,10 +72,19 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="only print the finding count summary",
     )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {_version()}",
+    )
     return parser
 
 
-def _render(findings, fmt: str) -> str:
+def _sort_key(finding: Finding) -> tuple[str, int, str]:
+    return (finding.file, finding.lineno, finding.mode.value)
+
+
+def _render(findings: list[Finding], fmt: str) -> str:
     if fmt == "json":
         return "\n".join(json.dumps(f.to_dict(), ensure_ascii=False) for f in findings)
     if fmt == "sarif":
@@ -95,20 +111,20 @@ def main(argv: list[str] | None = None) -> int:
     else:
         findings = scan_path(path)
 
+    # Deterministic order regardless of filesystem enumeration.
+    findings.sort(key=_sort_key)
+
     rendered = _render(findings, fmt)
 
     if args.output is not None:
         args.output.write_text(rendered + "\n", encoding="utf-8")
-    elif not args.quiet:
-        if rendered:
-            print(rendered)
+    elif not args.quiet and rendered:
+        print(rendered)
 
     # Quiet mode suppresses findings but still reports the count on stderr,
     # so scripts can rely on the summary line for logging.
     if args.output is not None:
         print(f"{len(findings)} finding(s) written to {args.output}", file=sys.stderr)
-    elif not args.quiet:
-        print(f"\n{len(findings)} finding(s)", file=sys.stderr)
     else:
         print(f"{len(findings)} finding(s)", file=sys.stderr)
     return 0 if len(findings) <= args.threshold else 1

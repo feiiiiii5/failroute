@@ -23,9 +23,21 @@ return await llm_judge(prompt)
 | --- | --- |
 | `no-action` | `except ...: pass` — the exception is discarded, callers never learn |
 | `silent-fallback` | handler returns/assigns a constant (`None`, `0`, `0.0`, `False`, `[]`, …) without re-raising |
-| `masked-exception` | catch-all re-raises yet later falls through to a success-looking return |
+| `masked-exception` | **catch-all** handler re-raises conditionally yet also falls through to a success-looking return |
+| `name-shadowing` | `except E as e:` whose body rebinds `e` — Python deletes the binding at handler exit, so later uses raise `NameError` |
 
 Findings are emitted as `file:line: mode: message`, or as JSON for CI.
+
+### Logging exemption (two tiers)
+
+A handler that *records* the failure is informational, not silent — but what
+counts as a record depends on how wide the handler is:
+
+- **Catch-all handlers** (`except:` / `except Exception:`) must log at a
+  severity worth reading (`warning`+). A `debug` line or a bare `print(...)`
+  does not survive production triage, so it does not exempt.
+- **Typed handlers** name an anticipated failure mode; recording it at *any*
+  level (even `logger.info`) is enough.
 
 ## Usage
 
@@ -119,11 +131,29 @@ $ failroute --repo .     # expected: zero findings (self-hosting)
 `failroute` was developed against (and validated on) production AI/eval
 repositories where the same anti-patterns caused real, fixed bugs:
 
-| Repo | Findings | Notes |
-| --- | --- | --- |
-| `microsoft/PyRIT` | 70 | ~55 silent-fallbacks, 17 no-actions |
-| `browser-use/browser-use` | 174 | includes masked-exception branch outcomes |
-| `confident-ai/deepeval` (metrics) | 20 | scoring failure silently converted to `False` |
+| Repo | v0.1 | v0.2 | Notes |
+| --- | --- | --- | --- |
+| `microsoft/PyRIT` | 70 | **85** | +15: catch-all handlers with `debug`-only traces / stdout `print` + `return False` (CLI family) |
+| `browser-use/browser-use` | 174 | **179** | +5: `except Exception` → `logger.debug(...)` → fallback (`return False`) |
+| `confident-ai/deepeval` (metrics) | 20 | **14** | −6 precision: typed handlers with deliberate conditional re-raise are no longer reported as masked |
+
+v0.2 changes vs v0.1:
+
+* **New detector**: `name-shadowing` — rebinding the caught exception variable
+  (Python deletes the binding at handler exit; later uses raise `NameError`).
+* **Two-tier logging exemption** — catch-all handlers need a readable severity
+  (`warning`+); typed handlers accept any level. A bare `print()` or
+  `debug` line no longer hides a silent fallback.
+* **Scope-aware scans** — `return None` inside a callback *defined in the
+  handler* belongs to the callback, not to the handler's control flow.
+* **Masked-exception is a catch-all contract** — typed handlers with
+  conditional re-raise + early return are deliberate retry/skip logic.
+* **Process exit terminates like raise** — `sys.exit(1)` after an assignment
+  means the fallback value is never observable.
+* **Ignore list** adds `StopIteration` and `CancelledError` (idiomatic
+  control-flow absorption).
+* **CLI**: deterministic finding order, `--version`.
+* **Performance**: source lines split once per file instead of once per handler.
 
 The `silent-fallback` hits on `deepeval`'s metric modules fall in the same
 failure-routing family as the *verdict/score disagreement* defect fixed

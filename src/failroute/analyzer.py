@@ -21,6 +21,10 @@ about the exception:
   raises a bare ``raise`` from a *different* exception, or logs then falls
   through to a later ``return`` that looks successful.
 
+* **Name shadowing** (``except E as e:`` whose body rebinds ``e``): Python
+  deletes the binding when the handler exits, so any later use of the name
+  raises ``NameError`` — and mid-handler the original exception object is lost.
+
 The heuristics deliberately err on the side of *reporting*: reviewers
 (and CI gates) can triage quickly, and a finding is always worth a look at
 the surrounding lines.
@@ -38,7 +42,17 @@ logger = logging.getLogger(__name__)
 
 #: Exception types whose handler is almost always informational (KeyboardInterrupt
 #: at module level, SystemExit for CLI tools...) and is therefore not a finding.
-_IGNORED_EXC_NAMES = {"KeyboardInterrupt", "SystemExit", "GeneratorExit"}
+_IGNORED_EXC_NAMES = {
+    "KeyboardInterrupt",
+    "SystemExit",
+    "GeneratorExit",
+    # Swallowing these is idiomatic control flow, not failure routing:
+    # - StopIteration: how iterators terminate (PEP 479 makes generators special).
+    # - CancelledError: async tasks routinely absorb cancellation in cleanup paths;
+    #   flagging every one of them drowns real findings.
+    "StopIteration",
+    "CancelledError",
+}
 
 #: Return statements whose payload is a constant that "looks like" a fallback.
 _FALLBACK_CONSTANT_NAMES: set[str] = {
@@ -58,8 +72,9 @@ _FALLBACK_CONSTANT_NAMES: set[str] = {
     "()",
 }
 
-#: Names of lookups that indicate the except body is doing something real.
-_ACTIVE_CALL_NAMES: set[str] = {"raise", "sys.exit"}
+#: Attribute names of calls that terminate the process — treated like a raise
+#: because the caller never observes a fallback value afterwards.
+_ACTIVE_CALL_NAMES: set[str] = {"exit", "_exit"}
 
 
 #: Aggregated finding kinds, kept coarse so consumers can group by root cause.
@@ -139,26 +154,39 @@ def _constant_value(node: ast.expr) -> str | None:
 
 
 def _body_has_raise(statements: list[ast.stmt]) -> bool:
-    for stmt in statements:
-        if isinstance(stmt, ast.Raise):
+    """True when any statement in ``statements`` (its own scope) raises."""
+    for child in _walk_scope(statements):
+        if isinstance(child, ast.Raise):
             return True
-        for child in ast.walk(stmt):
-            if isinstance(child, ast.Raise):
-                return True
     return False
 
 
+def _walk_scope(nodes: list[ast.stmt]):
+    """Yield nodes belonging to the *enclosing* scope of ``nodes``.
+
+    Descends into control-flow statements but **not** into nested
+    function/lambda/class bodies: a ``return None`` inside a callback defined
+    in the handler belongs to the callback's contract, not to the handler's.
+    """
+    stack = list(nodes)
+    while stack:
+        node = stack.pop()
+        yield node
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)):
+            continue
+        stack.extend(ast.iter_child_nodes(node))
+
+
 def _body_has_call(statements: list[ast.stmt], names: set[str]) -> bool:
-    for stmt in statements:
-        for child in ast.walk(stmt):
-            if isinstance(child, (ast.Call, ast.Raise)):
-                func: ast.expr | None = getattr(child, "func", None)
-                if isinstance(child, ast.Raise):
+    for child in _walk_scope(statements):
+        if isinstance(child, ast.Raise):
+            return True
+        if isinstance(child, ast.Call):
+            func = getattr(child, "func", None)
+            if func is not None:
+                name = _call_name(func)
+                if name in names:
                     return True
-                if func is not None:
-                    name = _call_name(func)
-                    if name in names:
-                        return True
     return False
 
 
@@ -199,6 +227,10 @@ class _HandlerVisitor(ast.NodeVisitor):
         self.findings: list[Finding] = []
         self._has_conditional_raise = self._scan_conditional_raises()
         self._has_fallback_return = self._scan_fallback_returns()
+        self._shadows_exc_name = self._scan_name_shadowing()
+        # A handler that terminates the process never lets a caller observe
+        # an assigned fallback value, so assignments are not "silent".
+        self._exits_process = _body_has_call(self.handler.body, _ACTIVE_CALL_NAMES)
 
     def visit(self, node: ast.AST) -> None:  # noqa: D102
         if self._body_is_effectively_empty():
@@ -213,9 +245,26 @@ class _HandlerVisitor(ast.NodeVisitor):
             )
             return
 
+        # Rebinding the caught exception variable is reported independently of
+        # everything else: it is a NameError hazard, not a routing decision.
+        if self._shadows_exc_name:
+            self.findings.append(
+                _finding(
+                    self.file,
+                    self.handler,
+                    FailureMode.NAME_SHADOWING,
+                    self.exc_name,
+                    message=f"exception variable {self.exc_name!r} is rebound inside the "
+                    "handler; Python deletes the binding when the handler exits, so any "
+                    "later use of that name raises NameError",
+                )
+            )
+
         # A conditional raise combined with a fallback return produces a
         # branch-dependent outcome (masked failure); report it once up front.
-        if self._has_conditional_raise and self._has_fallback_return:
+        # The masking contract is about *catch-all* handlers — a typed handler
+        # that conditionally re-raises is usually deliberate retry logic.
+        if _is_catch_all(self.handler.type) and self._has_conditional_raise and self._has_fallback_return:
             self.findings.append(
                 _finding(
                     self.file,
@@ -228,23 +277,16 @@ class _HandlerVisitor(ast.NodeVisitor):
             )
             return
 
-        # Handlers that log the failure are leaving a trace; they are
-        # informational, not silent corruption. Only the silent variants are
-        # findings.
+        # Handlers that log the failure at a severity worth reading are leaving
+        # a trace; they are informational, not silent corruption. Only the
+        # silent variants are findings.
         if _handler_logs_error(self.handler):
             return
 
-        reported_any = False
-        alive = True
         for stmt in self.handler.body:
+            alive, _reported = self._examine(stmt)
             if not alive:
                 break
-            alive, reported = self._examine(stmt)
-            reported_any = reported_any or reported
-        if not reported_any and not alive and not self._has_fallback_return:
-            # Unconditional re-raise with no fallback: propagate-only handlers
-            # are healthy — nothing else needed.
-            pass
 
     def _examine(self, stmt: ast.stmt) -> tuple[bool, bool]:
         """Examine one statement; returns (control_flow_continues, reported)."""
@@ -271,9 +313,14 @@ class _HandlerVisitor(ast.NodeVisitor):
         if isinstance(stmt, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
             # Only constant fallback values are actionable; assignments that
             # derive from the exception itself (e.g. error_msg = str(e)) are
-            # part of error handling, not silent fallbacks.
+            # part of error handling, not silent fallbacks. Assignments in a
+            # handler that ends the process are never caller-observable.
             value = _constant_value(stmt.value) if stmt.value is not None else None
-            if value in _FALLBACK_CONSTANT_NAMES and not _body_has_call([stmt], _ACTIVE_CALL_NAMES):
+            if (
+                value in _FALLBACK_CONSTANT_NAMES
+                and not self._exits_process
+                and not _body_has_call([stmt], _ACTIVE_CALL_NAMES)
+            ):
                 self.findings.append(
                     _finding(
                         self.file,
@@ -288,22 +335,47 @@ class _HandlerVisitor(ast.NodeVisitor):
         return True, False
 
     def _scan_conditional_raises(self) -> bool:
-        """True when the handler raises inside an if/while/for branch."""
+        """True when the handler itself raises inside a branch (if/while/for).
+
+        Nested function bodies are excluded: a ``raise`` inside a callback
+        defined in the handler belongs to the callback, not to the handler's
+        own control flow.
+        """
         for stmt in self.handler.body:
-            if isinstance(stmt, (ast.If, ast.While, ast.For, ast.Try)):
-                for child in ast.walk(stmt):
-                    if isinstance(child, ast.Raise):
-                        return True
+            if isinstance(stmt, (ast.If, ast.While, ast.For)) and _body_has_raise([stmt]):
+                return True
         return False
 
     def _scan_fallback_returns(self) -> bool:
-        """True when the handler returns a fallback constant anywhere."""
-        for stmt in self.handler.body:
-            for child in ast.walk(stmt):
-                if isinstance(child, ast.Return):
-                    value = _constant_value(child.value) if child.value is not None else "None"
-                    if value in _FALLBACK_CONSTANT_NAMES:
-                        return True
+        """True when the handler itself returns a fallback constant anywhere."""
+        for node in _walk_scope(self.handler.body):
+            if isinstance(node, ast.Return):
+                value = node.value if node.value is not None else None
+                rendered = _constant_value(value) if value is not None else "None"
+                if rendered in _FALLBACK_CONSTANT_NAMES:
+                    return True
+        return False
+
+    def _scan_name_shadowing(self) -> bool:
+        """True when the handler rebinds the caught exception variable.
+
+        Python implicitly deletes the ``except E as name`` binding when the
+        handler exits, and any rebinding inside the body loses the original
+        exception object mid-handler.
+        """
+        if not self.exc_name:
+            return False
+        for node in _walk_scope(self.handler.body):
+            targets: list[ast.expr] = []
+            if isinstance(node, ast.Assign):
+                targets = node.targets
+            elif isinstance(node, (ast.AnnAssign, ast.AugAssign, ast.For, ast.NamedExpr)):
+                targets = [node.target]
+            elif isinstance(node, (ast.With, ast.AsyncFor)):
+                targets = [item.optional_vars for item in node.items if item.optional_vars]
+            for target in targets:
+                if isinstance(target, ast.Name) and target.id == self.exc_name:
+                    return True
         return False
 
     def _body_is_effectively_empty(self) -> bool:
@@ -354,6 +426,8 @@ def scan_tree(tree: ast.AST, *, file: str = "<source>", source: str | None = Non
     ``# failroute: ignore`` (reviewed-and-accepted in a code review).
     """
     findings: list[Finding] = []
+    # Split once per file, not once per handler (large modules have hundreds).
+    source_lines = source.splitlines() if source is not None else None
 
     class Walker(ast.NodeVisitor):
         def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:  # noqa: D102
@@ -361,7 +435,7 @@ def scan_tree(tree: ast.AST, *, file: str = "<source>", source: str | None = Non
             if node.name:
                 exc_name = node.name
             # Skip handlers for exceptions we've explicitly decided are noise.
-            if _is_ignored_handler(node) or _handler_marked_off(node, source, file):
+            if _is_ignored_handler(node) or _handler_marked_off(node, source_lines):
                 return
             visitor = _HandlerVisitor(file=file, handler=node, exc_name=exc_name)
             visitor.visit(node)
@@ -375,7 +449,7 @@ def scan_tree(tree: ast.AST, *, file: str = "<source>", source: str | None = Non
     return findings
 
 
-def _handler_marked_off(handler: ast.ExceptHandler, source: str | None, file: str) -> bool:
+def _handler_marked_off(handler: ast.ExceptHandler, lines: list[str] | None) -> bool:
     """True when the handler's source slice carries an opt-out marker.
 
     Two markers are honoured:
@@ -387,32 +461,51 @@ def _handler_marked_off(handler: ast.ExceptHandler, source: str | None, file: st
     Matching is text-based and line-scoped: a marker anywhere inside the
     handler's lines suppresses all findings for that handler.
     """
-    if source is None:
+    if lines is None:
         return False
     try:
         start = handler.lineno
         end = getattr(handler, "end_lineno", start) + 1
-        lines = source.splitlines()
         slice_text = "\n".join(lines[start - 1 : end])
     except Exception:  # defensive - slicing failures should never crash a scan
         return False
     return "# pragma: no cover" in slice_text or "# failroute: ignore" in slice_text
 
 
+#: ``<logger>.<severity>(...)`` calls that record a failure worth reading.
+#: A bare ``print(...)`` or ``logger.debug(...)`` does not qualify: printing
+#: progress text is not failure recording.
+_LOG_SEVERITY_METHODS = {"error", "warning", "warn", "exception", "critical", "fatal"}
+_LOGGER_BASE_NAMES = {"logger", "logging", "log", "_logger", "sentry_sdk"}
+
+
 def _handler_logs_error(handler: ast.ExceptHandler) -> bool:
-    """True when the handler body records the failure (logger.*, print)."""
-    log_names = {"logger", "logging", "log", "print", "_logger"}
+    """True when the handler records the failure somewhere routable.
+
+    Two tiers:
+
+    - **Catch-all handlers** (bare ``except:`` / ``except Exception:``) must
+      log at a severity worth reading (``warning``+) — a ``debug`` line or a
+      ``print`` is not a trace that survives production triage.
+    - **Typed handlers** name an anticipated failure mode; recording it at
+      *any* level (even ``logger.info``) is enough, because the exception
+      type itself already documents the routing decision.
+    """
+    catch_all = _is_catch_all(handler.type)
     for stmt in handler.body:
         for child in ast.walk(stmt):
-            if isinstance(child, ast.Call):
-                func = child.func
-                if isinstance(func, ast.Attribute):
-                    base = func.value
-                    if isinstance(base, ast.Name) and base.id in log_names:
+            if not isinstance(child, ast.Call):
+                continue
+            func = child.func
+            if isinstance(func, ast.Attribute):
+                base = func.value
+                base_is_loggerish = (isinstance(base, ast.Name) and base.id in _LOGGER_BASE_NAMES) or (
+                    isinstance(base, ast.Attribute) and base.attr in _LOGGER_BASE_NAMES
+                )
+                if func.attr == "capture_exception":
+                    if base_is_loggerish:
                         return True
-                    if isinstance(base, ast.Attribute) and base.attr in log_names:
-                        return True
-                elif isinstance(func, ast.Name) and func.id in log_names:
+                elif base_is_loggerish and (not catch_all or func.attr in _LOG_SEVERITY_METHODS):
                     return True
     return False
 
