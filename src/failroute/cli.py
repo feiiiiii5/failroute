@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from failroute.analyzer import scan_path, scan_repo
+from failroute.sarif import to_sarif_json
 
 _EPILOG = """\
 exit status:
@@ -37,9 +38,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="treat PATH as a repository checkout and skip conventional junk dirs (.git, .venv, build, ...)",
     )
     parser.add_argument(
+        "--format",
+        choices=("text", "json", "sarif"),
+        default="text",
+        help="output format (default: text)",
+    )
+    parser.add_argument(
         "--json",
         action="store_true",
-        help="emit findings as JSON (one object per line)",
+        help="alias for --format json (one object per line; kept for backwards compatibility)",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="write results to FILE instead of stdout (implies --format unless --format given)",
     )
     parser.add_argument(
         "--threshold",
@@ -55,6 +68,14 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _render(findings, fmt: str) -> str:
+    if fmt == "json":
+        return "\n".join(json.dumps(f.to_dict(), ensure_ascii=False) for f in findings)
+    if fmt == "sarif":
+        return to_sarif_json(findings)
+    return "\n".join(f"{f.file}:{f.lineno}: {f.mode.value}: {f.message}" for f in findings)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -64,19 +85,32 @@ def main(argv: list[str] | None = None) -> int:
         print(f"failroute: error: no such path: {path}", file=sys.stderr)
         return 2
 
+    # --json is a legacy alias; --format wins when both are supplied.
+    fmt = args.format
+    if args.json and args.format == "text":
+        fmt = "json"
+
     if args.repo:
         findings = scan_repo(path)
     else:
         findings = scan_path(path)
 
-    if args.json:
-        for finding in findings:
-            print(json.dumps(finding.to_dict(), ensure_ascii=False))
-    elif not args.quiet:
-        for finding in findings:
-            print(f"{finding.file}:{finding.lineno}: {finding.mode.value}: {finding.message}")
+    rendered = _render(findings, fmt)
 
-    print(f"\n{len(findings)} finding(s)", file=sys.stderr if not args.json else sys.stderr)
+    if args.output is not None:
+        args.output.write_text(rendered + "\n", encoding="utf-8")
+    elif not args.quiet:
+        if rendered:
+            print(rendered)
+
+    # Quiet mode suppresses findings but still reports the count on stderr,
+    # so scripts can rely on the summary line for logging.
+    if args.output is not None:
+        print(f"{len(findings)} finding(s) written to {args.output}", file=sys.stderr)
+    elif not args.quiet:
+        print(f"\n{len(findings)} finding(s)", file=sys.stderr)
+    else:
+        print(f"{len(findings)} finding(s)", file=sys.stderr)
     return 0 if len(findings) <= args.threshold else 1
 
 

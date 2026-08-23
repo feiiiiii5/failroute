@@ -350,7 +350,8 @@ def scan_tree(tree: ast.AST, *, file: str = "<source>", source: str | None = Non
     """Scan a parsed AST for failure-routing anti-patterns.
 
     ``source`` (the original file text) is used to detect explicit
-    ``# pragma: no cover`` markers that opt a handler out of reporting.
+    opt-out markers: ``# pragma: no cover`` (defensive code) and
+    ``# failroute: ignore`` (reviewed-and-accepted in a code review).
     """
     findings: list[Finding] = []
 
@@ -375,7 +376,17 @@ def scan_tree(tree: ast.AST, *, file: str = "<source>", source: str | None = Non
 
 
 def _handler_marked_off(handler: ast.ExceptHandler, source: str | None, file: str) -> bool:
-    """True when the handler's source slice carries ``# pragma: no cover``."""
+    """True when the handler's source slice carries an opt-out marker.
+
+    Two markers are honoured:
+
+    * ``# pragma: no cover`` — explicitly defensive code.
+    * ``# failroute: ignore`` — reviewed and accepted (e.g. a documented
+      fallback whose semantics the team wants to keep).
+
+    Matching is text-based and line-scoped: a marker anywhere inside the
+    handler's lines suppresses all findings for that handler.
+    """
     if source is None:
         return False
     try:
@@ -385,7 +396,7 @@ def _handler_marked_off(handler: ast.ExceptHandler, source: str | None, file: st
         slice_text = "\n".join(lines[start - 1 : end])
     except Exception:  # defensive - slicing failures should never crash a scan
         return False
-    return "pragma: no cover" in slice_text
+    return "# pragma: no cover" in slice_text or "# failroute: ignore" in slice_text
 
 
 def _handler_logs_error(handler: ast.ExceptHandler) -> bool:

@@ -12,6 +12,16 @@ tests / CI can treat them like the correctness bugs they are.
 
 from failroute.analyzer import FailureMode, Finding, scan_path, scan_repo, scan_source
 from failroute.cli import main
+from failroute.sarif import to_sarif, to_sarif_json
 
-__all__ = ["FailureMode", "Finding", "scan_source", "scan_path", "scan_repo", "main"]
-__version__ = "0.1.0"
+__all__ = [
+    "FailureMode",
+    "Finding",
+    "scan_source",
+    "scan_path",
+    "scan_repo",
+    "main",
+    "to_sarif",
+    "to_sarif_json",
+]
+__version__ = "0.2.0"

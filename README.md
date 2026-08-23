@@ -34,10 +34,47 @@ $ failroute path/to/file.py
 $ failroute path/to/dir      # recursive
 $ failroute --repo .         # skip .git/.venv/build/...
 $ failroute --json --repo .  | jq 'select(.mode=="silent-fallback")'
+$ failroute --format sarif --output results.sarif --repo .   # code scanning
 $ failroute --threshold 5    # exit 1 when more than 5 findings
 ```
 
 Exit codes: `0` clean, `1` findings above threshold, `2` usage error.
+
+### Output formats
+
+```console
+$ failroute --format text   path/       # default: file:line: mode: message
+$ failroute --format json   path/       # one JSON object per finding
+$ failroute --format sarif  --output scan.sarif path/   # SARIF 2.1.0
+```
+
+SARIF output plugs straight into [GitHub code scanning](
+https://docs.github.com/en/code-security/code-scanning) via the
+`upload-sarif` action, so findings appear inline on pull requests:
+
+```yaml
+- run: failroute --format sarif --output results.sarif --repo .
+- uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: results.sarif
+```
+
+Severity mapping: `silent-fallback` → `error`, `no-action` and
+`masked-exception` → `warning`.
+
+### Suppressing findings
+
+Reviewed-and-accepted handlers can be opted out with a line marker (the
+scanner honors both):
+
+```python
+try:
+    return best_effort()
+except Exception:  # failroute: ignore - documented fallback semantics
+    return None
+```
+
+`# pragma: no cover` markers are honored as well (explicitly defensive code).
 
 ## Examples that trip it
 

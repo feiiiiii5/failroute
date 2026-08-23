@@ -348,3 +348,16 @@ def f():
 """
     )
     assert findings == []
+
+
+def test_failroute_ignore_marker_suppresses():
+    findings = scan_source(
+        """
+def f():
+    try:
+        a()
+    except Exception:  # failroute: ignore - documented fallback
+        return None
+"""
+    )
+    assert findings == []
