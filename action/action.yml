@@ -1,0 +1,55 @@
+name: "failroute scan"
+description: >
+  Scan Python sources for failure-routing anti-patterns (silent exception
+  swallowing, silent fallback returns, masked exceptions) and upload results
+  to GitHub code scanning as SARIF.
+
+inputs:
+  path:
+    description: "Path to scan (relative to the repository root)"
+    required: false
+    default: "."
+  exclude:
+    description: "Space-separated repo-relative paths to skip (e.g. 'tests/corpus fixtures/')"
+    required: false
+    default: ""
+  threshold:
+    description: "Fail the step when more than this many findings are emitted"
+    required: false
+    default: "0"
+  failroute-version:
+    description: "failroute version to install from PyPI"
+    required: false
+    default: "0.3.0"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install failroute
+      shell: bash
+      run: pip install "failroute==${{ inputs.failroute-version }}"
+
+    - name: Scan
+      shell: bash
+      run: |
+        set -o pipefail
+        EXCLUDES=""
+        for p in ${{ inputs.exclude }}; do EXCLUDES="$EXCLUDES --exclude $p"; done
+        failroute --repo "${{ inputs.path }}" $EXCLUDES \
+          --format sarif --output failroute-results.sarif \
+          --threshold "${{ inputs.threshold }}" || status=$?
+        # SARIF must be uploaded even when findings exceed the threshold.
+        if [ ! -f failroute-results.sarif ]; then exit "${status:-1}"; fi
+        exit 0
+
+    - name: Upload SARIF
+      if: always()
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: failroute-results.sarif
+        category: failroute

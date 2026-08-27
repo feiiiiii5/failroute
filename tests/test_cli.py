@@ -3,19 +3,24 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
+import sys
 from pathlib import Path
+
+_SRC = str(Path(__file__).resolve().parent.parent / "src")
 
 
 def _run_cli(args: list[str]) -> subprocess.CompletedProcess:
-    import shutil
-
-    exe = shutil.which("failroute")
-    assert exe, "failroute console script not installed (pip install -e .)"
+    # Always invoke via the module form: it works both from an installed
+    # package and straight from a source checkout (pytest's pythonpath).
+    env = {**os.environ, "PYTHONPATH": _SRC}
+    cmd: list[str] = [sys.executable, "-m", "failroute", *args]
     return subprocess.run(
-        [exe, *args],
+        cmd,
         capture_output=True,
         text=True,
+        env=env,
     )
 
 

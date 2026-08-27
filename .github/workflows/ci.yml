@@ -20,4 +20,5 @@ jobs:
       - run: pip install pytest ruff
       - run: pytest
       - run: ruff check .
-      - run: failroute --repo . --quiet
+      - run: failroute --repo . --quiet --exclude tests/corpus
+      - run: python tools/benchmark.py --json

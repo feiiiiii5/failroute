@@ -1,0 +1,28 @@
+{
+  "corpus_version": 1,
+  "labelled": "2026-08-27",
+  "description": "Ground-truth manifest for the failroute benchmark corpus. Each entry is an independently labelled true positive: (file, line of the `except` keyword, expected mode). Absence of a finding on any other handler in the corpus files is a labelled true negative. Labels were derived from the semantics of each fixture, not from tool output.",
+  "expected": [
+    {"file": "no_action_cases.py", "lineno": 16, "mode": "no-action"},
+    {"file": "no_action_cases.py", "lineno": 24, "mode": "no-action"},
+    {"file": "no_action_cases.py", "lineno": 32, "mode": "no-action"},
+    {"file": "silent_fallback_cases.py", "lineno": 14, "mode": "silent-fallback"},
+    {"file": "silent_fallback_cases.py", "lineno": 22, "mode": "silent-fallback"},
+    {"file": "silent_fallback_cases.py", "lineno": 30, "mode": "silent-fallback"},
+    {"file": "silent_fallback_cases.py", "lineno": 39, "mode": "silent-fallback"},
+    {"file": "silent_fallback_cases.py", "lineno": 48, "mode": "silent-fallback"},
+    {"file": "masked_exception_cases.py", "lineno": 15, "mode": "masked-exception"},
+    {"file": "masked_exception_cases.py", "lineno": 42, "mode": "masked-exception"}
+  ],
+  "labelled_true_negatives": [
+    {"file": "no_action_cases.py", "lineno": 41, "note": "unconditional bare re-raise: failure propagates"},
+    {"file": "no_action_cases.py", "lineno": 49, "note": "re-raise wrapped as domain error: still propagation"},
+    {"file": "no_action_cases.py", "lineno": 57, "note": "KeyboardInterrupt handler: informational by design"},
+    {"file": "silent_fallback_cases.py", "lineno": 56, "note": "return value derived from the exception, not a constant"},
+    {"file": "silent_fallback_cases.py", "lineno": 65, "note": "documented limitation: handlers that log are informational"},
+    {"file": "silent_fallback_cases.py", "lineno": 74, "note": "fallback return unreachable after unconditional raise"},
+    {"file": "silent_fallback_cases.py", "lineno": 83, "note": "non-empty container is not a fallback shape"},
+    {"file": "masked_exception_cases.py", "lineno": 25, "note": "failroute: ignore marker - reviewed and accepted"},
+    {"file": "masked_exception_cases.py", "lineno": 33, "note": "pragma: no cover marker - explicitly defensive"}
+  ]
+}

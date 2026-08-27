@@ -73,6 +73,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="only print the finding count summary",
     )
     parser.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        metavar="PATH",
+        help="repo-relative path to skip, repeatable (e.g. --exclude tests/corpus); "
+        "implies repository-style traversal",
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {_version()}",
@@ -106,8 +114,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.json and args.format == "text":
         fmt = "json"
 
-    if args.repo:
-        findings = scan_repo(path)
+    if args.repo or args.exclude:
+        findings = scan_repo(path, exclude=set(args.exclude))
     else:
         findings = scan_path(path)
 

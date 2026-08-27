@@ -1,0 +1,117 @@
+{
+  "run_at": "2026-08-27T11:07:58.738177+00:00",
+  "repos": [
+    {
+      "repo": "garak",
+      "failroute_total": 14,
+      "failroute_no_action": 6,
+      "failroute_semantic": 8,
+      "ruff_S110_S112": 9,
+      "overlap_no_action": 4,
+      "failroute_only": 10,
+      "semantic_breakdown": {
+        "silent-fallback": 4,
+        "masked-exception": 4
+      }
+    },
+    {
+      "repo": "src",
+      "failroute_total": 354,
+      "failroute_no_action": 180,
+      "failroute_semantic": 170,
+      "ruff_S110_S112": 56,
+      "overlap_no_action": 52,
+      "failroute_only": 302,
+      "semantic_breakdown": {
+        "silent-fallback": 173,
+        "masked-exception": 1
+      }
+    },
+    {
+      "repo": "pydantic_ai_slim",
+      "failroute_total": 82,
+      "failroute_no_action": 27,
+      "failroute_semantic": 53,
+      "ruff_S110_S112": 4,
+      "overlap_no_action": 4,
+      "failroute_only": 78,
+      "semantic_breakdown": {
+        "silent-fallback": 55,
+        "masked-exception": 0
+      }
+    },
+    {
+      "repo": "uqlm",
+      "failroute_total": 11,
+      "failroute_no_action": 8,
+      "failroute_semantic": 3,
+      "ruff_S110_S112": 2,
+      "overlap_no_action": 2,
+      "failroute_only": 9,
+      "semantic_breakdown": {
+        "silent-fallback": 3,
+        "masked-exception": 0
+      }
+    },
+    {
+      "repo": "trl",
+      "failroute_total": 23,
+      "failroute_no_action": 9,
+      "failroute_semantic": 14,
+      "ruff_S110_S112": 2,
+      "overlap_no_action": 2,
+      "failroute_only": 21,
+      "semantic_breakdown": {
+        "silent-fallback": 14,
+        "masked-exception": 0
+      }
+    },
+    {
+      "repo": "src",
+      "failroute_total": 13,
+      "failroute_no_action": 9,
+      "failroute_semantic": 4,
+      "ruff_S110_S112": 1,
+      "overlap_no_action": 1,
+      "failroute_only": 12,
+      "semantic_breakdown": {
+        "silent-fallback": 4,
+        "masked-exception": 0
+      }
+    },
+    {
+      "repo": "deepteam",
+      "failroute_total": 140,
+      "failroute_no_action": 10,
+      "failroute_semantic": 130,
+      "ruff_S110_S112": 6,
+      "overlap_no_action": 5,
+      "failroute_only": 135,
+      "semantic_breakdown": {
+        "silent-fallback": 130,
+        "masked-exception": 0
+      }
+    },
+    {
+      "repo": "fickling",
+      "failroute_total": 10,
+      "failroute_no_action": 2,
+      "failroute_semantic": 8,
+      "ruff_S110_S112": 0,
+      "overlap_no_action": 0,
+      "failroute_only": 10,
+      "semantic_breakdown": {
+        "silent-fallback": 8,
+        "masked-exception": 0
+      }
+    }
+  ],
+  "totals": {
+    "failroute_total": 647,
+    "failroute_no_action": 251,
+    "failroute_semantic": 390,
+    "ruff_S110_S112": 80,
+    "overlap_no_action": 70,
+    "failroute_only": 577
+  }
+}

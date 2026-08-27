@@ -45,9 +45,11 @@ counts as a record depends on how wide the handler is:
 $ failroute path/to/file.py
 $ failroute path/to/dir      # recursive
 $ failroute --repo .         # skip .git/.venv/build/...
+$ failroute --repo . --exclude tests/corpus   # repeatable path exclusions
 $ failroute --json --repo .  | jq 'select(.mode=="silent-fallback")'
 $ failroute --format sarif --output results.sarif --repo .   # code scanning
 $ failroute --threshold 5    # exit 1 when more than 5 findings
+$ python -m failroute .      # module form (no console script needed)
 ```
 
 Exit codes: `0` clean, `1` findings above threshold, `2` usage error.
@@ -69,6 +71,17 @@ https://docs.github.com/en/code-security/code-scanning) via the
 - uses: github/codeql-action/upload-sarif@v3
   with:
     sarif_file: results.sarif
+```
+
+Or use the bundled composite action, which installs failroute, scans, and
+uploads SARIF in one step:
+
+```yaml
+- uses: feiiiiii5/failroute/action@main
+  with:
+    path: src
+    exclude: tests/corpus fixtures
+    threshold: "0"
 ```
 
 Severity mapping: `silent-fallback` → `error`, `no-action` and
@@ -126,39 +139,39 @@ $ pip install -e .
 $ failroute --repo .     # expected: zero findings (self-hosting)
 ```
 
-## Validation on real codebases
+## Benchmarks & validation
 
-`failroute` was developed against (and validated on) production AI/eval
-repositories where the same anti-patterns caused real, fixed bugs:
+All numbers below are reproducible from this checkout; nothing here is
+copy-pasted from a run that cannot be re-executed.
 
-| Repo | v0.1 | v0.2 | Notes |
-| --- | --- | --- | --- |
-| `microsoft/PyRIT` | 70 | **85** | +15: catch-all handlers with `debug`-only traces / stdout `print` + `return False` (CLI family) |
-| `browser-use/browser-use` | 174 | **179** | +5: `except Exception` → `logger.debug(...)` → fallback (`return False`) |
-| `confident-ai/deepeval` (metrics) | 20 | **14** | −6 precision: typed handlers with deliberate conditional re-raise are no longer reported as masked |
+### Labelled corpus (precision / recall)
 
-v0.2 changes vs v0.1:
+`tests/corpus/` holds 19 hand-labelled exception handlers (10 positives across
+all three modes, 9 negatives covering re-raise, log-and-raise, derived values,
+dead code, opt-out markers, and non-fallback constants). Ground truth lives in
+`tests/corpus/manifest.json` and was written from the *semantics* of each
+fixture, independently of tool output.
 
-* **New detector**: `name-shadowing` — rebinding the caught exception variable
-  (Python deletes the binding at handler exit; later uses raise `NameError`).
-* **Two-tier logging exemption** — catch-all handlers need a readable severity
-  (`warning`+); typed handlers accept any level. A bare `print()` or
-  `debug` line no longer hides a silent fallback.
-* **Scope-aware scans** — `return None` inside a callback *defined in the
-  handler* belongs to the callback, not to the handler's control flow.
-* **Masked-exception is a catch-all contract** — typed handlers with
-  conditional re-raise + early return are deliberate retry/skip logic.
-* **Process exit terminates like raise** — `sys.exit(1)` after an assignment
-  means the fallback value is never observable.
-* **Ignore list** adds `StopIteration` and `CancelledError` (idiomatic
-  control-flow absorption).
-* **CLI**: deterministic finding order, `--version`.
-* **Performance**: source lines split once per file instead of once per handler.
+```
+corpus v1   TP=10  FP=0  FN=0  TN=9
+precision=1.0  recall=1.0
+```
 
-The `silent-fallback` hits on `deepeval`'s metric modules fall in the same
-failure-routing family as the *verdict/score disagreement* defect fixed
-upstream in `HallucinationMetric` — the class of bug `failroute` is built to
-surface. See `tests/` for the pattern catalog.
+Re-run: `python tools/benchmark.py` (also enforced by `pytest`).
+
+### What syntactic linters miss
+
+Against the source packages of 8 real AI/eval repositories (garak,
+inspect_ai, pydantic-ai, uqlm, trl, smolagents, deepteam, fickling),
+failroute reported **647 findings**; ruff's exception-handling rules
+(`S110` try-except-pass, `S112` try-except-continue) reported **80**, of which
+70 overlap failroute's `no-action` mode. The remaining **390 findings are
+silent-fallback / masked-exception handlers** -- failures converted into
+success-looking values -- a class syntactic rules cannot express by
+construction.
+
+Re-run: `python tools/compare_ruff.py <repo> [<repo> ...]`.
+Results are checked into `bench/`.
 
 ## Development
 

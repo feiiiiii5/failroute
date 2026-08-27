@@ -542,6 +542,11 @@ def scan_path(path: Path, *, follow_links: bool = False) -> list[Finding]:
             findings.extend(scan_source(source, file=str(path)))
         except SyntaxError:
             logger.debug("skipping %s: not parseable as Python", path)
+        except RecursionError:
+            # Deeply nested generated files (payload resources, vendored
+            # schemas) can exceed the interpreter's recursion budget during
+            # the AST walk.  A scanner must never crash on hostile input.
+            logger.debug("skipping %s: AST nesting exceeds recursion budget", path)
         return findings
 
     for sub in sorted(path.rglob("*.py")):
@@ -551,8 +556,18 @@ def scan_path(path: Path, *, follow_links: bool = False) -> list[Finding]:
     return findings
 
 
-def scan_repo(root: Path, *, skip_dirs: set[str] | None = None) -> list[Finding]:
-    """Scan a repository checkout, skipping conventional junk directories."""
+def scan_repo(
+    root: Path,
+    *,
+    skip_dirs: set[str] | None = None,
+    exclude: set[str] | None = None,
+) -> list[Finding]:
+    """Scan a repository checkout, skipping conventional junk directories.
+
+    ``exclude`` holds repo-relative paths (``tests/corpus``) that are skipped
+    even though they are valid Python -- used to keep intentional fixtures out
+    of self-scans.
+    """
     skip_dirs = skip_dirs or {
         ".git",
         ".venv",
@@ -566,11 +581,15 @@ def scan_repo(root: Path, *, skip_dirs: set[str] | None = None) -> list[Finding]
         ".pytest_cache",
         ".ruff_cache",
     }
+    exclude = {e.strip("/") for e in (exclude or set())}
     findings: list[Finding] = []
     root = Path(root)
     for sub in sorted(root.rglob("*.py")):
         rel = sub.relative_to(root)
         if any(part in skip_dirs for part in rel.parts):
+            continue
+        rel_str = str(rel).replace("\\", "/")
+        if any(rel_str == ex or rel_str.startswith(ex + "/") for ex in exclude):
             continue
         findings.extend(scan_path(sub))
     return findings

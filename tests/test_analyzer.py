@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from failroute.analyzer import FailureMode, scan_source
+from failroute.analyzer import FailureMode, scan_path, scan_source
 
 
 def test_no_action_pass():
@@ -361,3 +361,12 @@ def f():
 """
     )
     assert findings == []
+
+
+def test_deeply_nested_source_never_crashes(tmp_path):
+    # Generated payload files (e.g. red-team resources) can nest far beyond
+    # the interpreter's recursion budget; the scanner must skip, not crash.
+    deep = "(" * 20000 + "1" + ")" * 20000
+    target = tmp_path / "deep.py"
+    target.write_text(f"x = {deep}\n", encoding="utf-8")
+    assert scan_path(target) == []
