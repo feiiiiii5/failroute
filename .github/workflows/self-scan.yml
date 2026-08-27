@@ -1,0 +1,33 @@
+name: self-scan
+
+# Dogfooding made visible: failroute scans its own repository and publishes
+# the result to GitHub code scanning. The expected outcome is zero alerts.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"   # weekly, catch drift from dependency updates
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install failroute from this checkout (HEAD, not a release)
+        run: pip install .
+      - name: Scan
+        run: failroute --repo . --exclude tests/corpus --format sarif --output failroute-results.sarif --threshold 0
+      - name: Upload SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: failroute-results.sarif
+          category: failroute
