@@ -7,6 +7,22 @@
 Static detection of **failure-routing** anti-patterns in Python: the practice of
 converting an underlying failure into a success-like outcome at the wrong layer.
 
+## Why this exists
+
+While fixing correctness bugs across mainstream AI/ML open source, one defect
+family kept recurring: an LLM judge outage becoming a legitimate-looking `0.0`
+score, a network error becoming "no results", a red-team metric reporting
+success from a judge that never ran. Existing linters reason about the *shape*
+of an exception handler; the defect lives in what the handler *returns*.
+`failroute` is a detector for that semantic gap, built around three principles:
+
+- **Precision over volume** — every rule is validated against a hand-labelled
+  corpus whose ground truth was written independently of tool output.
+- **Honest triage** — findings without a production consequence chain are
+  benchmark material, not issues (see `docs/process.md` for a worked example).
+- **Everything reproducible** — every number in this README can be re-run from
+  this checkout with one command.
+
 Failure-routing is the root cause behind some of the most insidious correctness
 bugs in real LLM/eval/agent codebases:
 
@@ -213,3 +229,14 @@ $ pip install -e ".[test]"
 $ pytest
 $ ruff check .
 ```
+
+## How this project is built
+
+`failroute` is developed with an **AI-assisted, human-audited workflow**:
+LLM tooling proposes code and analyses, but nothing lands without passing
+deterministic gates — a 70+ test suite, a hand-labelled precision/recall
+corpus, `mypy --strict`, and a self-scan of the repository with the tool
+itself. Humans own every judgment call: rule semantics, corpus labels,
+upstream triage, and all external communication. A worked example of that
+triage discipline (including a case where we deliberately filed *nothing*)
+is in [`docs/process.md`](docs/process.md).
