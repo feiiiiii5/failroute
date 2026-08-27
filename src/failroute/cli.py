@@ -30,7 +30,7 @@ def _load_project_config(start: Path) -> dict[str, Any]:
     except ModuleNotFoundError:  # pragma: no cover - py<3.11 path
         try:
             import tomli as tomllib  # type: ignore[import-not-found,no-redef]
-        except ModuleNotFoundError:
+        except ModuleNotFoundError:  # failroute: ignore - no TOML parser, no project config
             return {}
     for base in (start, *start.parents):
         candidate = base / "pyproject.toml"
@@ -39,7 +39,7 @@ def _load_project_config(start: Path) -> dict[str, Any]:
         try:
             with candidate.open("rb") as fh:
                 data = tomllib.load(fh)
-        except (OSError, ValueError):
+        except (OSError, ValueError):  # failroute: ignore - documented: bad config = no config
             return {}
         cfg = data.get("tool", {}).get("failroute", {})
         return cfg if isinstance(cfg, dict) else {}

@@ -200,6 +200,12 @@ construction.
 Re-run: `python tools/compare_ruff.py <repo> [<repo> ...]`.
 Results are checked into `bench/`.
 
+### Throughput
+
+Measured 2026-08-27 on `microsoft/PyRIT` (656 files, 148,241 lines):
+**78 kLOC/s** single-core (1.91 s wall time, 107 findings). Re-run:
+`time failroute --repo <checkout> --quiet`.
+
 ## Development
 
 ```console
