@@ -15,8 +15,14 @@ from typing import Any
 
 from failroute.analyzer import FailureMode, Finding
 
-# Kept local to avoid a circular import with failroute/__init__.py.
-__version__ = "0.2.0"
+# Single source of truth is the installed distribution metadata; the previous
+# hardcoded constant drifted out of sync on release (v0.3.0 shipped labelled 0.2.0).
+try:  # pragma: no cover - exercised only when metadata is unavailable
+    from importlib import metadata as _metadata
+
+    __version__ = _metadata.version("failroute")
+except Exception:  # pragma: no cover - defensive fallback
+    __version__ = "0.0.0"
 _RULE_ID_PREFIX = "failroute"
 
 

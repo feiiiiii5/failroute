@@ -26,7 +26,7 @@
 ## 二、条目明细
 
 ### D-1 ｜ confident-ai/deepteam ｜ metric 初始化裸 except 吞掉 system_prompt 获取失败
-- 状态：**QUEUED**（对齐检查已过：上游无同类 issue，`gh search issues` 0 命中，08-27 实测）
+- 状态：**SUBMITTED**（2026-08-27，与 D-2 合并为一条主 issue：**confident-ai/deepteam#270**；正文存档 `.issue-draft-deepteam.md`（本地，未入库）。核对表全过：无同类 issue（08-27 实测 0 命中）、无 CONTRIBUTING/模板（仓库无规范文件，公开 issue 即合规渠道）、失效链独立成立、附 v1.0.9 最小复现、同仓同缺陷单条在途）
 - 位置：`deepteam/metrics/*/[metric].py` `__init__`，约 40 个文件同构（样例 `metrics/bias/bias.py:46-49`，v1.0.9）
   ```python
   try:
@@ -37,9 +37,10 @@
 - 失效后果链：自定义/错误配置的 `DeepEvalBaseLLM` 不支持 `get_system_prompt()` → 初始化静默降级为空 prompt → 全部后续评分在与用户意图不符的判据下运行 → **红队报告的易受性结论整体失真，且无任何日志或异常可追查**。
 - 建议修法：窄化为 `except AttributeError`（能力探测）并记录一次警告；其余异常应上抛。
 - 提交前置：读上游 CONTRIBUTING/issue 模板（Five Gates §Convention）；正文附复现代码段。
+- 后续：一次礼貌跟进窗口 = 提交后 30 天；无论回应与否，旗舰叙事不依赖此条（L3 定位）。
 
 ### D-2 ｜ confident-ai/deepteam ｜ `is_successful` 的死比较掩盖评分失败
-- 状态：**QUEUED**
+- 状态：**SUBMITTED**（并入 #270，同一次提交，避免重复条目）
 - 位置：所有 RT metric（样例 `metrics/hallucination/hallucination.py:225-228`）
   ```python
   try:
@@ -50,7 +51,7 @@
   ```
 - 失效后果链：`score` 为 `None`（评测从未产生有效分）时 `None == 1` 平静返回 `False`，`except` 永不触发 → `is_successful()` 返回**上一轮残留的 `self.success`** → 一次失败的评测可能被汇报为"通过" → 红队结论出现假阳性/假阴性且不可察觉。正确语义应为 `self.score is not None and self.score == 1`（或由 `self.error` 统一裁决）。
 - 备注：与已合并的 deepeval `HallucinationMetric` verdict/score 分歧缺陷同族——"评分失败被路由成成功样结果"正是 failroute 的目标类别。
-- 提交前置：同 D-1；建议 D-1 + D-2 合并为一条"metric 失败路由"主 issue（避免重复提交、避免刷量观感）。
+- 提交前置：同 D-1；建议 D-1 + D-2 合并为一条"metric 失败路由"主 issue（避免重复提交、避免刷量观感）。**已按此执行（#270）。**
 
 ### P-1 ｜ microsoft/PyRIT ｜ 抽样 triage 结论：低价值，不提交
 - 状态：**RESEARCHED → 关闭（不提交）**

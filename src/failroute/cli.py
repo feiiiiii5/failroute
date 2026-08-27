@@ -6,6 +6,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 from failroute.analyzer import Finding, scan_path, scan_repo
 from failroute.sarif import to_sarif_json
@@ -15,6 +16,34 @@ def _version() -> str:
     from importlib import metadata
 
     return metadata.version("failroute")
+
+
+def _load_project_config(start: Path) -> dict[str, Any]:
+    """Read ``[tool.failroute]`` from the nearest pyproject.toml at/above ``start``.
+
+    Recognised keys: ``exclude`` (list of repo-relative paths) and ``threshold``
+    (int). Malformed files or wrong value types are ignored silently -- a config
+    problem must never turn a scan into a crash.
+    """
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # pragma: no cover - py<3.11 path
+        try:
+            import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+        except ModuleNotFoundError:
+            return {}
+    for base in (start, *start.parents):
+        candidate = base / "pyproject.toml"
+        if not candidate.is_file():
+            continue
+        try:
+            with candidate.open("rb") as fh:
+                data = tomllib.load(fh)
+        except (OSError, ValueError):
+            return {}
+        cfg = data.get("tool", {}).get("failroute", {})
+        return cfg if isinstance(cfg, dict) else {}
+    return {}
 
 
 _EPILOG = """\
@@ -64,8 +93,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--threshold",
         type=int,
-        default=0,
-        help="exit 1 when more findings than this are emitted (default: 0)",
+        default=None,
+        help="exit 1 when more findings than this are emitted "
+        "(default: [tool.failroute] threshold in pyproject.toml, else 0)",
     )
     parser.add_argument(
         "--quiet",
@@ -109,13 +139,27 @@ def main(argv: list[str] | None = None) -> int:
         print(f"failroute: error: no such path: {path}", file=sys.stderr)
         return 2
 
+    # Project-level config; CLI flags always win.
+    cfg = _load_project_config(path.resolve())
+    cfg_exclude = cfg.get("exclude")
+    cfg_excludes = {e for e in cfg_exclude if isinstance(e, str)} if isinstance(cfg_exclude, list) else set()
+    excludes = set(args.exclude) | cfg_excludes
+    cfg_threshold = cfg.get("threshold")
+    threshold = (
+        args.threshold
+        if args.threshold is not None
+        else cfg_threshold
+        if isinstance(cfg_threshold, int) and not isinstance(cfg_threshold, bool)
+        else 0
+    )
+
     # --json is a legacy alias; --format wins when both are supplied.
     fmt = args.format
     if args.json and args.format == "text":
         fmt = "json"
 
-    if args.repo or args.exclude:
-        findings = scan_repo(path, exclude=set(args.exclude))
+    if args.repo or excludes:
+        findings = scan_repo(path, exclude=excludes)
     else:
         findings = scan_path(path)
 
@@ -135,7 +179,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{len(findings)} finding(s) written to {args.output}", file=sys.stderr)
     else:
         print(f"{len(findings)} finding(s)", file=sys.stderr)
-    return 0 if len(findings) <= args.threshold else 1
+    return 0 if len(findings) <= threshold else 1
 
 
 if __name__ == "__main__":  # pragma: no cover

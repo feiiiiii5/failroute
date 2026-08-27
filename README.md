@@ -1,5 +1,9 @@
 # failroute
 
+[![CI](https://github.com/feiiiiii5/failroute/actions/workflows/ci.yml/badge.svg)](https://github.com/feiiiiii5/failroute/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/failroute)](https://pypi.org/project/failroute/)
+[![Python](https://img.shields.io/pypi/pyversions/failroute)](https://pypi.org/project/failroute/)
+
 Static detection of **failure-routing** anti-patterns in Python: the practice of
 converting an underlying failure into a success-like outcome at the wrong layer.
 
@@ -53,6 +57,29 @@ $ python -m failroute .      # module form (no console script needed)
 ```
 
 Exit codes: `0` clean, `1` findings above threshold, `2` usage error.
+
+### Project configuration
+
+Repositories can commit their policy instead of repeating CLI flags; the
+nearest `pyproject.toml` at or above the scan path is consulted:
+
+```toml
+[tool.failroute]
+exclude = ["tests/corpus", "vendor"]
+threshold = 0
+```
+
+CLI flags always override config. Malformed config is ignored, never fatal.
+
+### pre-commit
+
+```yaml
+repos:
+  - repo: https://github.com/feiiiiii5/failroute
+    rev: v0.4.0
+    hooks:
+      - id: failroute
+```
 
 ### Output formats
 

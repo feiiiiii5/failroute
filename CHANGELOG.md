@@ -2,6 +2,27 @@
 
 All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.4.0] - 2026-08-27
+
+### Added
+- Project-level configuration: `[tool.failroute]` in the nearest
+  `pyproject.toml` (searched upward from the scan path) with `exclude`
+  (list of paths) and `threshold` (int). CLI flags always override config;
+  malformed config is ignored, never fatal.
+- `py.typed` marker (PEP 561) — the package ships inline type annotations.
+- Pre-commit hook manifest (`.pre-commit-hooks.yaml`).
+- PyPI Trusted Publishing release workflow (OIDC, tag-triggered, no long-lived
+  token), bug-report issue template, and Dependabot for action versions.
+- CI: 3 OS × 5 Python versions test matrix plus a dedicated quality job
+  (`ruff`, `mypy --strict` on `src/`, coverage gate ≥ 88%, self-scan,
+  corpus benchmark).
+
+### Changed
+- `--threshold` default resolution order is now: CLI flag >
+  `[tool.failroute]` config > `0`.
+- SARIF tool version is read from installed distribution metadata instead of
+  a hardcoded constant that had drifted (v0.3.0 shipped labelled 0.2.0).
+
 ## [0.3.0] - 2026-08-27
 
 ### Added

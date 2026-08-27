@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "failroute"
-version = "0.3.0"
+version = "0.4.0"
 description = "Static detection of failure-routing anti-patterns in Python"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -22,7 +22,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Quality Assurance",
 ]
-dependencies = []
+dependencies = [
+    "tomli>=2.0.1; python_version < '3.11'",
+]
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
@@ -48,3 +50,12 @@ select = ["E", "F", "I", "B", "UP"]
 [tool.ruff.lint.per-file-ignores]
 # Corpus fixtures are intentionally synthetic snippets with undefined names.
 "tests/corpus/*" = ["F821", "B017"]
+
+[tool.mypy]
+strict = true
+
+[tool.coverage.run]
+omit = ["src/failroute/__main__.py"]
+
+[tool.coverage.report]
+omit = ["src/failroute/__main__.py"]

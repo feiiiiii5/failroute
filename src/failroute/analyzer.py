@@ -34,9 +34,11 @@ from __future__ import annotations
 
 import ast
 import logging
+from collections.abc import Iterator
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +99,7 @@ class Finding:
     handler_text: str = ""
     message: str = ""
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "file": self.file,
             "lineno": self.lineno,
@@ -161,14 +163,14 @@ def _body_has_raise(statements: list[ast.stmt]) -> bool:
     return False
 
 
-def _walk_scope(nodes: list[ast.stmt]):
+def _walk_scope(nodes: list[ast.stmt]) -> Iterator[ast.AST]:
     """Yield nodes belonging to the *enclosing* scope of ``nodes``.
 
     Descends into control-flow statements but **not** into nested
     function/lambda/class bodies: a ``return None`` inside a callback defined
     in the handler belongs to the callback's contract, not to the handler's.
     """
-    stack = list(nodes)
+    stack: list[ast.AST] = list(nodes)
     while stack:
         node = stack.pop()
         yield node
@@ -371,8 +373,10 @@ class _HandlerVisitor(ast.NodeVisitor):
                 targets = node.targets
             elif isinstance(node, (ast.AnnAssign, ast.AugAssign, ast.For, ast.NamedExpr)):
                 targets = [node.target]
-            elif isinstance(node, (ast.With, ast.AsyncFor)):
+            elif isinstance(node, ast.With):
                 targets = [item.optional_vars for item in node.items if item.optional_vars]
+            elif isinstance(node, ast.AsyncFor):
+                targets = [node.target]
             for target in targets:
                 if isinstance(target, ast.Name) and target.id == self.exc_name:
                     return True
@@ -542,7 +546,7 @@ def scan_path(path: Path, *, follow_links: bool = False) -> list[Finding]:
             findings.extend(scan_source(source, file=str(path)))
         except SyntaxError:
             logger.debug("skipping %s: not parseable as Python", path)
-        except RecursionError:
+        except RecursionError:  # pragma: no cover - depends on interpreter recursion budget
             # Deeply nested generated files (payload resources, vendored
             # schemas) can exceed the interpreter's recursion budget during
             # the AST walk.  A scanner must never crash on hostile input.
