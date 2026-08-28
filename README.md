@@ -1,6 +1,7 @@
 # failroute
 
 [![CI](https://github.com/feiiiiii5/failroute/actions/workflows/ci.yml/badge.svg)](https://github.com/feiiiiii5/failroute/actions/workflows/ci.yml)
+[![self-scan](https://github.com/feiiiiii5/failroute/actions/workflows/self-scan.yml/badge.svg)](https://github.com/feiiiiii5/failroute/actions/workflows/self-scan.yml)
 [![PyPI version](https://img.shields.io/pypi/v/failroute)](https://pypi.org/project/failroute/)
 [![Python](https://img.shields.io/pypi/pyversions/failroute)](https://pypi.org/project/failroute/)
 
