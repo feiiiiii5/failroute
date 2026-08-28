@@ -1,21 +1,19 @@
 # PyPI 发布手册（failroute）
 
-> **v0.4.0 已发布（2026-08-28）并端到端验证**：tag `v0.4.0` 触发 `release.yml`
-> 自动构建并发布；干净 venv `pip install failroute` 安装到 0.4.0、CLI 正常。
-> 仓库主页已指向 PyPI 项目页。
+> **v0.5.0 / v0.5.1 已发布（2026-08-28）并端到端验证**：tag 触发 `release.yml`
+> 自动构建、经 PyPI Trusted Publishing（OIDC，无 token）发布，并自动从
+> CHANGELOG 生成 GitHub Release（`tools/release_notes.py`）。干净 venv
+> `pip install failroute` 安装验证通过。
 
 ## 发布（当前流程：tag 触发，全自动）
 
 1. 版本号同步四处：`pyproject.toml`、`src/failroute/__init__.py`、
-   `CHANGELOG.md`、`action/action.yml`（如有版本 pin）。
+   `CHANGELOG.md`（新增对应版本节——GitHub Release 说明取自这里）、
+   `action/action.yml`（默认安装版本）。
 2. `git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z`
-3. GitHub Actions 的 `Release` 工作流执行 `uv build` + 发布：
-   - 首选 PyPI Trusted Publishing（OIDC，无 token）——需在 PyPI 上
-     failroute 项目 → Settings → Publishing 配置 owner/repository/workflow
-     三项与声明一致；
-   - 备用：repo secret `PYPI_API_TOKEN` 存在时走 API token 认证
-     （当前生效路径，secret 不入仓、不落盘）。
-4. 发布成功后建议顺手创建 GitHub Release（从 CHANGELOG 对应节生成说明）。
+3. GitHub Actions 的 `Release` 工作流执行 `uv build` → OIDC 发布 →
+   用 CHANGELOG 对应节创建 GitHub Release（幂等，已存在则跳过）。
+4. 发布成功后验证（见下）。
 
 ## 发布后验证（三步）
 

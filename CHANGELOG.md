@@ -2,6 +2,28 @@
 
 All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.5.1] - 2026-08-28
+
+### Fixed
+- Ignore-list consistency between syntaxes: `contextlib.suppress(KeyboardInterrupt)` /
+  `suppress(StopIteration)` / `suppress(CancelledError)` (and friends) are
+  idiomatic control-flow absorption and are no longer flagged — matching the
+  handler-level exemption that already existed. One real error type in the
+  same call (e.g. `suppress(CancelledError, OSError)`) still flags: mixing an
+  idiomatic suppression with a real failure type does not make the failure
+  routable. Corpus extended with labelled fixtures for the exemption, both
+  dotted and bare forms, and the mixed case.
+- `failroute --repo file.py` silently reported zero findings (repository
+  traversal over a file path yields nothing); a single-file path now falls
+  back to a direct file scan.
+
+### Added
+- Tag-triggered release workflow now creates the GitHub Release
+  automatically, with notes extracted from the CHANGELOG section matching the
+  released version (`tools/release_notes.py`).
+- PyPI project links (`Homepage` / `Changelog` / `Issues`) and the
+  `Typing :: Typed` classifier.
+
 ## [0.5.0] - 2026-08-28
 
 ### Added

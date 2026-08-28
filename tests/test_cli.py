@@ -101,3 +101,13 @@ def test_cli_legacy_json_flag(tmp_path: Path):
     result = _run_cli([str(sample), "--json"])
     assert result.returncode == 1
     assert '"mode": "silent-fallback"' in result.stdout
+
+
+def test_repo_flag_with_single_file_scans_the_file(tmp_path):
+    target = tmp_path / "mod.py"
+    target.write_text(
+        "try:\n    a()\nexcept Exception:\n    pass\n",
+        encoding="utf-8",
+    )
+    proc = _run_cli([str(target), "--repo", "--quiet"])
+    assert proc.returncode == 1

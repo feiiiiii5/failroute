@@ -158,7 +158,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.json and args.format == "text":
         fmt = "json"
 
-    if args.repo or excludes:
+    # --repo/-exclude only make sense over a directory tree; a single file is
+    # scanned directly (previously `--repo file.py` silently reported zero).
+    if path.is_dir() and (args.repo or excludes):
         findings = scan_repo(path, exclude=excludes)
     else:
         findings = scan_path(path)

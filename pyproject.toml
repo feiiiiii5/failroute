@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "failroute"
-version = "0.5.0"
+version = "0.5.1"
 description = "Static detection of failure-routing anti-patterns in Python"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -21,10 +21,16 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Quality Assurance",
+    "Typing :: Typed",
 ]
 dependencies = [
     "tomli>=2.0.1; python_version < '3.11'",
 ]
+
+[project.urls]
+Homepage = "https://github.com/feiiiiii5/failroute"
+Changelog = "https://github.com/feiiiiii5/failroute/blob/main/CHANGELOG.md"
+Issues = "https://github.com/feiiiiii5/failroute/issues"
 
 [project.optional-dependencies]
 test = ["pytest>=7"]

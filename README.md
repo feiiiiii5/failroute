@@ -94,7 +94,7 @@ CLI flags always override config. Malformed config is ignored, never fatal.
 ```yaml
 repos:
   - repo: https://github.com/feiiiiii5/failroute
-    rev: v0.5.0
+    rev: v0.5.1
     hooks:
       - id: failroute
 ```
@@ -178,6 +178,11 @@ def evaluate(prompt):                       # silent-suppress
 ## What it does *not* flag (by design)
 
 * `except KeyboardInterrupt` / `except SystemExit` — normally intentional.
+* The same control-flow exception types under `contextlib.suppress`
+  (`KeyboardInterrupt`, `SystemExit`, `StopIteration`, `CancelledError`,
+  `GeneratorExit`) — absorbing cancellation or iterator termination is
+  idiomatic, not failure routing. One real error type in the same call
+  (e.g. `suppress(CancelledError, OSError)`) still flags.
 * Handlers that re-raise unconditionally without a fallback.
 * `except` bodies that log at `warning`/`error` **and** re-raise — the failure
   still propagates; we only flag the success-looking path.
@@ -196,15 +201,16 @@ copy-pasted from a run that cannot be re-executed.
 
 ### Labelled corpus (precision / recall)
 
-`tests/corpus/` holds 27 hand-labelled samples (15 positives across all four
-modes, 12 negatives covering re-raise, log-and-raise, derived values, dead
+`tests/corpus/` holds 30 hand-labelled samples (16 positives across all four
+modes, 14 negatives covering re-raise, log-and-raise, derived values, dead
 code, opt-out markers, non-fallback constants, non-suppress context managers,
-and same-name-different-origin imports). Ground truth lives in
+same-name-different-origin imports, and idiomatic control-flow suppression).
+Ground truth lives in
 `tests/corpus/manifest.json` and was written from the *semantics* of each
 fixture, independently of tool output.
 
 ```
-corpus v2   TP=15  FP=0  FN=0  TN=12
+corpus v2   TP=16  FP=0  FN=0  TN=14
 precision=1.0  recall=1.0
 ```
 

@@ -464,6 +464,11 @@ def _exc_type_name(expr: ast.expr) -> str:
     return "..."
 
 
+def _suppress_type_is_ignored(name: str) -> bool:
+    """True when a suppress argument matches the handler-level ignore list."""
+    return name in _IGNORED_EXC_NAMES or name.rsplit(".", 1)[-1] in _IGNORED_EXC_NAMES
+
+
 def _scan_suppress_statements(
     tree: ast.AST, *, file: str, source_lines: list[str] | None
 ) -> list[Finding]:
@@ -491,6 +496,17 @@ def _scan_suppress_statements(
             for arg in hits[0].args
             if isinstance(arg, (ast.Name, ast.Attribute))
         ]
+        # Same ignore list as handlers: suppressing control-flow exception
+        # types (cancellation absorption, iterator termination) is idiomatic,
+        # not failure routing. Flag unless *every* argument is a simple name
+        # on the ignore list -- one flaggable type means real errors are
+        # being silenced too.
+        if (
+            exc_names
+            and len(exc_names) == len(hits[0].args)
+            and all(_suppress_type_is_ignored(n) for n in exc_names)
+        ):
+            continue
         is_catch_all = "Exception" in exc_names
         if is_catch_all:
             message = (

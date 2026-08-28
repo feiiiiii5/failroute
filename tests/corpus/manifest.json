@@ -17,7 +17,8 @@
     {"file": "suppress_cases.py", "lineno": 31, "mode": "silent-suppress"},
     {"file": "suppress_cases.py", "lineno": 37, "mode": "silent-suppress"},
     {"file": "suppress_cases.py", "lineno": 43, "mode": "silent-suppress"},
-    {"file": "suppress_cases.py", "lineno": 50, "mode": "silent-suppress"}
+    {"file": "suppress_cases.py", "lineno": 50, "mode": "silent-suppress"},
+    {"file": "suppress_cases.py", "lineno": 90, "mode": "silent-suppress"}
   ],
   "labelled_true_negatives": [
     {"file": "no_action_cases.py", "lineno": 41, "note": "unconditional bare re-raise: failure propagates"},
@@ -30,7 +31,9 @@
     {"file": "masked_exception_cases.py", "lineno": 25, "note": "failroute: ignore marker - reviewed and accepted"},
     {"file": "masked_exception_cases.py", "lineno": 33, "note": "pragma: no cover marker - explicitly defensive"},
     {"file": "suppress_cases.py", "lineno": 58, "note": "failroute: ignore marker - reviewed and accepted"},
-    {"file": "suppress_cases.py", "lineno": 64, "note": "closing() does not swallow: not a suppress statement"},
-    {"file": "suppress_cases.py", "lineno": 70, "note": "same name, different origin: import resolves outside contextlib"}
+    {"file": "suppress_cases.py", "lineno": 70, "note": "same name, different origin: import resolves outside contextlib"},
+    {"file": "suppress_cases.py", "lineno": 77, "note": "cancellation absorption is idiomatic: handler-level ignore list applies"},
+    {"file": "suppress_cases.py", "lineno": 83, "note": "KeyboardInterrupt suppression: informational by design"},
+    {"file": "suppress_cases.py", "lineno": 64, "note": "closing() does not swallow: not a suppress statement"}
   ]
 }

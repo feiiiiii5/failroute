@@ -71,6 +71,26 @@ def name_collides_but_not_contextlib():
         return lookup(metric_name)
 
 
+def suppress_cancellation_absorption():
+    # CLEAN: absorbing cancellation is idiomatic control flow -- the same
+    # ignore list that exempts `except asyncio.CancelledError` applies here
+    with contextlib.suppress(asyncio.CancelledError):
+        fire_and_forget.cancel()
+
+
+def suppress_keyboard_interrupt():
+    # CLEAN: same ignore list, non-dotted form
+    with suppress(KeyboardInterrupt):
+        wait_for_confirmation()
+
+
+def suppress_mixed_ignore_and_real_error():
+    # FLAGGED silent-suppress: one real error type means real failures are
+    # silenced alongside the idiomatic one
+    with contextlib.suppress(asyncio.CancelledError, OSError):
+        await_ready(tasks)
+
+
 def suppress_used_as_value_is_untouched():
     # CLEAN: merely importing or passing around suppress routes nothing
     ctx_factory = contextlib.suppress

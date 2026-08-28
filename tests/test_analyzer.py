@@ -498,3 +498,45 @@ def g():
     )
     assert [f.lineno for f in findings] == sorted(f.lineno for f in findings)
     assert {f.mode for f in findings} == {FailureMode.SILENT_SUPPRESS, FailureMode.NO_ACTION}
+
+
+def test_suppress_control_flow_exceptions_not_flagged():
+    findings = scan_source(
+        """
+import asyncio
+import contextlib
+
+async def f():
+    with contextlib.suppress(asyncio.CancelledError):
+        fire_and_forget.cancel()
+"""
+    )
+    assert findings == []
+
+
+def test_suppress_keyboard_interrupt_not_flagged():
+    findings = scan_source(
+        """
+from contextlib import suppress
+
+def f():
+    with suppress(KeyboardInterrupt):
+        wait()
+"""
+    )
+    assert findings == []
+
+
+def test_suppress_mixed_ignore_and_real_error_flagged():
+    findings = scan_source(
+        """
+import asyncio
+import contextlib
+
+def f():
+    with contextlib.suppress(asyncio.CancelledError, OSError):
+        op()
+"""
+    )
+    assert len(findings) == 1
+    assert findings[0].mode == FailureMode.SILENT_SUPPRESS
