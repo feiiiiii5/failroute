@@ -9,3 +9,6 @@ build/
 
 # local issue drafts
 .issue-draft-*
+
+# promotion materials (strategy notes, never published from this repo)
+promo/
