@@ -72,3 +72,17 @@
 - [ ] 附最小复现（文件+行号+代码段，基于提交当日 main 分支）
 - [ ] 本台账状态迁移已记录，且同仓同缺陷无在途条目
 - [ ] 表述不含任何未合并/未确认的预设（红线：只写已发生状态）
+
+### V-1 ｜ vllm/vllm ｜ 扫描 + 抽样 triage 结论：暂无高置信发现，不立案
+- 状态：**RESEARCHED → 关闭（不提交，2026-08-28）**
+- 事实（v0.5.1，本地 scan_repo，可复现）：源码包 2032 个 py 文件，312 条发现
+  （silent-fallback 199 / silent-suppress 68 / no-action 44 / masked-exception 1），7.1s。
+  随机抽样（seed=270）4 条深查：
+  - `compilation/backends.py:245` 编译缓存过期 `return None` —— 有意契约（注释明示"重新生成正确缓存"）
+  - `platforms/cuda.py:852` 读 /sys NUMA cpulist 失败 `return False` —— typed 能力探测惯用法
+  - `entrypoints/mcp/tool.py:133` code interpreter 初始化失败 → `self.enabled=False` + warning 日志 —— 有意降级，状态可观察、有日志
+  - `v1/kv_offload/tiering/p2p/session/session.py:242` —— 上下文不完整，未判定，不作数
+- 结论：抽样有意契约率与 P-1（PyRIT）一致；vLLM handler 纪律高，与其维护质量相称。
+  **不作申请材料引用，不作上游证据**；若未来全量 triage 出高置信条目，走提交纪律核对表。
+- 另：PyTorch 侧 `Open source/pytorch-fork` 为不完整 clone（仅 54 个 py 文件，8 条发现无统计意义）；
+  全量扫描需完整 clone（约 2GB，受网络限速），列为待办，完成前 torch 线保持无结论状态。
