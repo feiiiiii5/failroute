@@ -56,7 +56,7 @@
 ### P-1 ｜ microsoft/PyRIT ｜ 抽样 triage 结论：低价值，不提交
 - 状态：**RESEARCHED → 关闭（不提交）**
 - 事实：上游源码 65 条语义级发现，人工抽样 12 处（gcg_attack、attack_service 游标、converter_service、remote_dataset_loader、storage、azure_sql_memory、notebook_utils 等）——**全部是有意契约**（非法输入返回 None 重启分页、能力探测、存在性检查、URL 校验）。唯一例外 `gcg_attack.py:226 _get_control_length` 仅影响一行日志，属装饰性。
-- 意义：这是"宁可少提不可刷量"纪律的实证样本，也是工具诚实度的证据（写进 write-up：误报主要来自对契约语义的机器不可知，靠人工 triage 收敛）。
+- 意义：这是"宁可少提不可刷量"纪律的实证样本，也是工具诚实度的实证（误报主要来自对契约语义的机器不可知，靠人工 triage 收敛）。
 
 ### Q-1..Q-5 ｜ inspect_ai / pydantic-ai / garak / trl / uqlm ｜ 候选池（未逐点阅读）
 - 状态：**NEW**（仅机器发现，未读代码前一律不得对外）
