@@ -1,4 +1,6 @@
-"""Tests for v0.2 deep-optimization behaviors:
+"""Detector semantics and CLI contract tests:
+
+(Landed across v0.2-v0.3; renamed from a release-sounding filename to what it tests.)
 
 - NAME_SHADOWING detector (previously declared but never emitted)
 - two-tier logging exemption (severity matters for catch-all handlers)
