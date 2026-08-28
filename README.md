@@ -8,6 +8,39 @@
 Static detection of **failure-routing** anti-patterns in Python: the practice of
 converting an underlying failure into a success-like outcome at the wrong layer.
 
+## Quickstart
+
+```console
+$ pip install failroute
+$ failroute judge.py
+judge.py:4: silent-suppress: contextlib.suppress(Exception) silently discards every failure inside the block; callers can never learn the operation failed
+1 finding(s)
+```
+
+The flagged code — the exact pattern ruff's SIM105 rule *recommends* as a fix:
+
+```python
+import contextlib
+
+def score_answer(prompt: str, answer: str) -> float:
+    with contextlib.suppress(Exception):   # judge outage == silence
+        return judge(prompt, answer)
+    return 0.0
+```
+
+## How it differs from the linters you already run
+
+| | ruff `S110`/`S112`, Bandit `B110`/`B112` | failroute |
+|---|---|---|
+| What it sees | the *shape* of a handler (`except: pass`, `except: continue`) | what the failure is *routed to* (constants returned, values assigned, suppress blocks) |
+| `return 0.0` after a judge outage | invisible | flagged (`silent-fallback`) |
+| `contextlib.suppress(Exception)` | invisible — SIM105 actively *recommends* migrating into it | flagged (`silent-suppress`) |
+| Branch-dependent outcomes (conditional re-raise + fallback) | invisible | flagged (`masked-exception`) |
+| Precision target | low-noise, syntactic by design | hand-labelled corpus, precision = recall = 1.0, findings expected to be triaged by a human |
+
+failroute is not a replacement: it runs alongside your linter as a separate,
+higher-scrutiny pass over eval, judge, and agent code paths.
+
 ## Why this exists
 
 While fixing correctness bugs across mainstream AI/ML open source, one defect
