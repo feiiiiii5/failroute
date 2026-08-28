@@ -370,3 +370,131 @@ def test_deeply_nested_source_never_crashes(tmp_path):
     target = tmp_path / "deep.py"
     target.write_text(f"x = {deep}\n", encoding="utf-8")
     assert scan_path(target) == []
+
+
+def test_silent_suppress_catch_all():
+    findings = scan_source(
+        """
+import contextlib
+
+def f():
+    with contextlib.suppress(Exception):
+        judge(prompt)
+"""
+    )
+    assert len(findings) == 1
+    assert findings[0].mode == FailureMode.SILENT_SUPPRESS
+    assert "every failure" in findings[0].message
+
+
+def test_silent_suppress_direct_import():
+    findings = scan_source(
+        """
+from contextlib import suppress
+
+def f():
+    with suppress(FileNotFoundError):
+        os.remove(path)
+"""
+    )
+    assert len(findings) == 1
+    assert findings[0].mode == FailureMode.SILENT_SUPPRESS
+    assert "except FileNotFoundError: pass" in findings[0].message
+
+
+def test_silent_suppress_aliased_import():
+    findings = scan_source(
+        """
+from contextlib import suppress as swallow
+
+def f():
+    with swallow(KeyError):
+        lookup(name)
+"""
+    )
+    assert len(findings) == 1
+
+
+def test_silent_suppress_async_with():
+    findings = scan_source(
+        """
+import contextlib
+
+async def f():
+    async with contextlib.suppress(ValueError):
+        await op()
+"""
+    )
+    assert len(findings) == 1
+    assert findings[0].mode == FailureMode.SILENT_SUPPRESS
+
+
+def test_suppress_from_other_module_not_flagged():
+    findings = scan_source(
+        """
+from helpers import suppress
+
+def f():
+    with suppress(ValueError):
+        lookup(name)
+"""
+    )
+    assert findings == []
+
+
+def test_suppress_ignore_marker_suppresses():
+    findings = scan_source(
+        """
+from contextlib import suppress
+
+def f():
+    with suppress(FileNotFoundError):  # failroute: ignore - best-effort cleanup
+        os.remove(path)
+"""
+    )
+    assert findings == []
+
+
+def test_non_suppress_context_manager_not_flagged():
+    findings = scan_source(
+        """
+import contextlib
+
+def f():
+    with contextlib.closing(open(path)) as stream:
+        return stream.read()
+"""
+    )
+    assert findings == []
+
+
+def test_suppress_referenced_as_value_not_flagged():
+    findings = scan_source(
+        """
+import contextlib
+
+def f():
+    return contextlib.suppress
+"""
+    )
+    assert findings == []
+
+
+def test_suppress_finding_sorted_with_handler_findings():
+    findings = scan_source(
+        """
+import contextlib
+
+def f():
+    with contextlib.suppress(Exception):
+        a()
+
+def g():
+    try:
+        b()
+    except Exception:
+        pass
+"""
+    )
+    assert [f.lineno for f in findings] == sorted(f.lineno for f in findings)
+    assert {f.mode for f in findings} == {FailureMode.SILENT_SUPPRESS, FailureMode.NO_ACTION}

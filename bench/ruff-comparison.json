@@ -1,73 +1,84 @@
 {
-  "run_at": "2026-08-27T11:07:58.738177+00:00",
+  "run_at": "2026-08-28T03:27:09.013128+00:00",
   "repos": [
     {
       "repo": "garak",
-      "failroute_total": 14,
+      "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/garak/garak",
+      "failroute_total": 13,
       "failroute_no_action": 6,
-      "failroute_semantic": 8,
+      "failroute_semantic": 7,
       "ruff_S110_S112": 9,
       "overlap_no_action": 4,
-      "failroute_only": 10,
+      "failroute_only": 9,
       "semantic_breakdown": {
         "silent-fallback": 4,
-        "masked-exception": 4
+        "masked-exception": 3,
+        "silent-suppress": 0
       }
     },
     {
-      "repo": "src",
-      "failroute_total": 354,
-      "failroute_no_action": 180,
-      "failroute_semantic": 170,
-      "ruff_S110_S112": 56,
-      "overlap_no_action": 52,
-      "failroute_only": 302,
+      "repo": "inspect_ai",
+      "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/inspect_ai-fork/src/inspect_ai",
+      "failroute_total": 303,
+      "failroute_no_action": 136,
+      "failroute_semantic": 166,
+      "ruff_S110_S112": 53,
+      "overlap_no_action": 49,
+      "failroute_only": 254,
       "semantic_breakdown": {
-        "silent-fallback": 173,
-        "masked-exception": 1
+        "silent-fallback": 160,
+        "masked-exception": 0,
+        "silent-suppress": 7
       }
     },
     {
       "repo": "pydantic_ai_slim",
-      "failroute_total": 82,
+      "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/pydantic-ai/pydantic_ai_slim",
+      "failroute_total": 98,
       "failroute_no_action": 27,
-      "failroute_semantic": 53,
+      "failroute_semantic": 69,
       "ruff_S110_S112": 4,
       "overlap_no_action": 4,
-      "failroute_only": 78,
+      "failroute_only": 94,
       "semantic_breakdown": {
-        "silent-fallback": 55,
-        "masked-exception": 0
+        "silent-fallback": 51,
+        "masked-exception": 0,
+        "silent-suppress": 20
       }
     },
     {
       "repo": "uqlm",
-      "failroute_total": 11,
+      "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/uqlm/uqlm",
+      "failroute_total": 14,
       "failroute_no_action": 8,
-      "failroute_semantic": 3,
+      "failroute_semantic": 6,
       "ruff_S110_S112": 2,
       "overlap_no_action": 2,
-      "failroute_only": 9,
+      "failroute_only": 12,
       "semantic_breakdown": {
-        "silent-fallback": 3,
-        "masked-exception": 0
+        "silent-fallback": 6,
+        "masked-exception": 0,
+        "silent-suppress": 0
       }
     },
     {
       "repo": "trl",
-      "failroute_total": 23,
+      "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/trl/trl",
+      "failroute_total": 22,
       "failroute_no_action": 9,
-      "failroute_semantic": 14,
+      "failroute_semantic": 13,
       "ruff_S110_S112": 2,
       "overlap_no_action": 2,
-      "failroute_only": 21,
+      "failroute_only": 20,
       "semantic_breakdown": {
-        "silent-fallback": 14,
-        "masked-exception": 0
+        "silent-fallback": 13,
+        "masked-exception": 0,
+        "silent-suppress": 0
       }
     },
     {
-      "repo": "src",
+      "repo": "smolagents",
+      "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/smolagents/src/smolagents",
       "failroute_total": 13,
       "failroute_no_action": 9,
       "failroute_semantic": 4,
@@ -76,11 +87,13 @@
       "failroute_only": 12,
       "semantic_breakdown": {
         "silent-fallback": 4,
-        "masked-exception": 0
+        "masked-exception": 0,
+        "silent-suppress": 0
       }
     },
     {
       "repo": "deepteam",
+      "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/deepteam-fork/deepteam",
       "failroute_total": 140,
       "failroute_no_action": 10,
       "failroute_semantic": 130,
@@ -89,11 +102,13 @@
       "failroute_only": 135,
       "semantic_breakdown": {
         "silent-fallback": 130,
-        "masked-exception": 0
+        "masked-exception": 0,
+        "silent-suppress": 0
       }
     },
     {
       "repo": "fickling",
+      "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/fickling/fickling",
       "failroute_total": 10,
       "failroute_no_action": 2,
       "failroute_semantic": 8,
@@ -102,16 +117,17 @@
       "failroute_only": 10,
       "semantic_breakdown": {
         "silent-fallback": 8,
-        "masked-exception": 0
+        "masked-exception": 0,
+        "silent-suppress": 0
       }
     }
   ],
   "totals": {
-    "failroute_total": 647,
-    "failroute_no_action": 251,
-    "failroute_semantic": 390,
-    "ruff_S110_S112": 80,
-    "overlap_no_action": 70,
-    "failroute_only": 577
+    "failroute_total": 613,
+    "failroute_no_action": 207,
+    "failroute_semantic": 403,
+    "ruff_S110_S112": 77,
+    "overlap_no_action": 67,
+    "failroute_only": 546
   }
 }

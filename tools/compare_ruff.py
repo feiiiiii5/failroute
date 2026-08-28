@@ -65,6 +65,7 @@ def compare(repo: Path) -> dict:
     overlap = fr_no_action & rf_set
     return {
         "repo": repo.name,
+        "path": str(repo),
         "failroute_total": len(fr),
         "failroute_no_action": len(fr_no_action),
         "failroute_semantic": len(fr_semantic),
@@ -73,7 +74,7 @@ def compare(repo: Path) -> dict:
         "failroute_only": len(fr) - len(overlap),
         "semantic_breakdown": {
             mode: sum(1 for f in fr if f.mode.value == mode)
-            for mode in ("silent-fallback", "masked-exception")
+            for mode in ("silent-fallback", "masked-exception", "silent-suppress")
         },
     }
 
@@ -104,14 +105,15 @@ def main() -> int:
     md.append(f"Run: {_dt.datetime.now(_dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
     md.append("")
     md.append(
-        "| Repo | failroute total | no-action | semantic (fallback+masked) "
-        "| ruff S110/S112 | overlap | failroute-only |"
+        "| Repo | scanned path | failroute total | no-action | semantic (fallback+masked) "
+        "| silent-suppress | ruff S110/S112 | overlap | failroute-only |"
     )
-    md.append("|---|---|---|---|---|---|---|")
+    md.append("|---|---|---|---|---|---|---|---|---|")
     for r in rows:
         md.append(
-            f"| {r['repo']} | {r['failroute_total']} | {r['failroute_no_action']} "
-            f"| {r['failroute_semantic']} | {r['ruff_S110_S112']} | {r['overlap_no_action']} "
+            f"| {r['repo']} | `{r['path']}` | {r['failroute_total']} | {r['failroute_no_action']} "
+            f"| {r['failroute_semantic']} | {r['semantic_breakdown'].get('silent-suppress', 0)} "
+            f"| {r['ruff_S110_S112']} | {r['overlap_no_action']} "
             f"| {r['failroute_only']} |"
         )
     md.append(
@@ -122,7 +124,9 @@ def main() -> int:
     md.append("")
     md.append(
         "`semantic` = silent-fallback + masked-exception: the failure-to-success "
-        "conversion class that ruff S110/S112 cannot express by construction."
+        "conversion class that ruff S110/S112 cannot express by construction. "
+        "`silent-suppress` = `with contextlib.suppress(...)`: semantically identical "
+        "to except+discard, but invisible to every shipped syntactic linter."
     )
     md.append("")
 

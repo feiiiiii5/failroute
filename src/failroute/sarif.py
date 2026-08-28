@@ -66,6 +66,28 @@ def _rule_descriptions() -> dict[str, dict[str, str]]:
             ),
             "defaultLevel": "warning",
         },
+        "name-shadowing": {
+            "name": "NameShadowing",
+            "shortDescription": "Caught exception variable is rebound in the handler",
+            "fullDescription": (
+                "Python deletes the `except E as e` binding when the handler exits, and "
+                "rebinding `e` inside the body already loses the original exception object. "
+                "Later uses of that name raise NameError. Use a different name for the new "
+                "value."
+            ),
+            "defaultLevel": "warning",
+        },
+        "silent-suppress": {
+            "name": "SilentSuppress",
+            "shortDescription": "contextlib.suppress routes the failure to silence",
+            "fullDescription": (
+                "`with contextlib.suppress(...)` is semantically identical to wrapping the body "
+                "in try/except and discarding the matched exceptions: the caller can never learn "
+                "the operation failed. Register the decision explicitly (log the failure, "
+                "narrow the exception types, or add a `# failroute: ignore` marker)."
+            ),
+            "defaultLevel": "warning",
+        },
     }
 
 

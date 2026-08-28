@@ -29,7 +29,8 @@ except Exception:
     run = doc["runs"][0]
     assert run["tool"]["driver"]["name"] == "failroute"
     assert len(run["results"]) == 2
-    assert len(run["tool"]["driver"]["rules"]) == 3  # no-action, silent-fallback, masked
+    # no-action, silent-fallback, masked, name-shadowing, silent-suppress
+    assert len(run["tool"]["driver"]["rules"]) == 5
 
 
 def test_sarif_severity_mapping():
@@ -67,7 +68,13 @@ def test_sarif_rule_metadata_has_descriptions():
     doc = to_sarif(findings)
     rules = doc["runs"][0]["tool"]["driver"]["rules"]
     ids = {r["id"] for r in rules}
-    assert {"failroute/no-action", "failroute/silent-fallback", "failroute/masked-exception"} == ids
+    assert {
+        "failroute/no-action",
+        "failroute/silent-fallback",
+        "failroute/masked-exception",
+        "failroute/name-shadowing",
+        "failroute/silent-suppress",
+    } == ids
     for rule in rules:
         assert rule["shortDescription"]["text"]
         assert rule["fullDescription"]["text"]

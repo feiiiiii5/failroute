@@ -20,7 +20,7 @@ inputs:
   failroute-version:
     description: "failroute version to install from PyPI"
     required: false
-    default: "0.3.0"
+    default: "0.5.0"
 
 runs:
   using: "composite"

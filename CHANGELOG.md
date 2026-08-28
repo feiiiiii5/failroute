@@ -2,6 +2,42 @@
 
 All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.5.0] - 2026-08-28
+
+### Added
+- `silent-suppress` detector: `with contextlib.suppress(...)` is semantically
+  identical to `try` / `except` + discard, but no shipped linter flags it —
+  and ruff's SIM105 actively recommends rewriting `try-except-pass` into this
+  form, migrating the silence out of every existing detector's view.
+  Resolution is import-aware (direct import, `contextlib.` attribute access,
+  and aliases are all recognized; a same-name import from another module is
+  not). `# failroute: ignore` / `# pragma: no cover` markers are honored on
+  the `with` line. Benchmark re-run: 77 suppress blocks across 8 real
+  AI/eval repositories, all invisible to ruff S110/S112.
+- Corpus v2: 27 hand-labelled samples (15 positives across all four modes,
+  12 negatives), labels written from fixture semantics independently of tool
+  output; precision 1.0 / recall 1.0 enforced by `pytest` and
+  `tools/benchmark.py`.
+- `tools/compare_ruff.py` now reports the `silent-suppress` column and
+  records the exact scanned path per repository.
+
+### Fixed
+- SARIF rule metadata was missing `name-shadowing` (shipped in 0.3.0 but
+  absent from the rules dictionary, so code scanning showed it without a
+  description). `silent-suppress` metadata added alongside.
+- `_handler_logs_error` was not scope-aware: a log call inside a callback
+  *defined* in the handler exempted the handler even though the callback may
+  never run. It now uses the same scope-aware walk as the rest of the
+  analyzer.
+- Module docstring claimed unconditional re-raise counts as `no-action`; the
+  implementation (and README) never flagged it.
+
+### Not adopted, deliberately
+- `return` inside `finally`: a real failure-routing form, but already covered
+  by syntactic rules (ruff/bugbear `B012`, `SIM107`). Adding it would dilute
+  the differentiator — failroute targets the class syntactic rules cannot
+  express.
+
 ## [0.4.0] - 2026-08-27
 
 ### Added

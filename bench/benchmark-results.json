@@ -1,10 +1,10 @@
 {
-  "corpus_version": 1,
-  "run_at": "2026-08-27T11:29:48Z",
-  "true_positives": 10,
+  "corpus_version": 2,
+  "run_at": "2026-08-28T03:24:00Z",
+  "true_positives": 15,
   "false_positives": [],
   "false_negatives": [],
-  "true_negatives": 9,
+  "true_negatives": 12,
   "true_negative_violations": [],
   "precision": 1.0,
   "recall": 1.0

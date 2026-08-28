@@ -25,6 +25,22 @@ recall gate still at 1.0 afterwards.
 | Inter-procedural fallback-flow tracking | Follow a fallback value to where it is consumed (score aggregation, reports) | A labelled corpus slice of >= 10 flow-through cases |
 | Additional modes (e.g. logged-but-swallowed) | The known limitation where logging handlers are treated as informational | Corpus evidence that reviewers want it flagged |
 
+## Shipped from this list (with the evidence that unlocked it)
+
+- **`silent-suppress` (v0.5.0)** — shipped without waiting for a maintainer
+  request because the gate it needed was corpus evidence, and corpus is ours
+  to produce: v2 added hand-labelled suppress fixtures, and the 8-repository
+  benchmark found 77 `contextlib.suppress` blocks invisible to every shipped
+  syntactic linter (ruff's SIM105 actively recommends migrating into this
+  form). Same failure-routing family, same precision gate held at 1.0.
+
+## Considered and declined
+
+- **`return` inside `finally`** — a real failure-routing form, but already
+  covered by syntactic rules (ruff/bugbear `B012`, `SIM107`). Adding it would
+  duplicate shipped linters and dilute the differentiator: failroute targets
+  the class syntactic rules cannot express.
+
 ## Non-goals
 
 - No rule additions without hand-labelled corpus validation.

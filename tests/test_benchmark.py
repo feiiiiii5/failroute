@@ -27,11 +27,11 @@ def test_corpus_precision_and_recall_are_perfect():
     assert report["recall"] == 1.0
 
 
-def test_corpus_covers_all_three_modes():
+def test_corpus_covers_all_modes():
     import json
 
     manifest_path = Path(__file__).resolve().parent / "corpus" / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     modes = {entry["mode"] for entry in manifest["expected"]}
-    assert modes == {"no-action", "silent-fallback", "masked-exception"}
-    assert len(manifest["labelled_true_negatives"]) >= 9
+    assert modes == {"no-action", "silent-fallback", "masked-exception", "silent-suppress"}
+    assert len(manifest["labelled_true_negatives"]) >= 12

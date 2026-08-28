@@ -46,6 +46,7 @@ return await llm_judge(prompt)
 | `silent-fallback` | handler returns/assigns a constant (`None`, `0`, `0.0`, `False`, `[]`, …) without re-raising |
 | `masked-exception` | **catch-all** handler re-raises conditionally yet also falls through to a success-looking return |
 | `name-shadowing` | `except E as e:` whose body rebinds `e` — Python deletes the binding at handler exit, so later uses raise `NameError` |
+| `silent-suppress` | `with contextlib.suppress(...)`: semantically identical to `except` + discard, but invisible to every shipped syntactic linter — and ruff's SIM105 actively *recommends* rewriting `try-except-pass` into this form |
 
 Findings are emitted as `file:line: mode: message`, or as JSON for CI.
 
@@ -93,7 +94,7 @@ CLI flags always override config. Malformed config is ignored, never fatal.
 ```yaml
 repos:
   - repo: https://github.com/feiiiiii5/failroute
-    rev: v0.4.0
+    rev: v0.5.0
     hooks:
       - id: failroute
 ```
@@ -167,6 +168,11 @@ def fetch(url):                             # silent-fallback (assign)
     except Exception:
         data = {"items": []}                # 💥 error looks like an empty result
     return data
+
+def evaluate(prompt):                       # silent-suppress
+    with contextlib.suppress(Exception):    # 💥 outage == silence, no trace at all
+        score = judge(prompt)
+    return score
 ```
 
 ## What it does *not* flag (by design)
@@ -190,14 +196,15 @@ copy-pasted from a run that cannot be re-executed.
 
 ### Labelled corpus (precision / recall)
 
-`tests/corpus/` holds 19 hand-labelled exception handlers (10 positives across
-all three modes, 9 negatives covering re-raise, log-and-raise, derived values,
-dead code, opt-out markers, and non-fallback constants). Ground truth lives in
+`tests/corpus/` holds 27 hand-labelled samples (15 positives across all four
+modes, 12 negatives covering re-raise, log-and-raise, derived values, dead
+code, opt-out markers, non-fallback constants, non-suppress context managers,
+and same-name-different-origin imports). Ground truth lives in
 `tests/corpus/manifest.json` and was written from the *semantics* of each
 fixture, independently of tool output.
 
 ```
-corpus v1   TP=10  FP=0  FN=0  TN=9
+corpus v2   TP=15  FP=0  FN=0  TN=12
 precision=1.0  recall=1.0
 ```
 
@@ -207,21 +214,27 @@ Re-run: `python tools/benchmark.py` (also enforced by `pytest`).
 
 Against the source packages of 8 real AI/eval repositories (garak,
 inspect_ai, pydantic-ai, uqlm, trl, smolagents, deepteam, fickling),
-failroute reported **647 findings**; ruff's exception-handling rules
-(`S110` try-except-pass, `S112` try-except-continue) reported **80**, of which
-70 overlap failroute's `no-action` mode. The remaining **390 findings are
-silent-fallback / masked-exception handlers** -- failures converted into
-success-looking values -- a class syntactic rules cannot express by
-construction.
+failroute reported **613 findings**; ruff's exception-handling rules
+(`S110` try-except-pass, `S112` try-except-continue) reported **67**, of which
+52 overlap failroute's `no-action` mode. The remaining findings split into two
+families ruff does not detect:
+
+- **403 silent-fallback / masked-exception handlers** — failures converted
+  into success-looking values, a class syntactic rules cannot express by
+  construction.
+- **77 `contextlib.suppress` blocks** — the modern silent-swallow idiom. No
+  shipped linter flags it, and ruff's SIM105 rule actively *recommends*
+  rewriting `try-except-pass` into `contextlib.suppress`: the semantics are
+  unchanged, but the silence becomes invisible to every existing detector.
 
 Re-run: `python tools/compare_ruff.py <repo> [<repo> ...]`.
-Results are checked into `bench/`.
+Results are checked into `bench/` with the exact scanned paths.
 
 ### Throughput
 
-Measured 2026-08-27 on `microsoft/PyRIT` (656 files, 148,241 lines):
-**78 kLOC/s** single-core (1.91 s wall time, 107 findings). Re-run:
-`time failroute --repo <checkout> --quiet`.
+Measured 2026-08-28 on the `microsoft/PyRIT` source package (651 files,
+146,684 lines): **~147 kLOC/s** single-core (0.99 s wall time, 98 findings,
+warm cache). Re-run: `time failroute --repo <checkout> --quiet`.
 
 ## Development
 

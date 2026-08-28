@@ -8,7 +8,7 @@ jobs:
   pypi:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write   # PyPI Trusted Publishing (OIDC) when PYPI_API_TOKEN is absent
+      id-token: write   # PyPI Trusted Publishing (OIDC, no long-lived token)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -19,4 +19,3 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          password: ${{ secrets.PYPI_API_TOKEN }}

@@ -5,8 +5,7 @@ Design notes
 The scanner walks every ``ExceptHandler`` and inspects what its body does
 about the exception:
 
-* **No action** (body is ``pass``, ``...``, a bare comment-holder, or the
-  handler re-raises unconditionally without recording anything): the caller
+* **No action** (body is ``pass``, ``...``, or a bare comment-holder): the caller
   can never learn the operation failed.  This is the classic "swallowed
   exception" defect and the root cause behind score/result corruption in
   eval frameworks.
@@ -24,6 +23,12 @@ about the exception:
 * **Name shadowing** (``except E as e:`` whose body rebinds ``e``): Python
   deletes the binding when the handler exits, so any later use of the name
   raises ``NameError`` — and mid-handler the original exception object is lost.
+
+* **Silent suppress** (``with contextlib.suppress(...):``): semantically
+  identical to ``try`` / ``except`` + discard, but invisible to every
+  shipped syntactic linter — and ruff's SIM105 actively *recommends*
+  rewriting ``try-except-pass`` into this form. The silence is unchanged;
+  only the syntax learns to hide.
 
 The heuristics deliberately err on the side of *reporting*: reviewers
 (and CI gates) can triage quickly, and a finding is always worth a look at
@@ -81,10 +86,11 @@ _ACTIVE_CALL_NAMES: set[str] = {"exit", "_exit"}
 
 #: Aggregated finding kinds, kept coarse so consumers can group by root cause.
 class FailureMode(str, Enum):
-    NO_ACTION = "no-action"  # pass / bare / unconditional re-raise, nothing recorded
+    NO_ACTION = "no-action"  # pass / bare, nothing recorded
     SILENT_FALLBACK = "silent-fallback"  # returns a constant, never re-raises
     MASKED_EXCEPTION = "masked-exception"  # catch-all that swallows the original error
     NAME_SHADOWING = "name-shadowing"  # except as e: ... success path uses a stale value
+    SILENT_SUPPRESS = "silent-suppress"  # with contextlib.suppress(...): failure routed to silence
 
 
 @dataclass(frozen=True)
@@ -411,6 +417,106 @@ def _finding(
     )
 
 
+def _collect_import_bindings(tree: ast.AST) -> dict[str, str]:
+    """Map module-level names to their dotted import origins.
+
+    Needed so that ``with suppress(...)``, ``from contextlib import suppress as x``
+    and ``import contextlib as cl`` all resolve to the same silent-swallow
+    primitive, while ``from helpers import suppress`` correctly does not.
+    """
+    bindings: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                bindings[alias.asname or alias.name.split(".")[0]] = alias.name
+        elif isinstance(node, ast.ImportFrom):
+            if node.level or not node.module:
+                continue
+            for alias in node.names:
+                bindings[alias.asname or alias.name] = f"{node.module}.{alias.name}"
+    return bindings
+
+
+def _is_suppress_call(func: ast.expr, bindings: dict[str, str]) -> bool:
+    """True when ``func`` resolves to ``contextlib.suppress`` via the file's imports."""
+    if isinstance(func, ast.Name):
+        return bindings.get(func.id, func.id) == "contextlib.suppress"
+    if isinstance(func, ast.Attribute) and func.attr == "suppress":
+        base = func.value
+        if isinstance(base, ast.Name):
+            return bindings.get(base.id, base.id) == "contextlib"
+    return False
+
+
+def _exc_type_name(expr: ast.expr) -> str:
+    """Best-effort dotted name of an exception type expression."""
+    if isinstance(expr, ast.Name):
+        return expr.id
+    if isinstance(expr, ast.Attribute):
+        parts: list[str] = []
+        cur: ast.expr = expr
+        while isinstance(cur, ast.Attribute):
+            parts.append(cur.attr)
+            cur = cur.value
+        if isinstance(cur, ast.Name):
+            parts.append(cur.id)
+            return ".".join(reversed(parts))
+    return "..."
+
+
+def _scan_suppress_statements(
+    tree: ast.AST, *, file: str, source_lines: list[str] | None
+) -> list[Finding]:
+    """Find ``with contextlib.suppress(...)`` blocks: failure routed to silence.
+
+    Semantically identical to ``try`` / ``except`` + discard, but structured as
+    a context manager, so handler-based detection never sees it. One finding
+    per ``with`` statement even when several suppress items share it.
+    """
+    bindings = _collect_import_bindings(tree)
+    findings: list[Finding] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.With, ast.AsyncWith)):
+            continue
+        hits = [
+            item.context_expr
+            for item in node.items
+            if isinstance(item.context_expr, ast.Call)
+            and _is_suppress_call(item.context_expr.func, bindings)
+        ]
+        if not hits or _marked_off(node, source_lines):
+            continue
+        exc_names = [
+            _exc_type_name(arg)
+            for arg in hits[0].args
+            if isinstance(arg, (ast.Name, ast.Attribute))
+        ]
+        is_catch_all = "Exception" in exc_names
+        if is_catch_all:
+            message = (
+                "contextlib.suppress(Exception) silently discards every failure inside the "
+                "block; callers can never learn the operation failed"
+            )
+        else:
+            shown = exc_names[0] if exc_names else "..."
+            message = (
+                f"contextlib.suppress({shown}) routes the failure to silence — the same "
+                f"routing decision as `except {shown}: pass`"
+            )
+        findings.append(
+            Finding(
+                file=file,
+                lineno=node.lineno,
+                end_lineno=getattr(node, "end_lineno", node.lineno),
+                mode=FailureMode.SILENT_SUPPRESS,
+                exc_name=None,
+                handler_text=f"suppress({', '.join(exc_names) if exc_names else '...'})",
+                message=message,
+            )
+        )
+    return findings
+
+
 def _render_handler(handler: ast.ExceptHandler, limit: int = 240) -> str:
     try:
         start = handler.lineno
@@ -420,6 +526,24 @@ def _render_handler(handler: ast.ExceptHandler, limit: int = 240) -> str:
     except Exception:  # pragma: no cover - defensive
         pass
     return f"except ... (line {handler.lineno})"
+
+
+def _marked_off(node: ast.stmt, lines: list[str] | None) -> bool:
+    """True when the node's exact source slice carries an opt-out marker.
+
+    Same two markers as handlers (``# pragma: no cover`` and
+    ``# failroute: ignore``); used for suppress statements, whose body is
+    protected code rather than an error handler.
+    """
+    if lines is None:
+        return False
+    try:
+        start = node.lineno
+        end = getattr(node, "end_lineno", start)
+        slice_text = "\n".join(lines[start - 1 : end])
+    except Exception:  # defensive - slicing failures should never crash a scan
+        return False
+    return "# pragma: no cover" in slice_text or "# failroute: ignore" in slice_text
 
 
 def scan_tree(tree: ast.AST, *, file: str = "<source>", source: str | None = None) -> list[Finding]:
@@ -450,6 +574,10 @@ def scan_tree(tree: ast.AST, *, file: str = "<source>", source: str | None = Non
                     self.visit_ExceptHandler(child)
 
     Walker().visit(tree)
+    findings.extend(_scan_suppress_statements(tree, file=file, source_lines=source_lines))
+    # Deterministic order: line-sorted; the stable sort keeps per-handler
+    # insertion order for same-line findings.
+    findings.sort(key=lambda f: f.lineno)
     return findings
 
 
@@ -497,7 +625,9 @@ def _handler_logs_error(handler: ast.ExceptHandler) -> bool:
     """
     catch_all = _is_catch_all(handler.type)
     for stmt in handler.body:
-        for child in ast.walk(stmt):
+        # Scope-aware: a log call inside a callback *defined* in the handler
+        # belongs to the callback (which may never run), not to the handler.
+        for child in _walk_scope([stmt]):
             if not isinstance(child, ast.Call):
                 continue
             func = child.func
