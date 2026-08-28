@@ -83,6 +83,6 @@
   - `entrypoints/mcp/tool.py:133` code interpreter 初始化失败 → `self.enabled=False` + warning 日志 —— 有意降级，状态可观察、有日志
   - `v1/kv_offload/tiering/p2p/session/session.py:242` —— 上下文不完整，未判定，不作数
 - 结论：抽样有意契约率与 P-1（PyRIT）一致；vLLM handler 纪律高，与其维护质量相称。
-  **不作申请材料引用，不作上游证据**；若未来全量 triage 出高置信条目，走提交纪律核对表。
+  无失效后果链成立的条目，故不立案；若未来全量 triage 出高置信条目，走提交纪律核对表。
 - 另：PyTorch 侧 `Open source/pytorch-fork` 为不完整 clone（仅 54 个 py 文件，8 条发现无统计意义）；
   全量扫描需完整 clone（约 2GB，受网络限速），列为待办，完成前 torch 线保持无结论状态。
