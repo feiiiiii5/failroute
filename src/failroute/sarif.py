@@ -2,18 +2,23 @@
 
 Emits findings in the Static Analysis Results Interchange Format so the
 tool can plug directly into GitHub code scanning (``upload-sarif`` action)
-or any SARIF-consuming CI. Severity mapping:
+or any SARIF-consuming CI.
 
-* ``silent-fallback``  -> error      (silent data corruption)
-* ``masked-exception`` -> warning    (branch-dependent outcome)
-* ``no-action``        -> warning    (dropped failure, no trace)
+Rule definitions are **generated from the rule registry**
+(:mod:`failroute.rules`) — every rule's identifier, descriptions, and default
+severity live on its :class:`failroute.ir.RuleSpec`, so a rule cannot ship
+findings whose metadata the SARIF output does not know about (the structural
+bug behind the v0.5.0 name-shadowing metadata gap). Projects can override a
+rule's level via ``[tool.failroute.rules.<id>] severity = "..."``.
 """
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
-from failroute.analyzer import FailureMode, Finding
+from failroute.ir import Finding
+from failroute.rules import all_rules, rule_by_id
 
 # Single source of truth is the installed distribution metadata; the previous
 # hardcoded constant drifted out of sync on release (v0.3.0 shipped labelled 0.2.0).
@@ -23,81 +28,50 @@ try:  # pragma: no cover - exercised only when metadata is unavailable
     __version__ = _metadata.version("failroute")
 except Exception:  # pragma: no cover - defensive fallback
     __version__ = "0.0.0"
+
 _RULE_ID_PREFIX = "failroute"
 
-
-def _level(mode: FailureMode) -> str:
-    if mode is FailureMode.SILENT_FALLBACK:
-        return "error"
-    return "warning"
+#: Fallback level for findings whose rule_id is not in the registry
+#: (third-party rules): corruption-shaped modes default to error.
+_MODE_DEFAULT_LEVELS = {"silent-fallback": "error", "implicit-fallback": "error"}
 
 
-def _rule_descriptions() -> dict[str, dict[str, str]]:
-    return {
-        "no-action": {
-            "name": "NoAction",
-            "shortDescription": "Exception is silently discarded (pass/...)",
-            "fullDescription": (
-                "The exception handler does nothing: the failure is dropped and callers "
-                "can never learn the operation failed. Log the error, re-raise, or "
-                "return an explicit failure signal."
-            ),
-            "defaultLevel": "warning",
-        },
-        "silent-fallback": {
-            "name": "SilentFallback",
-            "shortDescription": "Failure is converted to a constant fallback value",
-            "fullDescription": (
-                "The handler returns or assigns a constant fallback (None/0/0.0/False/[]/{}...)"
-                " without re-raising or recording the error, so the caller cannot distinguish "
-                "a real failure from a legitimate value of the same shape. Route the failure "
-                "to the correct outcome instead (propagate, log at error level, or return an "
-                "explicit error object)."
-            ),
-            "defaultLevel": "error",
-        },
-        "masked-exception": {
-            "name": "MaskedException",
-            "shortDescription": "Branch-dependent failure outcome",
-            "fullDescription": (
-                "The handler conditionally re-raises but also falls back to a constant return; "
-                "whether the caller sees failure or success depends on the branch. Make the "
-                "failure path unconditional or propagate explicitly."
-            ),
-            "defaultLevel": "warning",
-        },
-        "name-shadowing": {
-            "name": "NameShadowing",
-            "shortDescription": "Caught exception variable is rebound in the handler",
-            "fullDescription": (
-                "Python deletes the `except E as e` binding when the handler exits, and "
-                "rebinding `e` inside the body already loses the original exception object. "
-                "Later uses of that name raise NameError. Use a different name for the new "
-                "value."
-            ),
-            "defaultLevel": "warning",
-        },
-        "silent-suppress": {
-            "name": "SilentSuppress",
-            "shortDescription": "contextlib.suppress routes the failure to silence",
-            "fullDescription": (
-                "`with contextlib.suppress(...)` is semantically identical to wrapping the body "
-                "in try/except and discarding the matched exceptions: the caller can never learn "
-                "the operation failed. Register the decision explicitly (log the failure, "
-                "narrow the exception types, or add a `# failroute: ignore` marker)."
-            ),
-            "defaultLevel": "warning",
-        },
-    }
+def _level(finding: Finding, severity_overrides: dict[str, str]) -> str:
+    rule = rule_by_id(finding.rule_id) if finding.rule_id else None
+    if rule is not None:
+        return severity_overrides.get(rule.spec.rule_id, rule.spec.severity)
+    return _MODE_DEFAULT_LEVELS.get(finding.mode.value, "warning")
 
 
-def to_sarif(findings: list[Finding], *, repo_uri: str | None = None) -> dict[str, Any]:
+def _rules_metadata(severity_overrides: dict[str, str]) -> list[dict[str, Any]]:
+    metadata = []
+    for rule in all_rules():
+        spec = rule.spec
+        metadata.append(
+            {
+                "id": f"{_RULE_ID_PREFIX}/{spec.rule_id}",
+                "name": spec.name,
+                "shortDescription": {"text": spec.short_description},
+                "fullDescription": {"text": spec.full_description},
+                "defaultConfiguration": {"level": severity_overrides.get(spec.rule_id, spec.severity)},
+                "helpUri": "https://github.com/feiiiiii5/failroute#readme",
+            }
+        )
+    return metadata
+
+
+def to_sarif(
+    findings: list[Finding],
+    *,
+    repo_uri: str | None = None,
+    severity_overrides: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """Render findings as a SARIF 2.1.0 run document."""
-    rules = _rule_descriptions()
+    overrides = severity_overrides or {}
     results: list[dict[str, Any]] = []
 
     for finding in findings:
-        rule_id = f"{_RULE_ID_PREFIX}/{finding.mode.value}"
+        rule_id = f"{_RULE_ID_PREFIX}/{finding.rule_id or finding.mode.value}"
         location: dict[str, Any] = {
             "physicalLocation": {
                 "artifactLocation": {"uri": finding.file},
@@ -115,7 +89,7 @@ def to_sarif(findings: list[Finding], *, repo_uri: str | None = None) -> dict[st
         results.append(
             {
                 "ruleId": rule_id,
-                "level": _level(finding.mode),
+                "level": _level(finding, overrides),
                 "message": {"text": finding.message},
                 "locations": [location],
                 "properties": {
@@ -123,20 +97,6 @@ def to_sarif(findings: list[Finding], *, repo_uri: str | None = None) -> dict[st
                     "mode": finding.mode.value,
                     "handler_text": finding.handler_text,
                 },
-            }
-        )
-
-    rules_metadata = []
-    for rule_name, meta in rules.items():
-        rule_id = f"{_RULE_ID_PREFIX}/{rule_name}"
-        rules_metadata.append(
-            {
-                "id": rule_id,
-                "name": meta["name"],
-                "shortDescription": {"text": meta["shortDescription"]},
-                "fullDescription": {"text": meta["fullDescription"]},
-                "defaultConfiguration": {"level": meta["defaultLevel"]},
-                "helpUri": "https://github.com/feiiiiii5/failroute#readme",
             }
         )
 
@@ -150,7 +110,7 @@ def to_sarif(findings: list[Finding], *, repo_uri: str | None = None) -> dict[st
                         "name": "failroute",
                         "version": __version__,
                         "informationUri": "https://github.com/feiiiiii5/failroute",
-                        "rules": rules_metadata,
+                        "rules": _rules_metadata(overrides),
                     }
                 },
                 "results": results,
@@ -159,8 +119,11 @@ def to_sarif(findings: list[Finding], *, repo_uri: str | None = None) -> dict[st
     }
 
 
-def to_sarif_json(findings: list[Finding], *, repo_uri: str | None = None) -> str:
+def to_sarif_json(
+    findings: list[Finding],
+    *,
+    repo_uri: str | None = None,
+    severity_overrides: dict[str, str] | None = None,
+) -> str:
     """Render findings as a JSON-encoded SARIF document."""
-    import json
-
-    return json.dumps(to_sarif(findings, repo_uri=repo_uri), indent=2)
+    return json.dumps(to_sarif(findings, repo_uri=repo_uri, severity_overrides=severity_overrides), indent=2)

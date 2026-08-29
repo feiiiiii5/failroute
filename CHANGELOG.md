@@ -2,6 +2,69 @@
 
 All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.6.0] - 2026-08-29
+
+### Added
+- **`implicit-fallback` detector**: a handler that neither re-raises, returns
+  explicitly, nor records the failure falls through — and inside a
+  value-returning function the caller observes exactly the outcome of
+  `except: pass` (the implicit `return None`). The v0.5 visitor only
+  examined raise/return/assignment statements, so bare-statement handlers
+  (`print(...)`, conditional raises, docstring-only bodies) slipped through
+  every gate. Precision gates: the enclosing function must return a real
+  value on its success path; procedures, generators, logged handlers,
+  bare-`return`-only functions, and process-terminating handlers are exempt.
+- **Rule registry + plugin architecture** (`failroute.rules`): one module
+  per anti-pattern with declarative metadata (`RuleSpec`); adding a rule is
+  one module + one registry line. SARIF rule metadata is now generated from
+  the registry, closing the output-drift class of bugs.
+- **Unified finding IR** (`failroute.ir`): `Finding` carries `rule_id`;
+  `FailureMode`, `RuleSpec`, `ScanContext` and the `Rule` contract live in
+  one place.
+- **Configurable fallback sentinels**: `[tool.failroute] fallback_values =
+  [-1, "N/A"]` teaches the scanner a project's failure vocabulary; the
+  detector matches the canonical rendering and refuses to guess unconfigured
+  semantics.
+- **Per-rule policy**: `[tool.failroute.rules.<id>] enabled / severity`
+  tables and a `--ignore RULE` CLI flag.
+- **Performance**: `--jobs N` (0 = per-core) fans repo scans across worker
+  processes; `--cache` keeps an mtime+size-keyed cache in the system temp
+  dir. Measured on the vLLM core tree (2,032 files / ~758 kLOC): 10.3 s
+  serial -> 2.0 s parallel (~377 kLOC/s) -> 0.1 s cache-warm, findings
+  byte-identical across all three paths.
+- Corpus v3: 36 hand-labelled positives + 27 labelled negatives (63 total)
+  across all six modes, including the implicit-fallback family and
+  configurable-sentinel boundary cases.
+- `docs/architecture.md` (five-layer pipeline) and `docs/triage.md` (the
+  human adjudication workflow behind the precision claim).
+
+### Fixed
+- **Logger-name heuristic**: the exact five-name whitelist (`logger`,
+  `logging`, `log`, `_logger`, `sentry_sdk`) misjudged conventional names
+  (`LOG`, `audit_logger`, `self._log`), so recording handlers were falsely
+  reported as silent fallbacks. Names are now matched case-insensitively
+  with the conventional `_log`/`_logger`/`logger`/`logging` suffixes.
+- **`match`/`case` conditional raises** are recognised as branches
+  (`masked-exception` classification, not the lower-level
+  `silent-fallback`).
+- **Handlers nested two or more levels deep were reported twice** — the
+  v0.5 walker re-visited its own subtree for nested handlers. Every handler
+  is now visited exactly once (regression test in `test_boundaries.py`).
+- Numeric fallback tokens `1` / `1.0` were dead whitelist entries (the
+  renderer never produced them); the renderer now canonicalises every
+  numeric constant, so `return 1` is flagged as the documented ambiguous
+  hint. Augmented assignments (`failed += 1`) are excluded on purpose:
+  the constant is an increment, never the assigned fallback value.
+- The v0.6 rules found 2 latent silent-fallback shapes in failroute's own
+  cache code during self-scan; both restructured (propagate or log) per the
+  tool's own discipline.
+
+### Changed
+- Engine internals moved to the registry architecture with identical
+  detection behaviour on the existing corpus; public API
+  (`scan_source`/`scan_path`/`scan_repo`/`main`/`Finding`/`FailureMode`)
+  is unchanged, with `Finding.to_dict()` gaining a `rule_id` field.
+
 ## [0.5.1] - 2026-08-28
 
 ### Fixed

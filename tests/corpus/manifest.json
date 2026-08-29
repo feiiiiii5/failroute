@@ -1,39 +1,324 @@
 {
-  "corpus_version": 2,
-  "labelled": "2026-08-28",
-  "description": "Ground-truth manifest for the failroute benchmark corpus. Each entry is an independently labelled true positive: (file, line of the `except` keyword, or the `with` keyword for silent-suppress, expected mode). Absence of a finding on any other handler or suppress statement in the corpus files is a labelled true negative. Labels were derived from the semantics of each fixture, not from tool output.",
+  "corpus_version": 3,
+  "labelled": "2026-08-29",
+  "description": "Ground-truth manifest for the failroute benchmark corpus. Each entry is an independently labelled true positive: (file, line of the `except` keyword, or the `with` keyword for silent-suppress, expected mode). Absence of a finding on any other handler or suppress statement in the corpus files is a labelled true negative. Labels were derived from the semantics of each fixture, not from tool output. v3 adds the implicit-fallback detector (fall-through handlers in value-returning functions), the configurable-sentinel boundary samples, and the v0.6 shape regressions.",
   "expected": [
-    {"file": "no_action_cases.py", "lineno": 16, "mode": "no-action"},
-    {"file": "no_action_cases.py", "lineno": 24, "mode": "no-action"},
-    {"file": "no_action_cases.py", "lineno": 32, "mode": "no-action"},
-    {"file": "silent_fallback_cases.py", "lineno": 14, "mode": "silent-fallback"},
-    {"file": "silent_fallback_cases.py", "lineno": 22, "mode": "silent-fallback"},
-    {"file": "silent_fallback_cases.py", "lineno": 30, "mode": "silent-fallback"},
-    {"file": "silent_fallback_cases.py", "lineno": 39, "mode": "silent-fallback"},
-    {"file": "silent_fallback_cases.py", "lineno": 48, "mode": "silent-fallback"},
-    {"file": "masked_exception_cases.py", "lineno": 15, "mode": "masked-exception"},
-    {"file": "masked_exception_cases.py", "lineno": 42, "mode": "masked-exception"},
-    {"file": "suppress_cases.py", "lineno": 23, "mode": "silent-suppress"},
-    {"file": "suppress_cases.py", "lineno": 31, "mode": "silent-suppress"},
-    {"file": "suppress_cases.py", "lineno": 37, "mode": "silent-suppress"},
-    {"file": "suppress_cases.py", "lineno": 43, "mode": "silent-suppress"},
-    {"file": "suppress_cases.py", "lineno": 50, "mode": "silent-suppress"},
-    {"file": "suppress_cases.py", "lineno": 90, "mode": "silent-suppress"}
+    {
+      "file": "no_action_cases.py",
+      "lineno": 16,
+      "mode": "no-action"
+    },
+    {
+      "file": "no_action_cases.py",
+      "lineno": 24,
+      "mode": "no-action"
+    },
+    {
+      "file": "no_action_cases.py",
+      "lineno": 32,
+      "mode": "no-action"
+    },
+    {
+      "file": "silent_fallback_cases.py",
+      "lineno": 14,
+      "mode": "silent-fallback"
+    },
+    {
+      "file": "silent_fallback_cases.py",
+      "lineno": 22,
+      "mode": "silent-fallback"
+    },
+    {
+      "file": "silent_fallback_cases.py",
+      "lineno": 30,
+      "mode": "silent-fallback"
+    },
+    {
+      "file": "silent_fallback_cases.py",
+      "lineno": 39,
+      "mode": "silent-fallback"
+    },
+    {
+      "file": "silent_fallback_cases.py",
+      "lineno": 48,
+      "mode": "silent-fallback"
+    },
+    {
+      "file": "masked_exception_cases.py",
+      "lineno": 15,
+      "mode": "masked-exception"
+    },
+    {
+      "file": "masked_exception_cases.py",
+      "lineno": 42,
+      "mode": "masked-exception"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 23,
+      "mode": "silent-suppress"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 31,
+      "mode": "silent-suppress"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 37,
+      "mode": "silent-suppress"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 43,
+      "mode": "silent-suppress"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 50,
+      "mode": "silent-suppress"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 90,
+      "mode": "silent-suppress"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 16,
+      "mode": "implicit-fallback"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 25,
+      "mode": "implicit-fallback"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 34,
+      "mode": "implicit-fallback"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 42,
+      "mode": "implicit-fallback"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 50,
+      "mode": "implicit-fallback"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 60,
+      "mode": "implicit-fallback"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 63,
+      "mode": "no-action"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 72,
+      "mode": "implicit-fallback"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 134,
+      "mode": "silent-fallback"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 37,
+      "mode": "silent-fallback"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 46,
+      "mode": "name-shadowing"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 56,
+      "mode": "masked-exception"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 67,
+      "mode": "silent-suppress"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 73,
+      "mode": "silent-suppress"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 82,
+      "mode": "silent-suppress"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 114,
+      "mode": "silent-fallback"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 122,
+      "mode": "silent-fallback"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 136,
+      "mode": "silent-suppress"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 144,
+      "mode": "no-action"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 153,
+      "mode": "name-shadowing"
+    }
   ],
   "labelled_true_negatives": [
-    {"file": "no_action_cases.py", "lineno": 41, "note": "unconditional bare re-raise: failure propagates"},
-    {"file": "no_action_cases.py", "lineno": 49, "note": "re-raise wrapped as domain error: still propagation"},
-    {"file": "no_action_cases.py", "lineno": 57, "note": "KeyboardInterrupt handler: informational by design"},
-    {"file": "silent_fallback_cases.py", "lineno": 56, "note": "return value derived from the exception, not a constant"},
-    {"file": "silent_fallback_cases.py", "lineno": 65, "note": "documented limitation: handlers that log are informational"},
-    {"file": "silent_fallback_cases.py", "lineno": 74, "note": "fallback return unreachable after unconditional raise"},
-    {"file": "silent_fallback_cases.py", "lineno": 83, "note": "non-empty container is not a fallback shape"},
-    {"file": "masked_exception_cases.py", "lineno": 25, "note": "failroute: ignore marker - reviewed and accepted"},
-    {"file": "masked_exception_cases.py", "lineno": 33, "note": "pragma: no cover marker - explicitly defensive"},
-    {"file": "suppress_cases.py", "lineno": 58, "note": "failroute: ignore marker - reviewed and accepted"},
-    {"file": "suppress_cases.py", "lineno": 70, "note": "same name, different origin: import resolves outside contextlib"},
-    {"file": "suppress_cases.py", "lineno": 77, "note": "cancellation absorption is idiomatic: handler-level ignore list applies"},
-    {"file": "suppress_cases.py", "lineno": 83, "note": "KeyboardInterrupt suppression: informational by design"},
-    {"file": "suppress_cases.py", "lineno": 64, "note": "closing() does not swallow: not a suppress statement"}
+    {
+      "file": "no_action_cases.py",
+      "lineno": 41,
+      "note": "unconditional bare re-raise: failure propagates"
+    },
+    {
+      "file": "no_action_cases.py",
+      "lineno": 49,
+      "note": "re-raise wrapped as domain error: still propagation"
+    },
+    {
+      "file": "no_action_cases.py",
+      "lineno": 57,
+      "note": "KeyboardInterrupt handler: informational by design"
+    },
+    {
+      "file": "silent_fallback_cases.py",
+      "lineno": 56,
+      "note": "return value derived from the exception, not a constant"
+    },
+    {
+      "file": "silent_fallback_cases.py",
+      "lineno": 65,
+      "note": "documented limitation: handlers that log are informational"
+    },
+    {
+      "file": "silent_fallback_cases.py",
+      "lineno": 74,
+      "note": "fallback return unreachable after unconditional raise"
+    },
+    {
+      "file": "silent_fallback_cases.py",
+      "lineno": 83,
+      "note": "non-empty container is not a fallback shape"
+    },
+    {
+      "file": "masked_exception_cases.py",
+      "lineno": 25,
+      "note": "failroute: ignore marker - reviewed and accepted"
+    },
+    {
+      "file": "masked_exception_cases.py",
+      "lineno": 33,
+      "note": "pragma: no cover marker - explicitly defensive"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 58,
+      "note": "failroute: ignore marker - reviewed and accepted"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 70,
+      "note": "same name, different origin: import resolves outside contextlib"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 77,
+      "note": "cancellation absorption is idiomatic: handler-level ignore list applies"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 83,
+      "note": "KeyboardInterrupt suppression: informational by design"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 64,
+      "note": "closing() does not swallow: not a suppress statement"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 80,
+      "note": "procedure function: implicit None is the legitimate contract"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 89,
+      "note": "generator: fall-through ends iteration, a different contract"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 98,
+      "note": "documented limitation: error-level log makes the handler informational"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 106,
+      "note": "typed handler logging at any level is informational"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 117,
+      "note": "success path only returns bare None: fall-through not distinguishable"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 125,
+      "note": "sys.exit terminates the process; no caller observes a value"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 20,
+      "note": "numeric sentinel -1 requires [tool.failroute] fallback_values; not a built-in guess"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 28,
+      "note": "enum member attribute is not a constant literal"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 89,
+      "note": "same name, different origin: framework_suppress is not contextlib.suppress"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 97,
+      "note": "os._exit terminates like a raise"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 105,
+      "note": "rebinding a different name is ordinary code"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 130,
+      "note": "named sentinel is a Name node, not a constant literal"
+    },
+    {
+      "file": "v06_shapes.py",
+      "lineno": 160,
+      "note": "GeneratorExit suppression is control-flow, not failure routing"
+    }
   ]
 }

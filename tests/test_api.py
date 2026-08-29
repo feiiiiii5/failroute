@@ -93,12 +93,7 @@ def test_typed_conditional_raise_with_fallback_is_still_a_finding():
 
 def test_dead_fallback_after_unconditional_raise_is_not_reported():
     source = (
-        "def f():\n"
-        "    try:\n"
-        "        return g()\n"
-        "    except ValueError:\n"
-        "        raise\n"
-        "        return None\n"
+        "def f():\n    try:\n        return g()\n    except ValueError:\n        raise\n        return None\n"
     )
     assert scan_source(source) == []
 

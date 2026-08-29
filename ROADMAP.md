@@ -41,7 +41,32 @@ recall gate still at 1.0 afterwards.
   duplicate shipped linters and dilute the differentiator: failroute targets
   the class syntactic rules cannot express.
 
-## Non-goals
+## Non-goals (detection scope)
+
+The engine is a single-file AST layer with human curation. It deliberately
+does **not** try to be a dataflow engine. Out of detection scope, with the
+reason:
+
+- **Indirect fallback through a call** — `except Exception: return
+  default_score()` wraps the constant in one function call. Judging it
+  requires knowing what `default_score` returns (cross-function), and
+  guessing produces either false positives or a half-dataflow engine.
+- **Custom `__exit__` swallowers** — any context manager whose `__exit__`
+  returns a truthy value is semantically `contextlib.suppress`. Recognising
+  arbitrary classes needs whole-program type resolution; the tool only
+  knows the stdlib form by name.
+- **Call-form and attribute sentinels** — `float("nan")`, `Status.UNKNOWN`.
+  These are matched only if a project spells them as constants in
+  `[tool.failroute] fallback_values`; the tool refuses to guess semantics
+  it cannot see.
+- **Cross-function / cross-module consumption analysis** — "does this
+  fallback value eventually get consumed as a success value" is a
+  call-graph question (CodeQL-shaped). failroute's lane is the
+  high-precision hint layer plus human triage (`docs/triage.md`); the
+  remaining ~20-30% of shapes belong in the dataflow tier, documented here
+  rather than feigned.
+
+## Non-goals (project)
 
 - No rule additions without hand-labelled corpus validation.
 - No download-count or adoption-count targets; the metric that matters is
@@ -49,6 +74,26 @@ recall gate still at 1.0 afterwards.
 - No upstream issue volume: one consolidated, evidence-backed report per
   defect family is the ceiling, not the floor.
 - No dependency growth beyond the single conditional `tomli` for py<3.11.
+
+## High-risk track: upstream the detection idea
+
+The distribution ceiling for a solo-maintained PyPI linter is structural:
+ruff and CodeQL ship for free by default. The higher-value form of this
+project may be the *detection idea* landing upstream:
+
+- **ruff** — a `silent-fallback` rule would sit beside S110/S112, but
+  ruff's bar for new heuristic (non-syntactic) rules is very high, and
+  **astral-sh repositories enforce an AI-assistance policy that
+  auto-closes AI-assisted PRs** (observed on prior attempts): an ruff rule
+  contribution must be written and argued entirely by a human, without AI
+  assistance. High rejection risk; plan accordingly.
+- **tryceratops** — friendlier to new `TRY` rules, smaller audience.
+- **CodeQL query pack** — the dataflow tier failroute deliberately does
+  not build exists there for free; a contributed query would be the
+  natural home for the cross-function half of this problem.
+
+Track separately from the standalone tool; a merge upstream outranks any
+number of downloads.
 
 ## Decision rule
 

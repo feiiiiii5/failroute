@@ -33,5 +33,13 @@ def test_corpus_covers_all_modes():
     manifest_path = Path(__file__).resolve().parent / "corpus" / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     modes = {entry["mode"] for entry in manifest["expected"]}
-    assert modes == {"no-action", "silent-fallback", "masked-exception", "silent-suppress"}
-    assert len(manifest["labelled_true_negatives"]) >= 12
+    assert modes == {
+        "no-action",
+        "silent-fallback",
+        "implicit-fallback",
+        "masked-exception",
+        "name-shadowing",
+        "silent-suppress",
+    }
+    assert len(manifest["expected"]) >= 30
+    assert len(manifest["labelled_true_negatives"]) >= 25
