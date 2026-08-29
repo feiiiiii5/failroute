@@ -1,6 +1,6 @@
 id: failroute
 name: failroute
-description: Detect failure-routing anti-patterns (silent exception swallowing, silent fallback returns)
+description: Detect failure-routing anti-patterns (swallowed exceptions, silent fallback values, contextlib.suppress blocks)
 entry: failroute
 language: python
 types: [python]

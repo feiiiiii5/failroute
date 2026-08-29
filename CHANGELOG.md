@@ -23,6 +23,16 @@ All notable changes to failroute. Format follows [Keep a Changelog](https://keep
 ### Added
 - `.github/CODE_OF_CONDUCT.md` (Contributor Covenant 2.1) and
   `.github/PULL_REQUEST_TEMPLATE.md` (the four deterministic gates).
+- `tests/test_release_consistency.py`: the package version, the composite
+  Action's default pin, the README pre-commit `rev`, the SECURITY.md supported
+  series and the CHANGELOG entry must all name the same release. Three of
+  those five had drifted (the Action was installing a two-releases-old engine,
+  SECURITY.md advertised 0.4.x support, and the README rev lagged a release);
+  drift is now a CI failure rather than something a reader discovers.
+- README `## License` section (the MIT `LICENSE` file was never referenced).
+
+### Fixed
+- `.pre-commit-hooks.yaml` description named 2 of the 6 detection modes.
 
 ### Chores
 - Stopped tracking build/test artifacts in the repository: `.coverage` and a

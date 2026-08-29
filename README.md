@@ -147,7 +147,7 @@ system temp dir; both produce findings identical to the serial scan.
 ```yaml
 repos:
   - repo: https://github.com/feiiiiii5/failroute
-    rev: v0.6.0
+    rev: v0.7.0
     hooks:
       - id: failroute
 ```
@@ -329,3 +329,7 @@ itself. Humans own every judgment call: rule semantics, corpus labels,
 upstream triage, and all external communication. A worked example of that
 triage discipline (including a case where we deliberately filed *nothing*)
 is in [`docs/process.md`](docs/process.md).
+
+## License
+
+MIT — see [LICENSE](LICENSE).
