@@ -7,7 +7,10 @@ output, so precision == recall == 1.0 here is a real claim, not a tautology.
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
+
+import pytest
 
 
 def _load_benchmark():
@@ -25,6 +28,21 @@ def test_corpus_precision_and_recall_are_perfect():
     assert report["true_negative_violations"] == [], report["true_negative_violations"]
     assert report["precision"] == 1.0
     assert report["recall"] == 1.0
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 10),
+    reason="match_case_cases.py is legitimately unparseable before Python 3.10; "
+    "the point of this gate is that nothing else ever is",
+)
+def test_no_corpus_file_is_skipped_on_modern_python():
+    """The skip path must never hide labels on interpreters that can parse them.
+
+    A corpus file that fails to parse on 3.10+ means someone landed syntax the
+    CI floor cannot handle without recording it -- exactly what this gate catches.
+    """
+    report = _load_benchmark().run()
+    assert report["skipped_files"] == [], report["skipped_files"]
 
 
 def test_corpus_covers_all_modes():

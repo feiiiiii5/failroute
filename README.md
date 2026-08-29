@@ -259,40 +259,46 @@ copy-pasted from a run that cannot be re-executed.
 
 ### Labelled corpus (precision / recall)
 
-`tests/corpus/` holds 30 hand-labelled samples (16 positives across all four
-modes, 14 negatives covering re-raise, log-and-raise, derived values, dead
+`tests/corpus/` holds **68 hand-labelled samples** (36 positives across all six
+modes, 32 negatives covering re-raise, log-and-raise, derived values, dead
 code, opt-out markers, non-fallback constants, non-suppress context managers,
-same-name-different-origin imports, and idiomatic control-flow suppression).
-Ground truth lives in
+same-name-different-origin imports, idiomatic control-flow suppression, enum
+and named sentinels, and terminal `os._exit` handlers). Ground truth lives in
 `tests/corpus/manifest.json` and was written from the *semantics* of each
 fixture, independently of tool output.
 
 ```
-corpus v2   TP=16  FP=0  FN=0  TN=14
+corpus v6   TP=36  FP=0  FN=0  TN=32
 precision=1.0  recall=1.0
 ```
+
+`tests/corpus/match_case_cases.py` uses PEP 634 (`match`/`case`) syntax, so it
+is only parseable on Python 3.10+. `tools/benchmark.py` reports it as a
+*skipped* corpus file on older interpreters instead of scoring its labels as
+misses, and `pytest` asserts that nothing is skipped on 3.10+ — CI covers
+3.9–3.13, so every label is enforced somewhere in the matrix.
 
 Re-run: `python tools/benchmark.py` (also enforced by `pytest`).
 
 ### What syntactic linters miss
 
-Against the source packages of 8 real AI/eval repositories (garak,
-inspect_ai, pydantic-ai, uqlm, trl, smolagents, deepteam, fickling),
-failroute reported **613 findings**; ruff's exception-handling rules
-(`S110` try-except-pass, `S112` try-except-continue) reported **67**, of which
-52 overlap failroute's `no-action` mode. The remaining findings split into two
-families ruff does not detect:
+Measured 2026-08-29 with the v0.7 engine against the source packages of 8 real
+AI/eval repositories (garak, inspect_ai, pydantic-ai, uqlm, trl, smolagents,
+deepteam, fickling): failroute reported **670 findings**; ruff's
+exception-handling rules (`S110` try-except-pass, `S112` try-except-continue)
+reported **79**, of which **70** overlap failroute's `no-action` mode —
+**600 findings are failroute-only**. The non-`no-action` families (449):
 
-- **403 silent-fallback / masked-exception handlers** — failures converted
-  into success-looking values, a class syntactic rules cannot express by
-  construction.
-- **77 `contextlib.suppress` blocks** — the modern silent-swallow idiom. No
-  shipped linter flags it, and ruff's SIM105 rule actively *recommends*
-  rewriting `try-except-pass` into `contextlib.suppress`: the semantics are
-  unchanged, but the silence becomes invisible to every existing detector.
+| Mode | Count | Why syntactic rules miss it |
+| --- | --- | --- |
+| `silent-fallback` | 413 | the defect is what the handler *returns*, not its shape |
+| `silent-suppress` | 27 | `contextlib.suppress` is a call expression, not an `ExceptHandler` — no shipped linter flags it, and ruff's SIM105 actively *recommends* rewriting `try-except-pass` into it |
+| `masked-exception` | 3 | branch-dependent outcome |
+| `implicit-fallback` + `name-shadowing` | 6 | fall-through to the function's implicit `None`; rebinding the caught name |
 
 Re-run: `python tools/compare_ruff.py <repo> [<repo> ...]`.
 Results are checked into `bench/` with the exact scanned paths.
+
 
 ### Throughput
 

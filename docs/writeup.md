@@ -1,7 +1,9 @@
 # Failure-Routing: A Taxonomy of Silent Correctness Bugs in LLM/Eval Systems
 
-*Technical write-up accompanying `failroute` v0.3.0 (2026-08-27). Every number
-in this document is reproducible from this checkout.*
+*Technical write-up for `failroute`. Measured numbers are maintained in one
+place -- the "Benchmarks & validation" section of the README and the artifacts
+in `bench/` -- so this document does not carry its own copy that can drift.
+Every figure is reproducible from this checkout.*
 
 ## 1. Where the taxonomy comes from
 
@@ -35,23 +37,27 @@ pylint's bare/broad-except warnings all stop at the handler boundary.
 the shape that corrupts scores.
 
 Measured on the source packages of 8 real AI/eval repositories (garak,
-inspect_ai, pydantic-ai, uqlm, trl, smolagents, deepteam, fickling):
+inspect_ai, pydantic-ai, uqlm, trl, smolagents, deepteam, fickling), failroute
+reports an order of magnitude more findings than ruff's exception rules, and
+the gap is not noise: the overwhelming majority of failroute-only findings are
+`silent-fallback`, `silent-suppress`, `implicit-fallback` and
+`masked-exception` — the classes syntactic rules cannot express by
+construction.
 
-| | failroute | ruff S110/S112 |
-|---|---|---|
-| findings | 647 | 80 |
-| overlap (no-action only) | 70 | 70 |
-| **failroute-only** | **577** | — |
-
-of which **390 are `silent-fallback`/`masked-exception`** — the class
-syntactic rules cannot express by construction. Re-run:
-`python tools/compare_ruff.py <repo>`; artifacts in `bench/`.
+The current dated totals and per-mode breakdown live in
+[`README.md` — "What syntactic linters miss"](../README.md#what-syntactic-linters-miss);
+raw per-repository results are checked into `bench/ruff-comparison.json` with
+the exact scanned paths, and re-run with `python tools/compare_ruff.py <repo>`.
+Keeping the numbers in one place is deliberate: an earlier revision of this
+document carried its own copy of the table and silently went stale.
 
 ## 3. Precision discipline
 
-`tests/corpus/` holds 19 hand-labelled handlers; ground truth was written
-from fixture *semantics*, independently of tool output. Current score:
-**precision 1.0 / recall 1.0** (10 TP, 9 TN), enforced by CI. Known,
+`tests/corpus/` holds the hand-labelled corpus; ground truth was written from
+fixture *semantics*, independently of tool output. The corpus is versioned in
+`tests/corpus/manifest.json`, its current size and score are printed by
+`python tools/benchmark.py`, and **precision = recall = 1.0** is enforced by
+CI on every push. Known,
 documented gaps are recorded in the manifest rather than hidden (e.g.
 handlers that log are treated as informational even when they also fall
 back — a deliberate precision-over-recall choice for triage workflows).

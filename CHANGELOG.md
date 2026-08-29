@@ -1,3 +1,33 @@
+# Changelog
+
+All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
+
+## [Unreleased]
+
+### Fixed
+- **CI on Python 3.9**: `tests/corpus/v06_shapes.py` carried a PEP 634
+  `match`/`case` handler, which made the *whole corpus file* unparseable on the
+  oldest supported interpreter. Every label in that file was scored as a miss,
+  so the corpus gate failed on the 3.9 leg. The `match`/`case` shapes now live
+  in their own file (`tests/corpus/match_case_cases.py`), and
+  `tools/benchmark.py` reports corpus files the running interpreter cannot
+  parse as **skipped** (their labels excluded from that run) instead of
+  counting them as false negatives. `pytest` asserts that nothing is skipped on
+  Python 3.10+, so those labels remain enforced in the 3.10-3.13 legs of the
+  matrix. The version-specific unit test is `skipif`-gated for the same reason.
+- README benchmark and corpus figures were restated from the checked-in
+  `bench/` artifacts; they had silently drifted behind v0.6/v0.7. Measured
+  numbers are now maintained in one place, and `docs/writeup.md` links to them
+  instead of carrying a copy that goes stale.
+
+### Added
+- `.github/CODE_OF_CONDUCT.md` (Contributor Covenant 2.1) and
+  `.github/PULL_REQUEST_TEMPLATE.md` (the four deterministic gates).
+
+### Chores
+- Stopped tracking build/test artifacts in the repository: `.coverage` and a
+  local issue draft (both now covered by `.gitignore`).
+
 ## [0.7.0] - 2026-08-29
 
 ### Added

@@ -48,18 +48,18 @@ def with_item_shadowing(context):
             e.write("render failed")
 
 
-def match_case_masked(x):
-    # FLAGGED masked-exception: match/case conditional raise plus fallback
-    # return (v0.5 classified this silent-fallback)
-    try:
-        return g(x)
-    except Exception as e:
-        match e:
-            case ValueError():
-                raise
-            case _:
-                pass
-        return 0.0
+# ---------------------------------------------------------------------------
+# The ``match``/``case`` shapes that used to live here moved to
+# tests/corpus/match_case_cases.py: PEP 634 syntax makes the *whole file*
+# unparseable on Python 3.9, which would silently drop every label below.
+#
+# This block is exactly as tall as the function it replaced, so the line
+# numbers in manifest.json stay valid. Resizing it silently shifts every
+# later label -- the benchmark scores by (file, line), so a one-line drift
+# turns real detections into false positives and misses at once. If you
+# must resize it, renumber the v06_shapes.py entries in the manifest too.
+# Coverage of the match/case classification itself is unchanged.
+# ---------------------------------------------------------------------------
 
 
 def multi_type_suppress():

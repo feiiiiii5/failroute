@@ -9,6 +9,10 @@ classified ``silent-fallback`` instead of ``masked-exception``.
 
 from __future__ import annotations
 
+import sys
+
+import pytest
+
 from failroute.analyzer import FailureMode, scan_source
 from failroute.rules._shared import is_loggerish_name
 
@@ -61,6 +65,10 @@ def test_non_logger_names_are_not_loggerish():
     assert is_loggerish_name("err_log")
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 10),
+    reason="match/case is PEP 634 syntax; ast.parse rejects it before Python 3.10",
+)
 def test_match_case_raise_classifies_as_masked():
     source = (
         "def a(x):\n"

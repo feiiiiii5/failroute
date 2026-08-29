@@ -13,6 +13,7 @@ manifest and scanner is therefore a real precision/recall event.
 from __future__ import annotations
 
 import argparse
+import ast
 import datetime as _dt
 import json
 import sys
@@ -31,10 +32,26 @@ def run() -> dict:
     expected = {(e["file"], e["lineno"], e["mode"]) for e in manifest["expected"]}
     labelled_negatives = {(n["file"], n["lineno"]) for n in manifest["labelled_true_negatives"]}
 
+    # A corpus file may use syntax the *running interpreter* cannot parse
+    # (match_case_cases.py needs PEP 634 / Python 3.10+). Scanning it would
+    # yield nothing and every one of its labels would be scored as a false
+    # negative -- an environment limit, not a detector defect. Such files are
+    # reported as skipped and their labels excluded from this run, while CI
+    # still enforces them on the interpreters that can parse them.
+    skipped_files: list[str] = []
     findings = []
     for py in sorted(corpus.glob("*.py")):
+        try:
+            ast.parse(py.read_text(encoding="utf-8", errors="replace"), filename=str(py))
+        except SyntaxError:
+            skipped_files.append(py.name)
+            continue
         for f in scan_path(py):
             findings.append((Path(f.file).name, f.lineno, f.mode.value))
+
+    if skipped_files:
+        expected = {e for e in expected if e[0] not in skipped_files}
+        labelled_negatives = {n for n in labelled_negatives if n[0] not in skipped_files}
 
     actual = set(findings)
     tp = sorted(expected & actual)
@@ -52,6 +69,7 @@ def run() -> dict:
     return {
         "corpus_version": manifest["corpus_version"],
         "run_at": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "skipped_files": skipped_files,
         "true_positives": len(tp),
         "false_positives": [{"file": f, "lineno": line, "mode": m} for f, line, m in fp],
         "false_negatives": [{"file": f, "lineno": line, "mode": m} for f, line, m in fn],
@@ -69,6 +87,9 @@ def main() -> int:
 
     report = run()
     print(f"corpus v{report['corpus_version']}  run_at={report['run_at']}")
+    if report["skipped_files"]:
+        print(f"  skipped (unparseable on this interpreter): {', '.join(report['skipped_files'])}"
+              f"  [Python {sys.version_info.major}.{sys.version_info.minor}]")
     print(f"  TP={report['true_positives']}  FP={len(report['false_positives'])}"
           f"  FN={len(report['false_negatives'])}  TN={report['true_negatives']}"
           f"  TN-violations={len(report['true_negative_violations'])}")
