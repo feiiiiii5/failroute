@@ -157,3 +157,26 @@ def retry_break_contract(cmd):
         except TimeoutError:
             break
     return None
+
+
+def per_item_fallback_in_loop(items):
+    # CLEAN: the try sits inside a for loop; a handler fall-through proceeds
+    # to the next iteration and the function still returns `out` — no
+    # implicit-None path exists
+    out = []
+    for item in items:
+        try:
+            out.append(transform(item))
+        except Exception:
+            print("skipped", item)
+    return out
+
+
+def value_reused_after_try(x):
+    # CLEAN: the failure path reaches `return r` (NameError or the pre-set
+    # value), not the function's implicit None
+    try:
+        r = compute(x)
+    except Exception:
+        print("failed")
+    return r

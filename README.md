@@ -317,7 +317,7 @@ $ ruff check .
 
 `failroute` is developed with an **AI-assisted, human-audited workflow**:
 LLM tooling proposes code and analyses, but nothing lands without passing
-deterministic gates — a 113-test suite, a hand-labelled precision/recall
+deterministic gates — a 118-test suite, a hand-labelled precision/recall
 corpus, `mypy --strict`, and a self-scan of the repository with the tool
 itself. Humans own every judgment call: rule semantics, corpus labels,
 upstream triage, and all external communication. A worked example of that

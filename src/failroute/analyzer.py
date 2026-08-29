@@ -281,6 +281,40 @@ def _scan_parallel(
         ]
 
 
+def _engine_version() -> str:
+    from importlib import metadata
+
+    try:
+        return metadata.version("failroute")
+    except Exception:  # pragma: no cover - not installed as a distribution
+        return "0"
+
+
+def _cache_options(
+    disabled_rules: frozenset[str],
+    extra_fallback_values: frozenset[str],
+    extra_fallback_names: frozenset[str],
+) -> str:
+    """Stable fingerprint of every scan option that changes findings.
+
+    The cache must never serve findings scanned under a different rule set
+    or sentinel vocabulary, nor findings computed by an older engine.
+    """
+    import hashlib
+    import json as _json
+
+    payload = _json.dumps(
+        {
+            "engine": _engine_version(),
+            "disabled": sorted(disabled_rules),
+            "values": sorted(extra_fallback_values),
+            "names": sorted(extra_fallback_names),
+        },
+        sort_keys=True,
+    )
+    return hashlib.sha1(payload.encode("utf-8")).hexdigest()[:16]
+
+
 def _cache_file(root: Path) -> Path:
     """Per-repo cache location in the system temp dir (no in-repo pollution)."""
     import hashlib
@@ -316,9 +350,15 @@ def _scan_with_cache(
     extra_fallback_values: frozenset[str],
     extra_fallback_names: frozenset[str],
 ) -> list[Finding]:
-    """Scan with an mtime+size keyed cache; re-scan only changed files."""
+    """Scan with an mtime+size keyed cache; re-scan only changed files.
+
+    The cache payload carries the engine version and a fingerprint of the
+    scan options; any mismatch downgrades to a cold scan so findings are
+    never served from a different rule set, sentinel vocabulary, or engine.
+    """
     import json
 
+    opts = _cache_options(disabled_rules, extra_fallback_values, extra_fallback_names)
     cache_path = _cache_file(root)
     cache: dict[str, Any] = {}
     if cache_path.is_file():
@@ -326,12 +366,12 @@ def _scan_with_cache(
             cache = json.loads(cache_path.read_text(encoding="utf-8"))
         except (OSError, ValueError):  # failroute: ignore - documented: corrupt cache = cold cache
             cache = {}
-    if not isinstance(cache, dict):
+    if not isinstance(cache, dict) or cache.get("engine") != _engine_version() or cache.get("opts") != opts:
         cache = {}
-    assert isinstance(cache, dict)  # narrows Any from json.loads for mypy
 
     findings: list[Finding] = []
-    fresh: dict[str, dict[str, Any]] = {}
+    fresh: dict[str, Any] = {"engine": _engine_version(), "opts": opts, "files": {}}
+    file_entries: dict[str, Any] = fresh["files"]
     dirty = False
     for path in files:
         try:
@@ -339,7 +379,7 @@ def _scan_with_cache(
             sig = [stat.st_mtime_ns, stat.st_size]
         except OSError:  # pragma: no cover - racing deletion
             sig = None
-        entry = cache.get(str(path))
+        entry = cache.get("files", {}).get(str(path)) if isinstance(cache.get("files"), dict) else None
         if sig is not None and isinstance(entry, dict) and entry.get("sig") == sig:
             try:
                 rebuilt = [_finding_from_dict(d) for d in entry.get("findings", [])]
@@ -348,7 +388,7 @@ def _scan_with_cache(
                 logger.debug("cache entry for %s unreadable; re-scanning", path)
             else:
                 findings.extend(rebuilt)
-                fresh[str(path)] = entry
+                file_entries[str(path)] = entry
                 continue
         result = scan_path(
             path,
@@ -358,10 +398,12 @@ def _scan_with_cache(
         )
         findings.extend(result)
         if sig is not None:
-            fresh[str(path)] = {"sig": sig, "findings": [f.to_dict() for f in result]}
+            file_entries[str(path)] = {"sig": sig, "findings": [f.to_dict() for f in result]}
             dirty = True
 
-    if dirty or set(cache) != set(fresh):
+    if dirty or set(cache.get("files", {}) if isinstance(cache.get("files"), dict) else {}) != set(
+        file_entries
+    ):
         try:
             tmp = cache_path.with_suffix(".tmp")
             tmp.write_text(json.dumps(fresh), encoding="utf-8")

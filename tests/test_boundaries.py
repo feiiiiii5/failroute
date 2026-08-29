@@ -185,3 +185,35 @@ def test_unconfigured_dotted_name_stays_clean(tmp_path: Path):
         encoding="utf-8",
     )
     assert main([str(tmp_path)]) == 0
+
+
+def test_cache_does_not_leak_across_configs(tmp_path: Path):
+    # Regression: the cache key ignored scan options, so findings scanned
+    # under a configured sentinel vocabulary were served back to an
+    # unconfigured scan.
+    (tmp_path / "check.py").write_text(
+        "def check(x):\n"
+        "    try:\n"
+        "        return real(x)\n"
+        "    except Exception:\n"
+        "        return Status.UNKNOWN\n",
+        encoding="utf-8",
+    )
+    configured = scan_repo(tmp_path, use_cache=True, extra_fallback_names=frozenset({"Status.UNKNOWN"}))
+    plain = scan_repo(tmp_path, use_cache=True)
+    assert len(configured) == 1
+    assert plain == []
+
+
+def test_cache_invalidated_by_engine_version(tmp_path: Path, monkeypatch):
+    # A cache written by a different engine version must not be served.
+    import failroute.analyzer as ana
+
+    (tmp_path / "bad.py").write_text(
+        "def f():\n    try:\n        return g()\n    except Exception:\n        return None\n",
+        encoding="utf-8",
+    )
+    first = scan_repo(tmp_path, use_cache=True)
+    monkeypatch.setattr(ana, "_engine_version", lambda: "0.0.0-test-old")
+    second = scan_repo(tmp_path, use_cache=True)
+    assert first == second  # findings identical, but recomputed, not served

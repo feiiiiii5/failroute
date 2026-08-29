@@ -1,15 +1,15 @@
 {
-  "run_at": "2026-08-29T05:12:51.067601+00:00",
+  "run_at": "2026-08-29T05:34:52.169444+00:00",
   "repos": [
     {
       "repo": "garak",
       "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/garak/garak",
-      "failroute_total": 21,
+      "failroute_total": 16,
       "failroute_no_action": 6,
-      "failroute_semantic": 15,
+      "failroute_semantic": 10,
       "ruff_S110_S112": 9,
       "overlap_no_action": 4,
-      "failroute_only": 17,
+      "failroute_only": 12,
       "semantic_breakdown": {
         "silent-fallback": 7,
         "masked-exception": 3,
@@ -19,12 +19,12 @@
     {
       "repo": "inspect_ai",
       "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/inspect_ai-fork/src/inspect_ai",
-      "failroute_total": 370,
+      "failroute_total": 346,
       "failroute_no_action": 146,
-      "failroute_semantic": 223,
+      "failroute_semantic": 199,
       "ruff_S110_S112": 55,
       "overlap_no_action": 52,
-      "failroute_only": 318,
+      "failroute_only": 294,
       "semantic_breakdown": {
         "silent-fallback": 188,
         "masked-exception": 0,
@@ -34,12 +34,12 @@
     {
       "repo": "pydantic_ai_slim",
       "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/pydantic-ai/pydantic_ai_slim",
-      "failroute_total": 111,
+      "failroute_total": 103,
       "failroute_no_action": 27,
-      "failroute_semantic": 81,
+      "failroute_semantic": 73,
       "ruff_S110_S112": 4,
       "overlap_no_action": 4,
-      "failroute_only": 107,
+      "failroute_only": 99,
       "semantic_breakdown": {
         "silent-fallback": 54,
         "masked-exception": 0,
@@ -49,12 +49,12 @@
     {
       "repo": "uqlm",
       "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/uqlm/uqlm",
-      "failroute_total": 17,
+      "failroute_total": 14,
       "failroute_no_action": 8,
-      "failroute_semantic": 9,
+      "failroute_semantic": 6,
       "ruff_S110_S112": 2,
       "overlap_no_action": 2,
-      "failroute_only": 15,
+      "failroute_only": 12,
       "semantic_breakdown": {
         "silent-fallback": 6,
         "masked-exception": 0,
@@ -64,12 +64,12 @@
     {
       "repo": "trl",
       "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/trl/trl",
-      "failroute_total": 26,
+      "failroute_total": 24,
       "failroute_no_action": 9,
-      "failroute_semantic": 17,
+      "failroute_semantic": 15,
       "ruff_S110_S112": 2,
       "overlap_no_action": 2,
-      "failroute_only": 24,
+      "failroute_only": 22,
       "semantic_breakdown": {
         "silent-fallback": 15,
         "masked-exception": 0,
@@ -79,12 +79,12 @@
     {
       "repo": "smolagents",
       "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/smolagents/src/smolagents",
-      "failroute_total": 15,
+      "failroute_total": 13,
       "failroute_no_action": 9,
-      "failroute_semantic": 6,
+      "failroute_semantic": 4,
       "ruff_S110_S112": 1,
       "overlap_no_action": 1,
-      "failroute_only": 14,
+      "failroute_only": 12,
       "semantic_breakdown": {
         "silent-fallback": 4,
         "masked-exception": 0,
@@ -94,12 +94,12 @@
     {
       "repo": "deepteam",
       "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/deepteam-fork/deepteam",
-      "failroute_total": 162,
+      "failroute_total": 142,
       "failroute_no_action": 10,
-      "failroute_semantic": 152,
+      "failroute_semantic": 132,
       "ruff_S110_S112": 6,
       "overlap_no_action": 5,
-      "failroute_only": 157,
+      "failroute_only": 137,
       "semantic_breakdown": {
         "silent-fallback": 130,
         "masked-exception": 0,
@@ -109,12 +109,12 @@
     {
       "repo": "fickling",
       "path": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/Open source/fickling/fickling",
-      "failroute_total": 16,
+      "failroute_total": 12,
       "failroute_no_action": 2,
-      "failroute_semantic": 14,
+      "failroute_semantic": 10,
       "ruff_S110_S112": 0,
       "overlap_no_action": 0,
-      "failroute_only": 16,
+      "failroute_only": 12,
       "semantic_breakdown": {
         "silent-fallback": 9,
         "masked-exception": 0,
@@ -123,11 +123,11 @@
     }
   ],
   "totals": {
-    "failroute_total": 738,
+    "failroute_total": 670,
     "failroute_no_action": 217,
-    "failroute_semantic": 517,
+    "failroute_semantic": 449,
     "ruff_S110_S112": 79,
     "overlap_no_action": 70,
-    "failroute_only": 668
+    "failroute_only": 600
   }
 }

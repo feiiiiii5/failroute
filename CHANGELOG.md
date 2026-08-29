@@ -23,6 +23,21 @@
   actually reports, and the "not flagged by design" section states the
   exemption explicitly.
 
+### Fixed (audit round)
+- **`implicit-fallback` tail-position gate**: a handler inside a loop, or a
+  `try` followed by a trailing `return`, does not fall through to the
+  function's implicit `None` (fall-through re-enters control flow or reaches
+  the trailing return). Both shapes were false positives; labelled corpus
+  negatives added before the fix, and the rule now only reports handlers
+  whose fall-through actually reaches the end of the function body.
+- **Scan-cache isolation**: the cache payload now carries the engine version
+  and a fingerprint of the scan options (disabled rules, sentinel
+  vocabulary); any mismatch downgrades to a cold scan. Previously, findings
+  scanned under a configured sentinel vocabulary could be served to an
+  unconfigured scan (cache poisoning), and caches survived engine upgrades.
+- Configured-sentinel findings now say "configured sentinel" instead of
+  "constant", so the message states why the token matched.
+
 ### Changed
 - ROADMAP: inter-procedural/dataflow tracking (and the indirect
   helper-call fallback shape) moved into "Considered and declined" with the

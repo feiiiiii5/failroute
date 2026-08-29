@@ -120,3 +120,49 @@ def test_assign_fallthrough_stays_with_silent_fallback():
     )
     findings = scan_source(source)
     assert [f.mode for f in findings] == [FailureMode.SILENT_FALLBACK]
+
+
+def test_handler_inside_loop_is_exempt():
+    # Fall-through inside a loop proceeds to the next iteration; the
+    # function still returns its accumulated value, so there is no
+    # implicit-None path for the rule to report.
+    source = (
+        "def process(items):\n"
+        "    out = []\n"
+        "    for item in items:\n"
+        "        try:\n"
+        "            out.append(transform(item))\n"
+        "        except Exception:\n"
+        "            print('skip', item)\n"
+        "    return out\n"
+    )
+    assert scan_source(source) == []
+
+
+def test_try_with_trailing_return_is_exempt():
+    # When a `return` statement follows the try, the failure path does not
+    # reach the implicit None (it raises NameError on the consumed name or
+    # returns the pre-set value) — the rule's premise does not hold.
+    source = (
+        "def f(x):\n"
+        "    try:\n"
+        "        r = compute(x)\n"
+        "    except Exception:\n"
+        "        print('failed')\n"
+        "    return r\n"
+    )
+    assert scan_source(source) == []
+
+
+def test_try_nested_in_tail_if_is_still_reported():
+    # A try in tail position behind non-loop blocks still falls through to
+    # the implicit None.
+    source = (
+        "def f(x):\n"
+        "    if x:\n"
+        "        try:\n"
+        "            return risky(x)\n"
+        "        except Exception:\n"
+        "            print('failed')\n"
+    )
+    assert [f.mode for f in scan_source(source)] == [FailureMode.IMPLICIT_FALLBACK]

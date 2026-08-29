@@ -106,15 +106,17 @@ class SilentFallbackRule(Rule):
         kind: str,
         value: str | None,
     ) -> Finding:
+        configured = value is not None and value in ctx.extra_fallback_names
+        noun = "configured sentinel" if configured else "constant"
         if kind == "return":
             message = (
-                f"exception handler returns constant {value!r} without re-raising; "
+                f"exception handler returns {noun} {value!r} without re-raising; "
                 "the caller cannot distinguish failure from a legitimate value of "
                 "the same shape"
             )
         else:
             message = (
-                f"exception handler assigns fallback constant {value!r} without "
+                f"exception handler assigns fallback {noun} {value!r} without "
                 "re-raising or recording the error"
             )
         return make_finding(

@@ -64,7 +64,7 @@ Registry order is emission order for same-line findings.
 Every detector must first earn corpus entries
 (`tests/corpus/` + `manifest.json`), hand-labelled independently of tool
 output, with the precision/recall gate still at 1.0
-(`tests/test_benchmark.py`). v0.6 corpus: 36 positives + 27 labelled
+(`tests/test_benchmark.py`). v0.7 corpus: 36 positives + 31 labelled
 negatives across six modes. See `docs/triage.md` for how labels are judged.
 
 ## Performance model
