@@ -98,8 +98,14 @@ def _returns_real_value(func: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
 
 
 def _has_top_level_terminal(handler: ast.ExceptHandler) -> bool:
-    """True when any *direct* statement of the handler raises or returns."""
-    return any(isinstance(stmt, (ast.Raise, ast.Return)) for stmt in handler.body)
+    """True when any *direct* statement of the handler terminates control flow.
+
+    ``raise``/``return`` end the handler; ``continue``/``break`` end it just
+    as decisively inside a loop — the skip-and-continue / retry-break shapes
+    are deliberate control flow, not fall-throughs to the enclosing
+    function's implicit ``None``.
+    """
+    return any(isinstance(stmt, (ast.Raise, ast.Return, ast.Continue, ast.Break)) for stmt in handler.body)
 
 
 def _has_top_level_assign(handler: ast.ExceptHandler) -> bool:

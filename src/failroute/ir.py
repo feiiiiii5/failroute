@@ -103,6 +103,9 @@ class ScanContext:
     #: Project-configured fallback sentinels (canonical tokens from
     #: ``[tool.failroute] fallback_values``) beyond the built-in shapes.
     extra_fallback_values: frozenset[str] = frozenset()
+    #: Project-configured dotted-name sentinels (``[tool.failroute]
+    #: fallback_names``, e.g. ``Status.UNKNOWN``) matched on attribute chains.
+    extra_fallback_names: frozenset[str] = frozenset()
 
 
 class Rule:

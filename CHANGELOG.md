@@ -1,6 +1,32 @@
-# Changelog
+## [0.7.0] - 2026-08-29
 
-All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
+### Added
+- **Dotted-name sentinels**: `[tool.failroute] fallback_names = ["Status.UNKNOWN", "Signal.NAN"]`
+  extends the failure vocabulary to Enum members and qualified constants,
+  matched on attribute chains only. Bare (unqualified) names are rejected by
+  design — `return result`-style code must never match a config token.
+  `NaN` via `float("nan")` and indirect fallbacks through helper calls
+  remain explicitly out of scope (see ROADMAP "Considered and declined").
+
+### Fixed
+- **`implicit-fallback` false-positive class**: handlers whose body is
+  `continue` (skip-and-continue over a result loop) or `break` (retry
+  exhaustion) were reported as fall-throughs to the enclosing function's
+  implicit `None`. Both are control-flow terminators — deliberate routing,
+  not silent corruption. Found by the refreshed 8-repository ruff-comparison
+  benchmark (garak alone carried thousands of such loop-skip handlers);
+  labelled corpus negatives added before the fix.
+- **README example/implementation mismatch**: the headline `data =
+  {"items": []}` example never produced a finding — non-empty error-shaped
+  containers are deliberately exempt (an explicit error object is the
+  remediation the tool recommends). The example now uses a shape the scanner
+  actually reports, and the "not flagged by design" section states the
+  exemption explicitly.
+
+### Changed
+- ROADMAP: inter-procedural/dataflow tracking (and the indirect
+  helper-call fallback shape) moved into "Considered and declined" with the
+  reasoning, alongside `return`-in-`finally`.
 
 ## [0.6.0] - 2026-08-29
 

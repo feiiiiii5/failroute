@@ -219,7 +219,7 @@ def fetch(url):                             # silent-fallback (assign)
     try:
         data = download(url)
     except Exception:
-        data = {"items": []}                # 💥 error looks like an empty result
+        data = {}                           # 💥 error looks like an empty result
     return data
 
 def evaluate(prompt):                       # silent-suppress
@@ -231,6 +231,11 @@ def evaluate(prompt):                       # silent-suppress
 ## What it does *not* flag (by design)
 
 * `except KeyboardInterrupt` / `except SystemExit` — normally intentional.
+* Non-empty "error-shaped" containers (`return {"items": [], "error": True}`)
+  — an explicit error object is the remediation the tool itself recommends,
+  so it refuses to second-guess one. Loop skip-and-continue / retry-break
+  handlers (`continue` / `break`) are deliberate control flow, not
+  fall-throughs.
 * The same control-flow exception types under `contextlib.suppress`
   (`KeyboardInterrupt`, `SystemExit`, `StopIteration`, `CancelledError`,
   `GeneratorExit`) — absorbing cancellation or iterator termination is

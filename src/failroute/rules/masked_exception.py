@@ -8,6 +8,7 @@ from failroute.ir import FailureMode, Finding, Rule, RuleSpec, ScanContext
 from failroute.rules._shared import (
     body_has_raise,
     constant_value,
+    dotted_name,
     is_catch_all,
     is_fallback_value,
     make_finding,
@@ -54,7 +55,11 @@ def _has_fallback_return(handler: ast.ExceptHandler, ctx: ScanContext) -> bool:
         if isinstance(node, ast.Return):
             value = node.value if node.value is not None else None
             rendered = constant_value(value) if value is not None else "None"
-            if is_fallback_value(rendered, ctx):
+            if rendered is None and value is not None:
+                rendered = dotted_name(value)
+            if is_fallback_value(rendered, ctx) or (
+                rendered is not None and rendered in ctx.extra_fallback_names
+            ):
                 return True
     return False
 

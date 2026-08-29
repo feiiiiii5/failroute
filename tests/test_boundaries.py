@@ -138,3 +138,50 @@ def test_single_file_repo_flag_still_scans(tmp_path: Path):
         encoding="utf-8",
     )
     assert len(scan_repo(bad)) == 1
+
+
+def test_dotted_name_sentinel(tmp_path: Path, capsys):
+    # Enum-member sentinels are matchable when the project names them
+    # explicitly; the token must be a namespace-qualified dotted name.
+    (tmp_path / "pyproject.toml").write_text(
+        '[tool.failroute]\nfallback_names = ["Status.UNKNOWN"]\n', encoding="utf-8"
+    )
+    (tmp_path / "check.py").write_text(
+        "def check(x):\n"
+        "    try:\n"
+        "        return real_check(x)\n"
+        "    except Exception:\n"
+        "        return Status.UNKNOWN\n",
+        encoding="utf-8",
+    )
+    assert main([str(tmp_path)]) == 1
+    assert "silent-fallback" in capsys.readouterr().out
+
+
+def test_bare_name_sentinels_are_rejected(tmp_path: Path):
+    # A bare (unqualified) name would match `return result`-style code; the
+    # config only accepts dotted names, and anything else is ignored.
+    (tmp_path / "pyproject.toml").write_text(
+        '[tool.failroute]\nfallback_names = ["UNKNOWN"]\n', encoding="utf-8"
+    )
+    (tmp_path / "check.py").write_text(
+        "def check(x):\n"
+        "    try:\n"
+        "        return real_check(x)\n"
+        "    except Exception:\n"
+        "        return UNKNOWN\n",
+        encoding="utf-8",
+    )
+    assert main([str(tmp_path)]) == 0
+
+
+def test_unconfigured_dotted_name_stays_clean(tmp_path: Path):
+    (tmp_path / "check.py").write_text(
+        "def check(x):\n"
+        "    try:\n"
+        "        return real_check(x)\n"
+        "    except Exception:\n"
+        "        return Status.UNKNOWN\n",
+        encoding="utf-8",
+    )
+    assert main([str(tmp_path)]) == 0

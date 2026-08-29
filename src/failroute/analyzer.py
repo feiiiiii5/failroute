@@ -74,6 +74,7 @@ def scan_tree(
     source: str | None = None,
     disabled_rules: frozenset[str] | set[str] = frozenset(),
     extra_fallback_values: frozenset[str] | set[str] = frozenset(),
+    extra_fallback_names: frozenset[str] | set[str] = frozenset(),
 ) -> list[Finding]:
     """Scan a parsed AST for failure-routing anti-patterns.
 
@@ -91,6 +92,7 @@ def scan_tree(
         source_lines=source.splitlines() if source is not None else None,
         bindings=collect_import_bindings(tree),
         extra_fallback_values=frozenset(extra_fallback_values),
+        extra_fallback_names=frozenset(extra_fallback_names),
     )
 
     findings: list[Finding] = []
@@ -127,6 +129,7 @@ def scan_source(
     file: str = "<source>",
     disabled_rules: frozenset[str] | set[str] = frozenset(),
     extra_fallback_values: frozenset[str] | set[str] = frozenset(),
+    extra_fallback_names: frozenset[str] | set[str] = frozenset(),
 ) -> list[Finding]:
     """Scan a source string and return findings."""
     tree = ast.parse(source, filename=file)
@@ -136,6 +139,7 @@ def scan_source(
         source=source,
         disabled_rules=disabled_rules,
         extra_fallback_values=extra_fallback_values,
+        extra_fallback_names=extra_fallback_names,
     )
 
 
@@ -145,6 +149,7 @@ def scan_path(
     follow_links: bool = False,
     disabled_rules: frozenset[str] | set[str] = frozenset(),
     extra_fallback_values: frozenset[str] | set[str] = frozenset(),
+    extra_fallback_names: frozenset[str] | set[str] = frozenset(),
 ) -> list[Finding]:
     """Scan a single file (or a directory tree) for findings."""
     path = Path(path)
@@ -164,6 +169,7 @@ def scan_path(
                     file=str(path),
                     disabled_rules=disabled_rules,
                     extra_fallback_values=extra_fallback_values,
+                    extra_fallback_names=extra_fallback_names,
                 )
             )
         except SyntaxError:
@@ -183,6 +189,7 @@ def scan_path(
                 sub,
                 disabled_rules=disabled_rules,
                 extra_fallback_values=extra_fallback_values,
+                extra_fallback_names=extra_fallback_names,
             )
         )
     return findings
@@ -225,12 +232,14 @@ def _scan_file_worker(
     path_str: str,
     disabled_rules: frozenset[str],
     extra_fallback_values: frozenset[str],
+    extra_fallback_names: frozenset[str],
 ) -> list[Finding]:
     """Process-pool entry point: scan one file, return picklable findings."""
     return scan_path(
         Path(path_str),
         disabled_rules=disabled_rules,
         extra_fallback_values=extra_fallback_values,
+        extra_fallback_names=extra_fallback_names,
     )
 
 
@@ -239,6 +248,7 @@ def _scan_parallel(
     jobs: int,
     disabled_rules: frozenset[str],
     extra_fallback_values: frozenset[str],
+    extra_fallback_names: frozenset[str],
 ) -> list[Finding]:
     """Scan files across worker processes; degrade to serial on any failure."""
     import itertools
@@ -252,6 +262,7 @@ def _scan_parallel(
                 [str(p) for p in files],
                 itertools.repeat(frozenset(disabled_rules)),
                 itertools.repeat(frozenset(extra_fallback_values)),
+                itertools.repeat(frozenset(extra_fallback_names)),
                 chunksize=4,
             ):
                 findings.extend(result)
@@ -261,7 +272,12 @@ def _scan_parallel(
         return [
             f
             for p in files
-            for f in scan_path(p, disabled_rules=disabled_rules, extra_fallback_values=extra_fallback_values)
+            for f in scan_path(
+                p,
+                disabled_rules=disabled_rules,
+                extra_fallback_values=extra_fallback_values,
+                extra_fallback_names=extra_fallback_names,
+            )
         ]
 
 
@@ -298,6 +314,7 @@ def _scan_with_cache(
     root: Path,
     disabled_rules: frozenset[str],
     extra_fallback_values: frozenset[str],
+    extra_fallback_names: frozenset[str],
 ) -> list[Finding]:
     """Scan with an mtime+size keyed cache; re-scan only changed files."""
     import json
@@ -337,6 +354,7 @@ def _scan_with_cache(
             path,
             disabled_rules=disabled_rules,
             extra_fallback_values=extra_fallback_values,
+            extra_fallback_names=extra_fallback_names,
         )
         findings.extend(result)
         if sig is not None:
@@ -360,6 +378,7 @@ def scan_repo(
     exclude: set[str] | None = None,
     disabled_rules: frozenset[str] | set[str] = frozenset(),
     extra_fallback_values: frozenset[str] | set[str] = frozenset(),
+    extra_fallback_names: frozenset[str] | set[str] = frozenset(),
     jobs: int = 1,
     use_cache: bool = False,
 ) -> list[Finding]:
@@ -385,16 +404,19 @@ def scan_repo(
     files = _collect_repo_files(root, skip_dirs, exclude)
     rules = frozenset(disabled_rules)
     values = frozenset(extra_fallback_values)
+    names = frozenset(extra_fallback_names)
 
     if use_cache:
-        return _scan_with_cache(files, root, rules, values)
+        return _scan_with_cache(files, root, rules, values, names)
 
     workers = jobs if jobs > 0 else (os.cpu_count() or 1)
     if workers > 1 and len(files) > 1:
-        return _scan_parallel(files, workers, rules, values)
+        return _scan_parallel(files, workers, rules, values, names)
 
     return [
         finding
         for path in files
-        for finding in scan_path(path, disabled_rules=rules, extra_fallback_values=values)
+        for finding in scan_path(
+            path, disabled_rules=rules, extra_fallback_values=values, extra_fallback_names=names
+        )
     ]

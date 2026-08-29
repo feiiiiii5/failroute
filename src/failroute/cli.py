@@ -153,6 +153,7 @@ def main(argv: list[str] | None = None) -> int:
             exclude=excludes,
             disabled_rules=disabled_rules,
             extra_fallback_values=cfg.fallback_values,
+            extra_fallback_names=cfg.fallback_names,
             jobs=args.jobs,
             use_cache=args.cache,
         )
@@ -161,6 +162,7 @@ def main(argv: list[str] | None = None) -> int:
             path,
             disabled_rules=disabled_rules,
             extra_fallback_values=cfg.fallback_values,
+            extra_fallback_names=cfg.fallback_names,
         )
 
     # Deterministic order regardless of filesystem enumeration.

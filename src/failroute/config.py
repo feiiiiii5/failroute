@@ -38,6 +38,8 @@ class FailrouteConfig:
     threshold: int = 0
     #: Canonical tokens beyond the built-in fallback shapes.
     fallback_values: frozenset[str] = frozenset()
+    #: Dotted-name sentinels (``Status.UNKNOWN``) matched on attribute chains.
+    fallback_names: frozenset[str] = frozenset()
     #: Rule ids disabled via ``ignore`` or ``rules.<id>.enabled = false``.
     disabled_rules: frozenset[str] = frozenset()
     #: rule id -> SARIF level ("error"/"warning").
@@ -116,6 +118,16 @@ def load_config(start: Path) -> FailrouteConfig:
         else:
             fallback_values = frozenset()
 
+        names_raw = cfg.get("fallback_names")
+        if isinstance(names_raw, list):
+            # Only namespace-qualified names are accepted: a bare token would
+            # match `return result`-style code, which is never a safe guess.
+            fallback_names = frozenset(
+                n for n in names_raw if isinstance(n, str) and "." in n and not n.isspace()
+            )
+        else:
+            fallback_names = frozenset()
+
         ignore_raw = cfg.get("ignore")
         ignored = {r for r in ignore_raw if isinstance(r, str)} if isinstance(ignore_raw, list) else set()
         table_disabled, severities = _parse_rule_tables(cfg.get("rules"))
@@ -124,6 +136,7 @@ def load_config(start: Path) -> FailrouteConfig:
             exclude=exclude,
             threshold=threshold,
             fallback_values=fallback_values,
+            fallback_names=fallback_names,
             disabled_rules=frozenset(ignored | table_disabled),
             severity_overrides=severities,
         )
