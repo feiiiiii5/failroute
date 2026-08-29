@@ -10,7 +10,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import tomllib
+try:  # pragma: no cover - exercised by the version matrix
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11, same fallback as the CLI
+    import tomli as tomllib  # type: ignore[import-not-found,no-redef]
 
 ROOT = Path(__file__).resolve().parent.parent
 
