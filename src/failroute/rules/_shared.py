@@ -127,6 +127,24 @@ def constant_value(node: ast.expr | None) -> str | None:
     return None
 
 
+def dotted_name(node: ast.expr) -> str | None:
+    """Render a dotted attribute chain (``Status.UNKNOWN``) to its name.
+
+    Bare names deliberately render as ``None``: an unqualified token would
+    match ``return result``-style code, so only namespace-qualified sentinels
+    are ever matchable.
+    """
+    parts: list[str] = []
+    cur: ast.expr = node
+    while isinstance(cur, ast.Attribute):
+        parts.append(cur.attr)
+        cur = cur.value
+    if isinstance(cur, ast.Name) and parts:
+        parts.append(cur.id)
+        return ".".join(reversed(parts))
+    return None
+
+
 def is_fallback_value(rendered: str | None, ctx: ScanContext) -> bool:
     """True when a rendered constant is a recognised fallback shape.
 

@@ -1,6 +1,47 @@
-# Changelog
+## [0.7.0] - 2026-08-29
 
-All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
+### Added
+- **Dotted-name sentinels**: `[tool.failroute] fallback_names = ["Status.UNKNOWN", "Signal.NAN"]`
+  extends the failure vocabulary to Enum members and qualified constants,
+  matched on attribute chains only. Bare (unqualified) names are rejected by
+  design — `return result`-style code must never match a config token.
+  `NaN` via `float("nan")` and indirect fallbacks through helper calls
+  remain explicitly out of scope (see ROADMAP "Considered and declined").
+
+### Fixed
+- **`implicit-fallback` false-positive class**: handlers whose body is
+  `continue` (skip-and-continue over a result loop) or `break` (retry
+  exhaustion) were reported as fall-throughs to the enclosing function's
+  implicit `None`. Both are control-flow terminators — deliberate routing,
+  not silent corruption. Found by the refreshed 8-repository ruff-comparison
+  benchmark (garak alone carried thousands of such loop-skip handlers);
+  labelled corpus negatives added before the fix.
+- **README example/implementation mismatch**: the headline `data =
+  {"items": []}` example never produced a finding — non-empty error-shaped
+  containers are deliberately exempt (an explicit error object is the
+  remediation the tool recommends). The example now uses a shape the scanner
+  actually reports, and the "not flagged by design" section states the
+  exemption explicitly.
+
+### Fixed (audit round)
+- **`implicit-fallback` tail-position gate**: a handler inside a loop, or a
+  `try` followed by a trailing `return`, does not fall through to the
+  function's implicit `None` (fall-through re-enters control flow or reaches
+  the trailing return). Both shapes were false positives; labelled corpus
+  negatives added before the fix, and the rule now only reports handlers
+  whose fall-through actually reaches the end of the function body.
+- **Scan-cache isolation**: the cache payload now carries the engine version
+  and a fingerprint of the scan options (disabled rules, sentinel
+  vocabulary); any mismatch downgrades to a cold scan. Previously, findings
+  scanned under a configured sentinel vocabulary could be served to an
+  unconfigured scan (cache poisoning), and caches survived engine upgrades.
+- Configured-sentinel findings now say "configured sentinel" instead of
+  "constant", so the message states why the token matched.
+
+### Changed
+- ROADMAP: inter-procedural/dataflow tracking (and the indirect
+  helper-call fallback shape) moved into "Considered and declined" with the
+  reasoning, alongside `return`-in-`finally`.
 
 ## [0.6.0] - 2026-08-29
 

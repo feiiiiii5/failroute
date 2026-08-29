@@ -17,6 +17,7 @@ from failroute.rules._shared import (
     ACTIVE_CALL_NAMES,
     body_has_call,
     constant_value,
+    dotted_name,
     handler_logs_error,
     is_catch_all,
     is_fallback_value,
@@ -69,9 +70,12 @@ class SilentFallbackRule(Rule):
                 break
             if isinstance(stmt, ast.Return):
                 # Any return terminates the handler's control flow; a
-                # fallback constant among them is the reportable shape.
+                # fallback constant (or configured dotted sentinel) among
+                # them is the reportable shape.
                 value = constant_value(stmt.value) if stmt.value is not None else "None"
-                if is_fallback_value(value, ctx):
+                if value is None and stmt.value is not None:
+                    value = dotted_name(stmt.value)
+                if is_fallback_value(value, ctx) or (value is not None and value in ctx.extra_fallback_names):
                     findings.append(self._fallback_finding(handler, exc_name, ctx, "return", value))
                 break
             if isinstance(stmt, (ast.Assign, ast.AnnAssign)):
@@ -81,8 +85,13 @@ class SilentFallbackRule(Rule):
                 # excluded on purpose: its constant is an increment/accumulator
                 # amount ("failed += 1"), never the assigned fallback value.
                 value = constant_value(stmt.value) if stmt.value is not None else None
+                if value is None and stmt.value is not None:
+                    value = dotted_name(stmt.value)
                 if (
-                    is_fallback_value(value, ctx)
+                    (
+                        is_fallback_value(value, ctx)
+                        or (value is not None and value in ctx.extra_fallback_names)
+                    )
                     and not exits_process
                     and not body_has_call([stmt], ACTIVE_CALL_NAMES)
                 ):
@@ -97,15 +106,17 @@ class SilentFallbackRule(Rule):
         kind: str,
         value: str | None,
     ) -> Finding:
+        configured = value is not None and value in ctx.extra_fallback_names
+        noun = "configured sentinel" if configured else "constant"
         if kind == "return":
             message = (
-                f"exception handler returns constant {value!r} without re-raising; "
+                f"exception handler returns {noun} {value!r} without re-raising; "
                 "the caller cannot distinguish failure from a legitimate value of "
                 "the same shape"
             )
         else:
             message = (
-                f"exception handler assigns fallback constant {value!r} without "
+                f"exception handler assigns fallback {noun} {value!r} without "
                 "re-raising or recording the error"
             )
         return make_finding(

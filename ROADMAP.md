@@ -36,6 +36,16 @@ recall gate still at 1.0 afterwards.
 
 ## Considered and declined
 
+- **Inter-procedural fallback tracking / dataflow** (incl. the indirect
+  shape `except Exception: return default_score()`, where the constant hides
+  behind one function call) — judging it requires knowing what
+  `default_score` returns, i.e. whole-program analysis. As a single-file AST
+  layer this is architecturally out of reach, and a partial dataflow engine
+  would be neither sound nor cheap. The capability exists in adjacent
+  infrastructure (GitHub CodeQL's queries) at distribution scale failroute
+  cannot match; the durable lane is the high-precision hint layer plus human
+  triage (`docs/triage.md`). Revisit only as an upstream-contribution
+ 载体, never as in-tree scope.
 - **`return` inside `finally`** — a real failure-routing form, but already
   covered by syntactic rules (ruff/bugbear `B012`, `SIM107`). Adding it would
   duplicate shipped linters and dilute the differentiator: failroute targets

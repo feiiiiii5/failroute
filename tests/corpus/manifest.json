@@ -1,7 +1,7 @@
 {
-  "corpus_version": 3,
+  "corpus_version": 5,
   "labelled": "2026-08-29",
-  "description": "Ground-truth manifest for the failroute benchmark corpus. Each entry is an independently labelled true positive: (file, line of the `except` keyword, or the `with` keyword for silent-suppress, expected mode). Absence of a finding on any other handler or suppress statement in the corpus files is a labelled true negative. Labels were derived from the semantics of each fixture, not from tool output. v3 adds the implicit-fallback detector (fall-through handlers in value-returning functions), the configurable-sentinel boundary samples, and the v0.6 shape regressions.",
+  "description": "Ground-truth manifest for the failroute benchmark corpus. Each entry is an independently labelled true positive: (file, line of the `except` keyword, or the `with` keyword for silent-suppress, expected mode). Absence of a finding on any other handler or suppress statement in the corpus files is a labelled true negative. Labels were derived from the semantics of each fixture, not from tool output. v3 adds the implicit-fallback detector (fall-through handlers in value-returning functions), the configurable-sentinel boundary samples, and the v0.6 shape regressions. v4 adds labelled negatives for the loop skip-and-continue and retry-break handler shapes (control-flow terminators, not fall-throughs). v5 adds negatives for loop-context handlers and try-with-trailing-return shapes (fall-through does not reach the implicit None there).",
   "expected": [
     {
       "file": "no_action_cases.py",
@@ -319,6 +319,26 @@
       "file": "v06_shapes.py",
       "lineno": 160,
       "note": "GeneratorExit suppression is control-flow, not failure routing"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 147,
+      "note": "continue ends the handler inside the loop: deliberate skip, not implicit None"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 158,
+      "note": "break leaves the retry loop deliberately; explicit trailing return owns the outcome"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 171,
+      "note": "handler inside a loop: fall-through proceeds to the next iteration, the function still returns out"
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 118,
+      "note": "failure path reaches the trailing `return r`, not the implicit None"
     }
   ]
 }

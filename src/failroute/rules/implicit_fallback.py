@@ -14,6 +14,10 @@ its success path the caller observes exactly the same outcome as
 
 The rule reports that shape, gated for precision:
 
+* the ``try`` must sit in **tail position** of the enclosing function (last
+  statement of its block, behind non-loop blocks only) — otherwise the
+  fall-through re-enters control flow (next loop iteration, a trailing
+  ``return``) instead of reaching the implicit ``None``;
 * the **enclosing function** must return a non-``None`` value somewhere on
   its success path (explicit ``return <expr>`` outside any handler) — in a
   procedure, or a function whose only ``return`` is bare/``None``, the
@@ -98,8 +102,14 @@ def _returns_real_value(func: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
 
 
 def _has_top_level_terminal(handler: ast.ExceptHandler) -> bool:
-    """True when any *direct* statement of the handler raises or returns."""
-    return any(isinstance(stmt, (ast.Raise, ast.Return)) for stmt in handler.body)
+    """True when any *direct* statement of the handler terminates control flow.
+
+    ``raise``/``return`` end the handler; ``continue``/``break`` end it just
+    as decisively inside a loop — the skip-and-continue / retry-break shapes
+    are deliberate control flow, not fall-throughs to the enclosing
+    function's implicit ``None``.
+    """
+    return any(isinstance(stmt, (ast.Raise, ast.Return, ast.Continue, ast.Break)) for stmt in handler.body)
 
 
 def _has_top_level_assign(handler: ast.ExceptHandler) -> bool:
@@ -147,6 +157,28 @@ def _body_is_effectively_empty(handler: ast.ExceptHandler) -> bool:
     return True
 
 
+def _tail_tries(stmts: list[ast.stmt]) -> Iterator[ast.Try]:
+    """Yield ``try`` statements whose handler fall-through reaches the end of
+    the enclosing function body.
+
+    The rule's premise — "the caller observes the function's implicit
+    ``None`` on this path" — only holds when the ``try`` is the last
+    statement of its block and every enclosing block up to the function root
+    is itself in tail position. Recursion therefore descends only into
+    ``if``/``with`` bodies; a ``try`` inside a loop (or followed by any other
+    statement) does **not** qualify: fall-through there re-enters control
+    flow (next iteration, the trailing ``return r``) instead of the implicit
+    ``None``. Conservative by design — precision over recall.
+    """
+    if not stmts:
+        return
+    last = stmts[-1]
+    if isinstance(last, ast.Try):
+        yield last
+    elif isinstance(last, (ast.If, ast.With, ast.AsyncWith)):
+        yield from _tail_tries(last.body)
+
+
 class ImplicitFallbackRule(Rule):
     spec = SPEC
 
@@ -157,12 +189,11 @@ class ImplicitFallbackRule(Rule):
                 continue
             if _is_generator(node) or not _returns_real_value(node):
                 continue
-            for handler in walk_scope(node.body):
-                if not isinstance(handler, ast.ExceptHandler):
-                    continue
-                finding = self._check_handler(handler, ctx)
-                if finding is not None:
-                    findings.append(finding)
+            for try_node in _tail_tries(list(node.body)):
+                for handler in try_node.handlers:
+                    finding = self._check_handler(handler, ctx)
+                    if finding is not None:
+                        findings.append(finding)
         return findings
 
     def _check_handler(self, handler: ast.ExceptHandler, ctx: ScanContext) -> Finding | None:
