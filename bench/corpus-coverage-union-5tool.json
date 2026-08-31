@@ -1,0 +1,116 @@
+{
+  "generated_at_utc": "2026-08-31T04:14:03Z",
+  "line_tolerance": 1,
+  "semgrep_version": "1.175.0",
+  "rule_file": "tools/semgrep-rules/exception-handling.yaml",
+  "failroute_total": 649,
+  "union_covered_5tool": 279,
+  "union_covered_4tool_recheck": 253,
+  "failroute_only_5tool": 370,
+  "newly_covered_by_semgrep": 26,
+  "by_rule": {
+    "masked-exception": {
+      "total": 3,
+      "covered_5": 3,
+      "covered_4": 3,
+      "only_5": 0
+    },
+    "no-action": {
+      "total": 219,
+      "covered_5": 72,
+      "covered_4": 72,
+      "only_5": 147
+    },
+    "silent-fallback": {
+      "total": 400,
+      "covered_5": 179,
+      "covered_4": 178,
+      "only_5": 221
+    },
+    "silent-suppress": {
+      "total": 27,
+      "covered_5": 25,
+      "covered_4": 0,
+      "only_5": 2
+    }
+  },
+  "per_tool_by_rule": {
+    "ruff": {
+      "no-action": 72
+    },
+    "bandit": {
+      "no-action": 63
+    },
+    "pylint": {
+      "masked-exception": 3,
+      "no-action": 67,
+      "silent-fallback": 178
+    },
+    "flake8+bugbear": {
+      "no-action": 3,
+      "silent-fallback": 121
+    },
+    "semgrep": {
+      "silent-suppress": 25,
+      "silent-fallback": 1
+    }
+  },
+  "per_package": [
+    {
+      "name": "garak",
+      "failroute": 16,
+      "covered_5tool": 7,
+      "covered_4tool": 7,
+      "only_5tool": 9
+    },
+    {
+      "name": "inspect_ai",
+      "failroute": 324,
+      "covered_5tool": 97,
+      "covered_4tool": 90,
+      "only_5tool": 227
+    },
+    {
+      "name": "pydantic_ai_slim",
+      "failroute": 103,
+      "covered_5tool": 28,
+      "covered_4tool": 9,
+      "only_5tool": 75
+    },
+    {
+      "name": "uqlm",
+      "failroute": 14,
+      "covered_5tool": 5,
+      "covered_4tool": 5,
+      "only_5tool": 9
+    },
+    {
+      "name": "trl",
+      "failroute": 28,
+      "covered_5tool": 6,
+      "covered_4tool": 6,
+      "only_5tool": 22
+    },
+    {
+      "name": "smolagents",
+      "failroute": 13,
+      "covered_5tool": 2,
+      "covered_4tool": 2,
+      "only_5tool": 11
+    },
+    {
+      "name": "deepteam",
+      "failroute": 140,
+      "covered_5tool": 131,
+      "covered_4tool": 131,
+      "only_5tool": 9
+    },
+    {
+      "name": "fickling",
+      "failroute": 11,
+      "covered_5tool": 3,
+      "covered_4tool": 3,
+      "only_5tool": 8
+    }
+  ]
+}

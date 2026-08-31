@@ -36,7 +36,7 @@ def score_answer(prompt: str, answer: str) -> float:
 | `return 0.0` after a judge outage | invisible | flagged (`silent-fallback`) |
 | `contextlib.suppress(Exception)` | invisible — SIM105 actively *recommends* migrating into it | flagged (`silent-suppress`) |
 | Branch-dependent outcomes (conditional re-raise + fallback) | invisible | flagged (`masked-exception`) |
-| Precision target | low-noise, syntactic by design | hand-labelled corpus, precision = recall = 1.0, findings expected to be triaged by a human |
+| Precision target | low-noise, syntactic by design | **findings are not a defect list** — see "How often is a finding a bug?" below; they are meant to be triaged by a human |
 
 failroute is not a replacement: it runs alongside your linter as a separate,
 higher-scrutiny pass over eval, judge, and agent code paths.
@@ -282,22 +282,65 @@ Re-run: `python tools/benchmark.py` (also enforced by `pytest`).
 
 ### What syntactic linters miss
 
-Measured 2026-08-29 with the v0.7 engine against the source packages of 8 real
-AI/eval repositories (garak, inspect_ai, pydantic-ai, uqlm, trl, smolagents,
-deepteam, fickling): failroute reported **670 findings**; ruff's
-exception-handling rules (`S110` try-except-pass, `S112` try-except-continue)
-reported **79**, of which **70** overlap failroute's `no-action` mode —
-**600 findings are failroute-only**. The non-`no-action` families (449):
+Measured against **eight pinned PyPI releases** (garak, inspect_ai, pydantic-ai,
+uqlm, trl, smolagents, deepteam, fickling — 2,354 files, 563,270 lines), locked by
+URL, SHA-256 and tree hash in `paper/corpus-lock.json` so the corpus is
+byte-reproducible. failroute reports **649 findings**.
 
-| Mode | Count | Why syntactic rules miss it |
+Compared against **four standard linters** at their default configurations
+(ruff, bandit, pylint, flake8 + bugbear), matching on ±1 line:
+
+| | Findings co-located | Share |
 | --- | --- | --- |
-| `silent-fallback` | 413 | the defect is what the handler *returns*, not its shape |
-| `silent-suppress` | 27 | `contextlib.suppress` is a call expression, not an `ExceptHandler` — no shipped linter flags it, and ruff's SIM105 actively *recommends* rewriting `try-except-pass` into it |
-| `masked-exception` | 3 | branch-dependent outcome |
-| `implicit-fallback` + `name-shadowing` | 6 | fall-through to the function's implicit `None`; rebinding the caught name |
+| Union of all four linters | **253** | 39.0% |
+| **failroute only** | **396** | **61.0%** |
 
-Re-run: `python tools/compare_ruff.py <repo> [<repo> ...]`.
-Results are checked into `bench/` with the exact scanned paths.
+Per mode, and which tool (if any) reaches it:
+
+| Mode | Total | Covered by the four | Notes |
+| --- | --- | --- | --- |
+| `silent-fallback` | 400 | 179 (pylint 178) | the defect is what the handler *returns*, not its shape |
+| `no-action` | 219 | 72 (ruff 72 / pylint 67 / bandit 63) | the one family syntactic rules do reach |
+| `silent-suppress` | 27 | **0** | `contextlib.suppress` is a call expression, not an `ExceptHandler`; ruff's SIM105 actively *recommends* rewriting `try-except-pass` into it |
+| `masked-exception` | 3 | 3 (pylint) | branch-dependent outcome |
+
+> **A note on baselines.** Earlier versions of this README compared only against
+> ruff's `S110`/`S112`. That is not a fair baseline: **pylint is much stronger**
+> (178 + 67 on its own), and a ruff-only comparison overstates the gap by roughly
+> 3.4×. The numbers above use the union of four linters. A hand-written semgrep
+> ruleset targeting these patterns raises the union to 279 (43.0%) — mostly by
+> covering 25 of the 27 `silent-suppress` findings — so "no shipped linter reaches
+> this" is a statement about *default configurations*, not about what is expressible.
+
+Re-run: see `paper/ARTIFACT.md`. Results are checked into `bench/`.
+
+### How often is a finding a bug?
+
+**Mostly, it is not — and that is the most useful thing this project measured.**
+
+On a stratified random sample of **80** of the 649 findings (by rule × package,
+fixed seed, reproducible), independently labelled twice:
+
+| Verdict | Count | Share |
+| --- | --- | --- |
+| **Deliberate design contract** | 64 | **80%** |
+| Genuine defect | 12 | 15% |
+| False positive | 4 | 5% |
+
+Every one of the 12 defects fell inside a **single, young package**; the other
+seven mature packages contributed **0 defects out of 66 sampled findings**.
+
+The conclusion is not flattering to this tool, and it is the point: **a syntactic
+detector cannot distinguish an intentional fallback from a bug.** failroute
+narrows where to look; a person still has to argue the failure chain. Treat its
+output as a review queue, not a defect list.
+
+The internal `tests/corpus/` fixtures (68 samples, precision = recall = 1.0 in CI)
+are a **regression gate on the rules themselves** — construct validity. They say
+nothing about how the tool behaves on code it has never seen; the table above does.
+
+Full study, including the recall measurement against upstream-merged fixes
+(1 of 10 in-family fixes detected): `paper/DRAFT.md`.
 
 
 ### Throughput

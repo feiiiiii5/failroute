@@ -1,0 +1,129 @@
+rules:
+  - id: fr-bare-except
+    languages: [python]
+    severity: WARNING
+    message: bare except clause
+    pattern: |
+      try:
+        ...
+      except:
+        ...
+  - id: fr-broad-except
+    languages: [python]
+    severity: WARNING
+    message: except catches Exception or BaseException
+    pattern-either:
+      - pattern: |
+          try:
+            ...
+          except Exception:
+            ...
+      - pattern: |
+          try:
+            ...
+          except BaseException:
+            ...
+      - pattern: |
+          try:
+            ...
+          except (Exception,):
+            ...
+  - id: fr-except-pass
+    languages: [python]
+    severity: WARNING
+    message: exception handler whose body is only pass
+    pattern-either:
+      - pattern: |
+          try:
+            ...
+          except:
+            pass
+      - pattern: |
+          try:
+            ...
+          except $E:
+            pass
+      - pattern: |
+          try:
+            ...
+          except $E as $X:
+            pass
+  - id: fr-except-continue
+    languages: [python]
+    severity: WARNING
+    message: exception handler whose body is only continue
+    pattern-either:
+      - pattern: |
+          try:
+            ...
+          except:
+            continue
+      - pattern: |
+          try:
+            ...
+          except $E:
+            continue
+      - pattern: |
+          try:
+            ...
+          except $E as $X:
+            continue
+  - id: fr-except-return-constant
+    languages: [python]
+    severity: WARNING
+    message: exception handler returns a constant or None (silent fallback)
+    pattern-either:
+      - pattern: |
+          try:
+            ...
+          except $E:
+            return None
+      - pattern: |
+          try:
+            ...
+          except $E:
+            return True
+      - pattern: |
+          try:
+            ...
+          except $E:
+            return False
+      - pattern: |
+          try:
+            ...
+          except $E:
+            return ""
+      - pattern: |
+          try:
+            ...
+          except $E:
+            return 0
+      - pattern: |
+          try:
+            ...
+          except $E:
+            return []
+      - pattern: |
+          try:
+            ...
+          except $E:
+            return {}
+  - id: fr-contextlib-suppress
+    languages: [python]
+    severity: WARNING
+    message: contextlib.suppress swallows the exception entirely
+    pattern-either:
+      - patterns:
+          - pattern: |
+              with contextlib.suppress($E):
+                ...
+          - pattern-not: |
+              with contextlib.suppress():
+                ...
+      - patterns:
+          - pattern: |
+              with suppress($E):
+                ...
+          - pattern-not: |
+              with suppress():
+                ...

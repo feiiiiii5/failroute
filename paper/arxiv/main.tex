@@ -1,0 +1,695 @@
+%% Failure-Routing in AI/ML Codebases: How Often Is a Swallowed Failure a Bug?
+%%
+%% Generated from paper/DRAFT.md by outsourced task P7 (2026-08-31).
+%% Every number here is transcribed from DRAFT.md or from paper/intervals.json
+%% (Wilson 95% intervals, tools/compute_intervals.py). Nothing was estimated.
+%% Where DRAFT and the underlying artifacts disagree, a %%! DISCREPANCY comment
+%% marks the spot and the disagreement is reported in the handoff notes rather
+%% than resolved silently.
+%%
+%% Build:  make        (pdflatex -> bibtex -> pdflatex x2)
+%%
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{verbatim}
+\emergencystretch=2em
+
+% [TODO] author block: names, affiliations, contact author, and whether the
+% author is disclosed as the tool's author must be decided by the author, not
+% generated here.
+\title{Failure-Routing in AI/ML Codebases:\\ How Often Is a Swallowed Failure a Bug?}
+\author{[TODO: authors and affiliations]}
+\date{Draft --- 2026-08-31. Not yet submitted to arXiv.}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Exception handlers that convert a failure into a success-shaped value --- an LLM
+judge that never ran becoming a legitimate \texttt{0.0} score, a parse error
+becoming ``no results'' --- produce wrong answers with no crash and no log line.
+We call this pattern \emph{failure-routing}. Syntactic linters cannot express it:
+\texttt{except Exception: return 0.0} is invisible to \texttt{ruff},
+\texttt{bandit} and \texttt{flake8-bugbear}, and \texttt{ruff}'s own
+\texttt{SIM105} actively recommends rewriting
+\texttt{try/except/pass} into \texttt{contextlib.suppress(...)}, which is
+semantically identical and invisible to every linter we measured afterwards.
+
+We build a six-rule AST detector for this family and apply it to eight pinned
+AI/ML packages (563{,}270 lines). It reports 649 findings, of which 396 (61.0\%)
+are not co-located with any finding from the union of four syntactic linters; for
+the \texttt{contextlib.suppress} shape the figure is 27/27 (100\%).
+
+We then do what tool papers usually skip: we label a stratified random sample of
+the findings ($n=80$). The result is a negative one. Only 12 (15.0\%, 95\% Wilson
+interval 8.8--24.4) are genuine defects; 64 (80.0\%, 70.0--87.3) are deliberate,
+frequently commented, design contracts; 4 (5.0\%, 2.0--12.2) were false positives
+from a single detector bug that the labelling itself exposed. More strikingly,
+all 12 defects occur in one package, and in the seven other packages 0 of 66
+sampled findings were defects (one-sided 95\% upper bound 4.4\%).
+
+We further measure recall against an unusually direct ground truth: 10 upstream
+fixes in this defect family, authored by us and merged by the projects' own
+maintainers. The detector finds 1 of 10 (95\% Wilson interval 1.8--40.4).
+
+The picture that emerges is that semantic failure-routing detection has
+\emph{both} low precision and low recall on mature code, and that its yield is
+governed far more by codebase maturity than by rule design. We argue this does
+not make such detectors useless --- it makes them \emph{search-space reducers}
+rather than oracles, and we characterise the conditions under which the reduction
+pays for the triage it demands.
+\end{abstract}
+
+\section{Introduction}
+
+% [TODO] Opening prose (the SIM105 observation) is explicitly reserved for the
+% author in DRAFT.md section 1. Only the factual skeleton is transcribed here.
+
+\paragraph{The \texttt{SIM105} observation.}
+\begin{itemize}[nosep,leftmargin=*]
+\item \texttt{ruff}'s \texttt{SIM105} rule recommends rewriting
+  \texttt{try/except/pass} into \texttt{contextlib.suppress(...)}. The two forms
+  are semantically identical.
+\item After the rewrite, no Python linter we tested reports the construct. In our
+  corpus, all 27 \texttt{contextlib.\allowbreak suppress} findings are invisible
+  to the union of \texttt{ruff}, \texttt{bandit}, \texttt{pylint} and
+  \texttt{flake8}\allowbreak\texttt{+}\allowbreak\texttt{bugbear}
+  (Section~\ref{sec:rq1}).
+  %% DISCREPANCY (P5): with the semgrep rule set \emph{we wrote}, 25 of those 27
+  %% become detectable (bench/corpus-coverage-union-5tool.json). So the claim is
+  %% about shipped default rule sets, not about semgrep as a platform. DRAFT.md
+  %% must be qualified accordingly before submission.
+\item A widely adopted refactoring therefore moves an entire defect shape out of
+  the tools' field of view while leaving its runtime consequences unchanged.
+\end{itemize}
+
+\paragraph{Contributions.}
+\begin{enumerate}[nosep,leftmargin=*]
+\item A taxonomy of six failure-routing shapes and an AST detector for them
+  (Section~\ref{sec:family}).
+\item A reproducible prevalence and cross-tool coverage measurement over 8 pinned
+  packages (Section~\ref{sec:rq1}).
+\item A labelled stratified sample ($n=80$) giving the first precision estimate
+  for this detector family on real code (Section~\ref{sec:rq2}) --- the paper's
+  main empirical result, and a negative one.
+\item A recall measurement against maintainer-merged fixes
+  (Section~\ref{sec:rq3}).
+\item Evidence that systematic labelling is itself a detector-improvement method:
+  it exposed a defect that accounted for 100\% of one rule's real-world findings
+  (Section~\ref{sec:rq4}).
+\end{enumerate}
+
+\section{The pattern family}
+\label{sec:family}
+
+Six shapes, all reducible to \emph{``a failure became a value the caller cannot
+distinguish from success''}:
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}p{3.0cm}p{5.3cm}p{6.0cm}@{}}
+\toprule
+Rule & Shape & Consequence \\
+\midrule
+\texttt{no-action} & \texttt{except ...: pass} & caller never learns the
+operation failed \\
+\texttt{silent-fallback} & handler returns/assigns a constant without re-raising
+& judge outage becomes a legitimate \texttt{0.0} \\
+\texttt{masked-exception} & catch-all conditionally re-raises \emph{and} falls
+back to a constant & outcome depends on which branch ran \\
+\texttt{silent-suppress} & \texttt{with contextlib.suppress(...)} & same
+semantics as \texttt{except}+discard; invisible to the linters we tested \\
+\texttt{implicit-fallback} & handler neither re-raises, returns, nor records ---
+falls through to implicit \texttt{None} & ``did nothing'' becomes a legitimate
+\texttt{None} \\
+\texttt{name-shadowing} & \texttt{except E as e:} rebinds \texttt{e} inside the
+handler & Python deletes the binding on exit $\rightarrow$ \texttt{NameError};
+original exception lost \\
+\bottomrule
+\end{tabular}
+\caption{The six failure-routing shapes.}
+\end{table}
+
+\section{Detector}
+\label{sec:detector}
+
+The tool is the instrument, not the subject, so we describe it only to the extent
+needed to interpret the study. AST-based; six rules behind a shared registry;
+text/JSON/SARIF output; \texttt{\# failroute: ignore} opt-out;
+\texttt{[tool.failroute]} per-rule configuration. Quality gates: 130 tests across
+3 OS $\times$ 5 Python versions, \texttt{mypy --strict}, and a hand-labelled unit
+corpus (v6, 68 samples: 36 positive / 32 negative) whose labels were written
+independently of tool output, held to precision $=$ recall $= 1.0$ in CI.
+
+\paragraph{Construct-validity caveat, stated up front.} That 1.0 is evidence the
+detector matches its own specification, \textbf{not} evidence it finds real
+defects. Section~\ref{sec:rq2} is the external-validity measurement, and it tells
+a very different story.
+
+%% DISCREPANCY (P6): `failroute --version` in the study checkout prints
+%% "failroute 0.5.1", while DRAFT.md section 4.1 lists version 0.7.0. Unresolved.
+%% Do not quote a release number anywhere in this paper until
+%% failroute.__version__ and pyproject.toml agree.
+
+\section{Study}
+\label{sec:study}
+
+\subsection{Corpus}
+\label{sec:corpus}
+
+Eight AI/ML packages fetched as pinned PyPI source distributions (not git
+clones), each recorded with URL, SHA-256, upload time and extracted tree hash in
+\texttt{paper/corpus-lock.json}.
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lllrr@{}}
+\toprule
+Package & Version & Scan root & \texttt{.py} files & Lines \\
+\midrule
+inspect\_ai & 0.3.260 & \texttt{src/inspect\_ai} & 755 & 198{,}351 \\
+pydantic\_ai\_slim & 2.36.0 & \texttt{.} & 298 & 119{,}534 \\
+deepteam & 1.0.9 & \texttt{deepteam} & 588 & 71{,}305 \\
+trl & 1.12.0 & \texttt{trl} & 155 & 65{,}727 \\
+garak & 0.16.0 & \texttt{garak} & 201 & 38{,}328 \\
+smolagents & 1.26.0 & \texttt{src/smolagents} & 20 & 13{,}355 \\
+uqlm & 0.6.5 & \texttt{uqlm} & 91 & 12{,}605 \\
+fickling & 0.1.12 & \texttt{fickling} & 16 & 5{,}024 \\
+\midrule
+\textbf{Total} & & & \textbf{2{,}354} & \textbf{563{,}270} \\
+\bottomrule
+\end{tabular}
+\caption{Pinned corpus. Reproducible by anyone with network access and no git
+history: re-running \texttt{tools/fetch\_corpus.py} yields byte-identical inputs.}
+\end{table}
+
+\subsection{RQ1 --- Prevalence and cross-tool coverage}
+\label{sec:rq1}
+
+\texttt{failroute} reports \textbf{649} findings. Baselines were run on the
+\emph{same} pinned trees.
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lllrr@{}}
+\toprule
+Tool & Version & Rules & Findings & Co-located $\pm$1 line \\
+\midrule
+\textbf{failroute} & see remark below & all six & \textbf{649} & --- \\
+\texttt{ruff} & 0.16.0 & S110, S112 & 76 & 72 \\
+\texttt{bandit} & 1.9.4 & B110, B112 & 67 & 63 \\
+\texttt{pylint} & 4.0.8 & W0702/3/5/6 & 529 & 248 \\
+\texttt{flake8}+\texttt{bugbear} & 7.3.0 / 25.11.29 & E722, B001, B017 & 268 & 124 \\
+\texttt{semgrep} (our rules) & 1.175.0 & hand-written, 6 shapes & --- & $+26$ \\
+\bottomrule
+\end{tabular}
+\caption{Cross-tool comparison on the pinned corpus. The \texttt{semgrep} row is
+\emph{not} a shipped-rule baseline: its rule set
+(\texttt{tools/semgrep-rules/exception-handling.yaml}) was written by us, so it
+shows what a syntactic-pattern engine \emph{can} express given rules, not what
+users get by default. $+26$ is the number of failroute findings newly co-located
+once semgrep is added to the union.}
+\end{table}
+
+\textbf{Union of the four syntactic linters covers 253 of 649 (39.0\%, 95\%
+Wilson interval 35.3--42.8). \texttt{failroute}-only: 396 (61.0\%).} Adding our
+\texttt{semgrep} rules raises the union to 279 and lowers the
+\texttt{failroute}-only count to 370 (57.0\%).
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Rule & Total & Covered by 4-linter union (95\% CI) & \texttt{failroute}-only \\
+\midrule
+\texttt{silent-fallback} & 400 & 178 \ (44.5\%, 39.7--49.4) & 222 \\
+\texttt{no-action} & 219 & 72 \ (32.9\%, 27.0--39.3) & 147 \\
+\textbf{\texttt{silent-suppress}} & \textbf{27} & \textbf{0} \ (0.0\%,
+one-sided upper 10.5) & \textbf{27} \\
+\texttt{masked-exception} & 3 & 3 \ (100.0\%, 43.9--100.0) & 0 \\
+\texttt{implicit-fallback} & 0 & --- & --- \\
+\bottomrule
+\end{tabular}
+\caption{Coverage by rule. Intervals are Wilson score intervals computed by
+\texttt{tools/compute\_intervals.py}; zero-numerator cells are reported with a
+one-sided 95\% upper bound.}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fig2_cross_tool_coverage.pdf}
+\caption{Per-rule coverage by tool, including the four-linter union and the
+five-tool union. The \texttt{silent-suppress} column is the paper's cleanest
+coverage claim.}
+\end{figure}
+
+\paragraph{Two observations that cut against the tool.}
+\begin{enumerate}[nosep,leftmargin=*]
+\item \texttt{pylint} is a far stronger baseline than \texttt{ruff}. Comparing
+  only against \texttt{ruff}'s S110/S112 --- as our own earlier benchmark did ---
+  overstates novelty by roughly 3.4$\times$ (72 vs 248 co-located findings). Any
+  paper in this space that benchmarks against \texttt{ruff} alone should be read
+  with that in mind.
+\item \texttt{masked-exception} is fully covered. All 3 findings co-locate with a
+  \texttt{pylint} broad-except warning. That rule contributes no coverage novelty
+  here, and with $n=3$ the 100\% estimate is statistically meaningless
+  (interval 43.9--100.0).
+\end{enumerate}
+
+\paragraph{Methodological caveat on ``coverage''.}
+Co-location at $\pm$1 line means a syntactic tool \emph{flags the same handler},
+\textbf{not} that it expresses the same property. \texttt{pylint W0703} fires on
+\texttt{except Exception:} regardless of what the handler does; it does not
+distinguish ``re-raises'' from ``returns \texttt{0.0}''. 39.0\% is therefore an
+\emph{upper bound} on what the syntactic tools actually say, and the semantic
+novelty is correspondingly higher than 61\%. We report the conservative number.
+
+\subsection{RQ2 --- What fraction are real defects?}
+\label{sec:rq2}
+
+\paragraph{Method.}
+Stratified random sample over (rule $\times$ package), fixed seed (20260831),
+every stratum guaranteed $\geq$1 draw, remainder allocated proportionally.
+$n=80$. The draw is byte-reproducible (\texttt{tools/draw\_sample.py}, SHA-256
+recorded). Each finding was labelled by reading the surrounding source in the
+pinned tree into one of three classes: \textbf{DEFECT} (the converted failure
+produces a wrong caller-visible outcome with no signal), \textbf{CONTRACT}
+(deliberate, and either documented, commented, or expressed in the return type),
+\textbf{FALSE POSITIVE} (the detector is wrong about the code).
+
+\paragraph{Result.}
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lrrl@{}}
+\toprule
+Label & $n$ & Share & 95\% Wilson interval \\
+\midrule
+CONTRACT & 64 & 80.0\% & 70.0--87.3 \\
+DEFECT & 12 & 15.0\% & 8.8--24.4 \\
+FALSE POSITIVE & 4 & 5.0\% & 2.0--12.2 \\
+\bottomrule
+\end{tabular}
+\caption{RQ2 headline: the precision of this detector family on mature code is
+15.0\%, with a lower bound of 8.8\%.}
+\end{table}
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Rule & $n$ & DEFECT & CONTRACT & FALSE POS. \\
+\midrule
+\texttt{silent-fallback} & 49 & 12 & 37 & 0 \\
+\texttt{no-action} & 23 & 0 & 23 & 0 \\
+\texttt{implicit-fallback} & 4 & 0 & 0 & \textbf{4} \\
+\texttt{silent-suppress} & 3 & 0 & 3 & 0 \\
+\texttt{masked-exception} & 1 & 0 & 1 & 0 \\
+\bottomrule
+\end{tabular}
+\caption{Labelling by rule. All 12 defects come from \texttt{silent-fallback}
+(24.5\% of that rule's sample, interval 14.6--38.1); all 4 false positives come
+from \texttt{implicit-fallback}.}
+\end{table}
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lrrrl@{}}
+\toprule
+Package & $n$ & DEFECT & CONTRACT & FALSE POS. / defect bound \\
+\midrule
+\textbf{deepteam} & 14 & \textbf{12} & 1 & 1 FP; defect rate 85.7\% (60.1--96.0) \\
+inspect\_ai & 41 & 0 & 40 & 1 FP; upper 7.0\% \\
+pydantic\_ai\_slim & 11 & 0 & 10 & 1 FP; upper 23.8\% \\
+trl & 4 & 0 & 4 & 0; upper 52.7\% \\
+garak & 3 & 0 & 3 & 0; upper 63.2\% \\
+fickling & 3 & 0 & 2 & 1 FP; upper 63.2\% \\
+smolagents & 2 & 0 & 2 & 0; upper 77.6\% \\
+uqlm & 2 & 0 & 2 & 0; upper 77.6\% \\
+\midrule
+\emph{all but deepteam} & 66 & \textbf{0} & & upper \textbf{4.4\%} \\
+\bottomrule
+\end{tabular}
+\caption{Labelling by package --- the result that matters. The ``upper'' column
+is the one-sided 95\% upper bound on the defect rate for zero-defect cells;
+small-$n$ cells are wide and must not be read as strong evidence.}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fig1_defect_rate_by_package.pdf}
+\caption{Measured defect rate per package with Wilson 95\% intervals. Zero-defect
+cells are drawn as one-sided 95\% upper bounds (triangles). The visual point is
+the spread, not the ordering.}
+\end{figure}
+
+\textbf{All 12 defects are in \texttt{deepteam}. Across the other seven packages,
+0 of 66 sampled findings were defects} (pooled one-sided 95\% upper bound
+4.4\%).
+
+The 12 defects are not 12 independent bugs. They are \textbf{three homogeneous
+families} replicated across metric classes:
+\begin{enumerate}[nosep,leftmargin=*]
+\item \textbf{Silent criteria degradation (4/12).} \texttt{try:\newline \ \ self.system\_prompt
+  = model.get\_system\_prompt()\newline except:\newline \ \ self.system\_prompt = \string"\string"}. A custom or
+  misconfigured LLM that lacks the method silently scores every subsequent case
+  under empty criteria. (This family was independently reported upstream by the
+  present author before this study, as \texttt{deepteam\#270}; that report is
+  partial external validation of the label, not of the tool.)
+\item \textbf{Dead comparison (5/12).} \texttt{try: self.score == 1 except:
+  self.success = False}. The guarded statement is a pure comparison expression
+  that cannot raise, so the handler is dead code --- and \texttt{self.success} is
+  never assigned on the success path.
+\item \textbf{Fail-open security verdict (3/12).} \texttt{is\_vulnerable()}
+  iterates results inside a \texttt{try}; on any error it returns
+  \texttt{vulnerable = False}. In a red-teaming tool, ``not vulnerable'' is the
+  most dangerous possible default: an infrastructure failure is converted into a
+  clean security conclusion.
+\end{enumerate}
+
+Conversely, the 64 contracts are overwhelmingly \emph{deliberate and legible}: TUI
+widget lookups that may not be mounted, optional-dependency probes, idempotent
+cleanup in \texttt{finally}, and predicate functions whose
+\texttt{Optional}/\texttt{bool} return type \emph{is} the contract. Many carry an
+explicit comment stating the intent (e.g.\ inspect\_ai's ``fail open --- better to
+skip the barrier than to hang teardown'').
+
+Two findings in the sample are worth citing as \textbf{positive} examples of the
+discipline this paper argues for: pydantic-ai's \texttt{is\_private\_ip} fails
+\emph{closed} on an unparseable address (``Invalid IP address, treat as
+potentially dangerous'' $\rightarrow$ \texttt{return True}), and its
+\texttt{\_run\_tool} explicitly routes a caught exception onto a queue \emph{so
+that the consumer re-raises it} rather than letting it vanish.
+
+\subsection{RQ3 --- Recall against maintainer-merged fixes}
+\label{sec:rq3}
+
+An unusual ground truth is available: upstream fixes in this defect family that
+the projects' own maintainers reviewed and merged. Of 70 merged pull requests
+authored by the present author, \textbf{10} are failure-routing fixes. For each,
+the file was fetched at the merge commit's \emph{first parent} (i.e.\ immediately
+pre-fix) and scanned.
+
+\textbf{Detected: 1 of 10} (10.0\%, 95\% Wilson interval 1.8--40.4). Excluding one
+TypeScript change (out of language scope) and one non-handler implicit
+\texttt{None} (outside the six shapes by design): \textbf{1 of 8} (12.5\%,
+2.2--47.1).
+
+The nine misses are informative, and they all say the same thing: \textbf{the
+conversion frequently happens outside the \texttt{except} block.}
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lp{8.2cm}@{}}
+\toprule
+Missed case & Where the conversion actually happens \\
+\midrule
+\texttt{uqlm} \#462, \#459 & retry exhaustion $\rightarrow$ \texttt{NaN} enters
+the aggregate downstream \\
+\texttt{inspect\_ai} \#4906 & \texttt{tenacity.RetryError} masks the underlying
+cause \\
+\texttt{inspect\_ai} \#5068 & state mutation \emph{after} the handler
+(\texttt{exists = True}) \\
+\texttt{inspect\_evals} \#2167 & an ordinary \texttt{if} branch writes
+\texttt{Score(0.0)} on a broken invariant \\
+\texttt{PyRIT} \#2466 & silent list filtering, no exception involved \\
+\texttt{uqlm} \#425 & pre-fix code crashed; the fix \emph{added} the graceful
+path \\
+\bottomrule
+\end{tabular}
+\caption{Missed cases. Six rows cover the nine misses; three are duplicates of the
+same pattern within a package.}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fig3_recall.pdf}
+\caption{Recall by defect family against the merged-fix ground truth.}
+\end{figure}
+
+This is the paper's second negative result, and it bounds the whole approach:
+\textbf{handler-shaped detection --- ours included --- cannot cover a defect
+family whose defining event is semantic rather than syntactic.}
+
+\paragraph{Side observation.} In the pre-fix \texttt{inspect\_ai \#5068} file the
+detector flagged a \emph{different, unfixed} \texttt{silent-fallback} at line 356.
+Real code contains same-family defects that no one has reported.
+
+\subsection{RQ4 --- Labelling as a detector-improvement method}
+\label{sec:rq4}
+
+All four false positives in the sample were \texttt{implicit-fallback}, and all
+four had the \emph{same} root cause:
+\texttt{\_has\_top\_level\_terminal()} inspected only \emph{direct} statements of
+the handler body, so a \texttt{return}/\texttt{raise} nested inside an exhaustive
+\texttt{if/else} was invisible. Four real shapes triggered it:
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Package & Function & Shape \\
+\midrule
+deepteam & \texttt{simulate\_baseline\_attacks} & \texttt{if ignore\_errors:
+return [...] else: raise} \\
+fickling & \texttt{check\_pickle} & nested \texttt{try/except}, every path
+returns \\
+inspect\_ai & grok \texttt{generate} & \texttt{if/elif/else}, every branch
+returns or raises \\
+pydantic\_ai & \texttt{execute\_output\_function} & \texttt{if wrap: raise
+ToolRetryError else: raise} \\
+\bottomrule
+\end{tabular}
+\caption{The four shapes that exposed the detector bug.}
+\end{table}
+
+We implemented a recursive exhaustiveness analysis
+(\texttt{\_always\_terminates}) covering \texttt{if/else}, \texttt{with},
+\texttt{try/except/finally} and \texttt{match}, added six regression tests derived
+from the four real shapes (each failing before the fix), and re-ran the corpus.
+
+\textbf{\texttt{implicit-fallback} findings on 563k lines: 10 $\rightarrow$ 0.
+Total findings: 659 $\rightarrow$ 649. Test count: 124 $\rightarrow$ 130.} No
+other rule changed.
+
+Two things follow. First, the rule's entire real-world yield was false. Second,
+and this is the transferable point: \textbf{a stratified labelling pass is not
+only an evaluation instrument; it is the most efficient defect-finding method we
+applied to our own detector.} The unit corpus (68 samples, precision $=$ recall
+$= 1.0$) never exposed this bug, because the corpus was written by the same
+person, with the same blind spot, as the detector.
+
+\section{Discussion}
+
+\paragraph{A detector this imprecise is still useful, but not as an oracle.}
+On our corpus a maintainer following up every finding would read 649 handlers to
+reach $\sim$97 genuine defects (extrapolating the 15.0\% point estimate --- see
+the caveat in Section~\ref{sec:threats}), of which the vast majority are three
+copy-paste families in a single package. As an \emph{alarm}, that is unusable. As
+a \emph{search-space reducer} over 563k lines, it is a different proposition: it
+narrowed the space by roughly 3.5 orders of magnitude, and a human reading 80
+handlers found a systematic fail-open security verdict in a red-teaming tool.
+
+\paragraph{Yield tracks codebase maturity, not rule design.}
+The strongest predictor of whether a finding is a defect was not \emph{which}
+rule fired but \emph{which package} it fired in. The mature, heavily-reviewed
+packages had essentially no defects and a large number of carefully-commented
+intentional contracts; the one package with a systematic problem had it
+replicated across dozens of near-identical files. This suggests triage effort
+should be allocated per-package after a cheap pilot sample, not uniformly.
+
+\paragraph{The \texttt{contextlib.suppress} blind spot is real and growing.}
+27/27 invisible to the linters we measured with their shipped rules, and a popular
+lint rule actively drives code toward that shape. This is the one place where the
+tool's coverage claim is unambiguous --- and it is a claim about \emph{shipped
+default rule sets}, since the semgrep rules we wrote recover 25 of the 27.
+
+\paragraph{On ``tool proposes, human adjudicates''.}
+We report a case where we ran the detector over a well-maintained red-teaming
+framework, sampled twelve semantic findings, traced each, concluded all twelve
+were deliberate contracts, and \emph{filed nothing}. Given the 15\% base rate
+measured here, that outcome is what the numbers predict, not an anomaly.
+
+\section{Threats to validity}
+\label{sec:threats}
+
+\begin{itemize}[nosep,leftmargin=*]
+\item \textbf{Single human annotator, who is also the tool's author.} A second
+  independent annotation pass was performed, but by a \emph{different automated
+  agent}, not by a human. It reached the same label on 80/80 items
+  (Cohen's $\kappa = 1.00$ between the two passes). We report that as agreement
+  between two automated passes and nothing more: two language agents reading the
+  same rule description and the same source share a prior, so perfect agreement
+  does not remove the single-annotator threat, and no human inter-rater statistic
+  is claimed anywhere in this paper.
+  % [TODO] still open: a genuine second \emph{human} rater on >=30 items, or an
+  % explicit single-annotator statement in the abstract.
+\item \textbf{Sample size.} $n=80$ of 649. Per-rule and per-package cells are
+  small (\texttt{masked-exception} $n=1$). All proportions now carry Wilson score
+  intervals; several cells (any $n \leq 4$) have intervals wider than 45
+  percentage points and are reported as upper bounds only.
+\item \textbf{Package selection is not random.} The eight packages were chosen
+  because the author had prior contribution history in them. \texttt{deepteam} in
+  particular is a package where the author had \emph{already found} a defect
+  family, which inflates the overall defect rate. The seven-package 0/66 figure is
+  the more conservative read.
+\item \textbf{Recall ground truth is authored by the same person.} The 10 merged
+  fixes were written and submitted by the author; maintainer merge is independent
+  validation of \emph{the defect}, not of its representativeness.
+\item \textbf{Co-location $\neq$ equivalent detection}
+  (Section~\ref{sec:rq1} caveat). Reported conservatively.
+\item \textbf{\texttt{semgrep} is not a shipped-rule baseline.} The retry run used
+  \texttt{semgrep} 1.175.0 with a rule set we authored. It bounds what the engine
+  can express, not what a default installation reports.
+\item \textbf{Version pinning is a snapshot.} All findings are relative to the
+  pinned versions in \texttt{paper/\allowbreak corpus-lock.json};\allowbreak{} upstream may have fixed or
+  introduced instances since.
+\item \textbf{Partial reproduction.} The test suite, one package's end-to-end
+  scan, and the derived-statistics scripts were independently re-run and matched;
+  the corpus fetch and the full 8-package re-scan were not re-verified in the
+  same pass (see \texttt{paper/ARTIFACT.md}).
+\end{itemize}
+
+\section{Related work}
+\label{sec:related}
+
+\paragraph{Failure handling as an empirical object.}
+Exception handling has a long empirical literature in statically typed languages:
+Cabral and Marques' field study of Java and .NET~\cite{cabral2007} documented how
+often exceptions are caught and swallowed; Sawadpong et
+al.~\cite{sawadpong2012} characterised exception-handling \emph{defects}; and de
+P\'adua and Shang quantified the prevalence of named exception-handling
+anti-patterns over a large corpus~\cite{depadua2017prevalence} and revisited
+developer practice through exception-flow analysis~\cite{depadua2017flow}. That
+line of work asks \emph{whether} anti-patterns occur and \emph{how often}. Our
+closest neighbour is it: we inherit the premise that handling shape is measurable,
+and change the question. On a corpus of Python AI/ML packages, the same syntactic
+shapes that read as anti-patterns are predominantly \emph{intended contracts} ---
+in our stratified sample of 80 sites, 80.0\% carried a contract reading and 5.0\%
+were outright false positives, with the defect share concentrated almost entirely
+in one package. Reporting a prevalence number without that breakdown is what
+makes the earlier literature unreadable as a triage instruction.
+
+\paragraph{Why generic rules get muted.}
+A second body of work explains the reception of such numbers. Developers report
+false positives and noise as the leading reason they ignore or abandon static
+analysis~\cite{johnson2013}; Ruthruff et al.\ made \emph{actionability} an
+experimental target rather than a slogan~\cite{ruthruff2008}; Google's Tricorder
+and FindBugs-Fixit programmes showed that an analysis only survives at scale when
+it is filtered, prioritised and paired with a suppression
+path~\cite{sadowski2015,ayewah2010,sadowski2018}. User-centred and follow-up
+studies reach the same ordering from the other side: what developers need is a
+warning they can act on~\cite{do2022,yedida2023}, and the mitigation of false
+positives remains an open problem rather than a solved one~\cite{guo2023}.
+WarningsGuru operationalised relevance with statistical bug
+models~\cite{querel2018}, and Hu et al.\ recently measured the other end of the
+same pipe --- which warnings developers actually suppress, and on what
+grounds~\cite{hu2025suppressed}. Crisan and McNutt frame linting as a
+sociotechnical activity~\cite{crisan2025}. Our contribution is not another
+relevance filter: it is a \emph{semantic} account of why a particular family of
+syntactic matches is disproportionately non-actionable, so that a suppression
+decision can be justified by code shape rather than by developer fatigue.
+
+\paragraph{Silent failure in machine-learning systems.}
+The systems literature supplies the stakes. Sculley et al.\ named the pipeline
+coupling and glue-code debt that makes ML behaviour brittle~\cite{sculley2015};
+Breck et al.\ proposed continuous data validation as the corrective at the data
+boundary~\cite{breck2019}; the ML Test Score encoded ``test the pipeline, not just
+the model'' as a rubric~\cite{breck2017}; Amershi et al.\ and Paleyes et al.\
+documented that the failures arrive at integration and deployment time, not
+training time~\cite{amershi2019,paleyes2022}; Sambasivan et al.\ traced how a data
+problem cascades through a high-stakes system until it surfaces as an unexplained
+outcome~\cite{sambasivan2021}; and Dixit et al.\ measured silent corruption at the
+hardware layer where no exception is raised at all~\cite{dixit2023}. Zhang et
+al.\ position testing and robustness techniques across that same
+spectrum~\cite{zhang2022}.
+
+\paragraph{Increment over the two closest studies.}
+Read side by side, de P\'adua and Shang~\cite{depadua2017prevalence} and Hu et
+al.~\cite{hu2025suppressed} bound the problem on either side: the first measures
+how often a handling shape appears, the second measures what developers do once a
+tool points at it. Neither asks, \emph{per site}, whether the flagged construct is
+a defect, an intended contract, or a tool artefact --- and neither reports what a
+purely syntactic linter fails to see at all. This paper supplies both measurements
+for Python AI/ML code: a labelled 80-site sample (12 DEFECT / 64 CONTRACT / 4
+FALSE POSITIVE, with the defect mass concentrated in one package), and a
+cross-tool comparison showing that four widely used syntactic linters jointly
+cover 39.0\% of the 649 routed-failure sites we detect, with one entire pattern
+--- \texttt{contextlib.suppress}-style silent suppression --- at 0/27. The
+increment is therefore empirical and narrow: the \emph{meaning} of a flagged
+handler, and the \emph{coverage boundary} of the tools practitioners actually run.
+
+\section{Conclusion}
+
+Failure-routing is a real and prevalent shape in AI/ML Python: 649 instances in
+563k lines, 61\% of them outside the reach of four mainstream syntactic linters
+and 100\% of the \texttt{contextlib.suppress} variant outside the reach of all of
+them. But prevalence is not defectiveness. In a labelled stratified sample, 15\%
+were genuine defects and 80\% were deliberate contracts, with the defects
+concentrated entirely in a single package as three copy-paste families. Against
+maintainer-merged ground truth the detector's recall was 1 in 10, because the
+failure-to-success conversion routinely happens outside the handler that a
+syntactic tool can see.
+
+We think the useful conclusion is not ``this class is undetectable'' but that
+detectors for it should be designed, evaluated and \emph{deployed} as
+search-space reducers with an explicit human adjudication step --- and that the
+labelling pass which establishes that should be run early, because in our case it
+was also the fastest way to find a bug in the detector itself.
+
+\section*{Reproduction}
+\addcontentsline{toc}{section}{Reproduction}
+
+Every number in this paper is produced by the scripts in \texttt{tools/} against
+the pinned corpus in \texttt{paper/corpus-lock.json}.
+
+\begin{verbatim}
+cd <repo-root>
+.venv/bin/python tools/fetch_corpus.py           # pinned sdists -> paper/corpus/
+PYTHONPATH=src .venv/bin/python -m failroute \
+    --export-findings paper/scan/<pkg>.jsonl \
+    --repo-name <pkg> paper/corpus/<pkg>/<scan_root>
+# -> bench/corpus-linter-comparison.json
+.venv/bin/python tools/compare_linters_corpus.py
+# -> bench/corpus-coverage-union.json
+.venv/bin/python tools/coverage_union.py
+.venv/bin/python tools/draw_sample.py --n 80 --seed 20260831  # -> paper/sample.jsonl
+.venv/bin/python tools/merged_pr_recall.py       # -> paper/merged-pr-recall.csv
+.venv/bin/python tools/compute_intervals.py      # -> paper/intervals.json
+.venv/bin/python -m pytest -q                    # 130 tests
+\end{verbatim}
+
+Key artifacts, and the thing each one pins down:
+\begin{itemize}[nosep,leftmargin=*]
+\item \texttt{paper/corpus-lock.json} --- pinned inputs.
+\item \texttt{paper/sample.jsonl} --- the 80-item draw.
+\item \texttt{paper/annotations.csv} --- labels and rationale.
+\item \texttt{paper/annotations-second-pass.csv} --- second automated pass.
+\item \texttt{paper/merged-pr-recall.csv} --- recall ground truth.
+\item \texttt{bench/corpus-coverage-union.json} --- cross-tool coverage.
+\item \texttt{paper/intervals.json} --- Wilson intervals.
+\end{itemize}
+
+\paragraph{Two things a reproducer must know.}
+\begin{enumerate}[nosep,leftmargin=*]
+\item If the checkout path contains non-ASCII characters, an \emph{editable}
+  install of this package does not work (the generated \texttt{.pth} pointer is
+  mangled), so every CLI invocation must carry \texttt{PYTHONPATH=src}.
+\item The scanner exits with status 1 whenever it finds anything, even when the
+  run succeeded and the export was written. Under \texttt{set -e} or in CI, a
+  successful scan looks like a failure.
+\end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

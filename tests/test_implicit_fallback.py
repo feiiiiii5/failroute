@@ -166,3 +166,113 @@ def test_try_nested_in_tail_if_is_still_reported():
         "            print('failed')\n"
     )
     assert [f.mode for f in scan_source(source)] == [FailureMode.IMPLICIT_FALLBACK]
+
+
+# ---------------------------------------------------------------------------
+# Exhaustive-branch regression tests.
+#
+# Found by a stratified annotation pass over eight pinned AI/ML packages
+# (paper/annotations.csv): all four sampled implicit-fallback findings were
+# false positives of one shape -- the handler's terminators sit inside an
+# exhaustive if/else, so the previous "direct statements only" check missed
+# them. Each case below is reduced from real upstream code and FAILS before
+# the _always_terminates() fix.
+# ---------------------------------------------------------------------------
+
+
+def _modes(source: str) -> list[FailureMode]:
+    return [f.mode for f in scan_source(source)]
+
+
+def test_exhaustive_if_else_both_terminate_is_not_a_fallthrough():
+    """deepteam simulate_baseline_attacks: if -> return, else -> raise."""
+    source = (
+        "def simulate(ignore_errors):\n"
+        "    try:\n"
+        "        return work()\n"
+        "    except Exception as e:\n"
+        "        if ignore_errors:\n"
+        "            return [str(e)]\n"
+        "        else:\n"
+        "            raise\n"
+    )
+    assert _modes(source) == []
+
+
+def test_nested_try_returning_on_every_path_is_not_a_fallthrough():
+    """fickling check_pickle: handler body is a try/except that always returns."""
+    source = (
+        "def check_pickle(file):\n"
+        "    try:\n"
+        "        return load(file) is not None\n"
+        "    except Exception:\n"
+        "        file.seek(0)\n"
+        "        try:\n"
+        "            return stacked(file) is not None\n"
+        "        except Exception:\n"
+        "            return False\n"
+    )
+    # The inner handler's `return False` is a legitimate silent-fallback hit
+    # from a different rule; what must not appear is implicit-fallback.
+    assert FailureMode.IMPLICIT_FALLBACK not in _modes(source)
+
+
+def test_if_elif_else_chain_terminating_everywhere_is_not_a_fallthrough():
+    """inspect_ai grok generate: if/elif/else where each branch returns or raises."""
+    source = (
+        "def generate(call):\n"
+        "    try:\n"
+        "        return call()\n"
+        "    except RpcError as ex:\n"
+        "        if ex.code() == 1:\n"
+        "            handled = handle(ex)\n"
+        "            if handled:\n"
+        "                return handled\n"
+        "            else:\n"
+        "                raise ex\n"
+        "        elif ex.code() == 2:\n"
+        "            return bad_request(ex)\n"
+        "        else:\n"
+        "            raise ex\n"
+    )
+    assert _modes(source) == []
+
+
+def test_if_else_both_raising_is_not_a_fallthrough():
+    """pydantic-ai execute_output_function: both branches raise."""
+    source = (
+        "def execute(wrap):\n"
+        "    try:\n"
+        "        return call()\n"
+        "    except ModelRetry as r:\n"
+        "        if wrap:\n"
+        "            raise ToolRetryError(r) from r\n"
+        "        else:\n"
+        "            raise\n"
+    )
+    assert _modes(source) == []
+
+
+def test_bare_if_without_else_still_falls_through():
+    """Guard against over-correction: no else branch means a real fall-through."""
+    source = (
+        "def maybe(flag):\n"
+        "    try:\n"
+        "        return work()\n"
+        "    except Exception:\n"
+        "        if flag:\n"
+        "            return None\n"
+    )
+    assert FailureMode.IMPLICIT_FALLBACK in _modes(source)
+
+
+def test_with_block_that_always_returns_is_not_a_fallthrough():
+    source = (
+        "def guarded():\n"
+        "    try:\n"
+        "        return work()\n"
+        "    except Exception:\n"
+        "        with lock():\n"
+        "            return fallback()\n"
+    )
+    assert _modes(source) == []

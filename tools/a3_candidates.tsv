@@ -1,0 +1,10 @@
+cvs-health/uqlm	462	yes	fix(longform): surface NLI retry exhaustion and keep it out of response aggregates
+UKGovernmentBEIS/inspect_ai	5068	yes	fix(view): raise a friendly error on Azure auth failures in log listing
+cvs-health/uqlm	459	yes	fix(panel): keep one failed judge from poisoning panel aggregates
+microsoft/PyRIT	2460	yes	FIX: surface auth config fetch failures instead of treating them as auth-disabled
+UKGovernmentBEIS/inspect_ai	4906	yes	Report the sandbox's error when remote exec retries are exhausted
+UKGovernmentBEIS/inspect_evals	2167	yes	fix(swe_lancer): exclude samples with no issue_id from scoring
+cvs-health/uqlm	450	yes	fix(generation): preserve prompt-response alignment on failed top-logprobs invocation
+microsoft/PyRIT	2466	yes	FIX: reject selected attack techniques without registered factories
+cvs-health/uqlm	425	yes	fix(nli): guard against ZeroDivisionError in normalize_cluster_probabilities
+cvs-health/uqlm	418	yes	fix(white_box): return NaN instead of None when first-token logprob is missing

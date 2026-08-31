@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import ast
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -26,6 +28,9 @@ exit status:
 
 project configuration lives in [tool.failroute] (pyproject.toml):
   exclude, threshold, ignore, fallback_values, rules.<id>.enabled/severity
+
+--export-findings writes one JSON object per finding (stable id, +/-15 lines
+of source context, enclosing function signature) for offline labelling.
 """
 
 
@@ -101,6 +106,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="cache per-file results (mtime+size keyed) so re-runs scan only changed files",
     )
     parser.add_argument(
+        "--export-findings",
+        type=Path,
+        default=None,
+        metavar="OUT_JSONL",
+        help="write one JSON object per finding (stable id, +/-15 lines of "
+        "context, enclosing function signature) to OUT_JSONL and exit",
+    )
+    parser.add_argument(
+        "--repo-name",
+        default="",
+        metavar="NAME",
+        help="repository label recorded in each --export-findings record (default: empty)",
+    )
+    parser.add_argument(
         "--quiet",
         action="store_true",
         help="only print the finding count summary",
@@ -115,6 +134,75 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _sort_key(finding: Finding) -> tuple[str, int, str]:
     return (finding.file, finding.lineno, finding.mode.value)
+
+
+def _stable_id(file: str, lineno: int, rule: str) -> str:
+    return hashlib.sha256(f"{file}\n{lineno}\n{rule}".encode("utf-8")).hexdigest()[:16]
+
+
+def _enclosing_signature(tree: ast.Module, lineno: int) -> str | None:
+    innermost: ast.AST | None = None
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.lineno <= lineno <= (
+            node.end_lineno or node.lineno
+        ):
+            if innermost is None or node.lineno >= innermost.lineno:  # type: ignore[union-attr]
+                innermost = node
+    if innermost is None:
+        return None
+    prefix = "async def " if isinstance(innermost, ast.AsyncFunctionDef) else "def "
+    args = ast.unparse(innermost.args)
+    returns = f" -> {ast.unparse(innermost.returns)}" if innermost.returns else ""
+    return f"{prefix}{innermost.name}({args}){returns}"
+
+
+def _finding_context(root: Path, file: str, lineno: int) -> dict[str, object]:
+    empty = {
+        "context_before": [],
+        "context_after": [],
+        "function_signature": None,
+    }
+    candidate = Path(file)
+    targets = [candidate] if candidate.is_absolute() else [root / candidate, candidate]
+    source = None
+    for target in targets:
+        try:
+            source = target.read_text(encoding="utf-8", errors="replace")
+            break
+        except OSError:
+            continue
+    if source is None:
+        return dict(empty)
+    lines = source.splitlines()
+    context = {
+        "context_before": lines[max(0, lineno - 16) : lineno - 1],
+        "context_after": lines[lineno : lineno + 15],
+    }
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return {**empty, **context}
+    return {**context, "function_signature": _enclosing_signature(tree, lineno)}
+
+
+def _export_findings(
+    findings: list[Finding], out: Path, scan_root: Path, repo_name: str
+) -> None:
+    with out.open("w", encoding="utf-8") as fh:
+        for f in findings:
+            rule = f.rule_id or f.mode.value
+            record = {
+                "id": _stable_id(f.file, f.lineno, rule),
+                "repo": repo_name,
+                "file": f.file,
+                "lineno": f.lineno,
+                "end_lineno": f.end_lineno,
+                "rule": rule,
+                "mode": f.mode.value,
+                "message": f.message,
+                **_finding_context(scan_root, f.file, f.lineno),
+            }
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 def _render(findings: list[Finding], fmt: str, severity_overrides: dict[str, str]) -> str:
@@ -167,6 +255,13 @@ def main(argv: list[str] | None = None) -> int:
 
     # Deterministic order regardless of filesystem enumeration.
     findings.sort(key=_sort_key)
+
+    if args.export_findings is not None:
+        _export_findings(findings, args.export_findings, path.resolve(), args.repo_name)
+        print(
+            f"{len(findings)} finding(s) exported to {args.export_findings}", file=sys.stderr
+        )
+        return 0 if len(findings) <= threshold else 1
 
     rendered = _render(findings, fmt, cfg.severity_overrides)
 

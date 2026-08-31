@@ -1,0 +1,78 @@
+{
+  "manifest_version": 1,
+  "comment": "Corpus targets for the failroute paper. These 8 packages correspond to the 8 upstream repositories in bench/ruff-comparison.md, whose local git clones were removed on 2026-08-30. Source is PyPI sdist (no git clone). Set \"version\" to pin; null means resolve to the current latest at fetch time and record the exact version in paper/corpus-lock.json. \"github\" is the fallback used only when no sdist exists for the resolved version. \"scan_root\" is the subpath inside the extracted tree that corresponds to the path scanned in bench/ruff-comparison.md.",
+  "packages": [
+    {
+      "name": "garak",
+      "source": "pypi",
+      "pypi_name": "garak",
+      "version": null,
+      "scan_root": "garak",
+      "bench_path": "/Users/fei/Desktop/申请季/Open source/garak/garak",
+      "github": {"repo": "NVIDIA/garak", "ref": null}
+    },
+    {
+      "name": "inspect_ai",
+      "source": "pypi",
+      "pypi_name": "inspect_ai",
+      "version": null,
+      "scan_root": "src/inspect_ai",
+      "bench_path": "/Users/fei/Desktop/申请季/Open source/inspect_ai-fork/src/inspect_ai",
+      "github": {"repo": "UKGovernmentBEIS/inspect_ai", "ref": null}
+    },
+    {
+      "name": "pydantic_ai_slim",
+      "source": "pypi",
+      "pypi_name": "pydantic-ai-slim",
+      "version": null,
+      "scan_root": ".",
+      "bench_path": "/Users/fei/Desktop/申请季/Open source/pydantic-ai/pydantic_ai_slim",
+      "github": {"repo": "pydantic/pydantic-ai", "ref": null}
+    },
+    {
+      "name": "uqlm",
+      "source": "pypi",
+      "pypi_name": "uqlm",
+      "version": null,
+      "scan_root": "uqlm",
+      "bench_path": "/Users/fei/Desktop/申请季/Open source/uqlm/uqlm",
+      "github": {"repo": "cvs-health/uqlm", "ref": null}
+    },
+    {
+      "name": "trl",
+      "source": "pypi",
+      "pypi_name": "trl",
+      "version": null,
+      "scan_root": "trl",
+      "bench_path": "/Users/fei/Desktop/申请季/Open source/trl/trl",
+      "github": {"repo": "huggingface/trl", "ref": null}
+    },
+    {
+      "name": "smolagents",
+      "source": "pypi",
+      "pypi_name": "smolagents",
+      "version": null,
+      "scan_root": "src/smolagents",
+      "bench_path": "/Users/fei/Desktop/申请季/Open source/smolagents/src/smolagents",
+      "github": {"repo": "huggingface/smolagents", "ref": null}
+    },
+    {
+      "name": "deepteam",
+      "source": "pypi",
+      "pypi_name": "deepteam",
+      "version": null,
+      "scan_root": "deepteam",
+      "bench_path": "/Users/fei/Desktop/申请季/Open source/deepteam-fork/deepteam",
+      "github": {"repo": "confident-ai/deepteam", "ref": null}
+    },
+    {
+      "name": "fickling",
+      "source": "pypi",
+      "pypi_name": "fickling",
+      "version": null,
+      "scan_root": "fickling",
+      "bench_path": "/Users/fei/Desktop/申请季/Open source/fickling/fickling",
+      "github": {"repo": "trailofbits/fickling", "ref": null}
+    }
+  ]
+}

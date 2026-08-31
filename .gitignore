@@ -15,3 +15,13 @@ build/
 
 # promotion materials (strategy notes, never published from this repo)
 promo/
+
+# fetched paper corpus (147MB of third-party sdists); rebuild with
+# python tools/fetch_corpus.py  -- provenance is pinned in paper/corpus-lock.json
+paper/corpus/
+
+# LaTeX build artifacts (main.bbl is kept: arXiv needs it)
+paper/arxiv/main.aux
+paper/arxiv/main.log
+paper/arxiv/main.blg
+paper/arxiv/main.tar.gz

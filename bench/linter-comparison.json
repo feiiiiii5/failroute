@@ -1,0 +1,88 @@
+{
+  "generated_at_utc": "2026-08-30T16:00:10Z",
+  "scope": "self-scan + corpus ONLY (src/failroute and tests/corpus). NOT the 8-repo scope of bench/ruff-comparison.md; the upstream clones were removed on 2026-08-30 and must not be re-cloned for this task.",
+  "environment": {
+    "python": "3.11.15",
+    "platform": "macOS-27.0-arm64-arm-64bit"
+  },
+  "failroute_findings_total": 36,
+  "tools": {
+    "failroute": {
+      "version": "(this repo, see bench/paper-baseline.json)",
+      "total_rows": 36,
+      "per_code": {
+        "implicit-fallback": 7,
+        "no-action": 5,
+        "silent-fallback": 9,
+        "masked-exception": 3,
+        "silent-suppress": 10,
+        "name-shadowing": 2
+      },
+      "failroute_findings_matched_within_1_line": 36,
+      "commands": [
+        "PYTHONPATH=src -m failroute --format json /Users/fei/Desktop/申请季/新项目-failroute/src/failroute",
+        "PYTHONPATH=src -m failroute --format json /Users/fei/Desktop/申请季/新项目-failroute/tests/corpus"
+      ]
+    },
+    "ruff": {
+      "version": "ruff 0.16.0",
+      "total_rows": 7,
+      "per_code": {
+        "S110": 4,
+        "S112": 1,
+        "invalid-syntax": 2
+      },
+      "failroute_findings_matched_within_1_line": 4,
+      "commands": [
+        "ruff check --select S110,S112 --output-format json /Users/fei/Desktop/申请季/新项目-failroute/src/failroute",
+        "ruff check --select S110,S112 --output-format json /Users/fei/Desktop/申请季/新项目-failroute/tests/corpus"
+      ]
+    },
+    "bandit": {
+      "version": "bandit 1.9.4",
+      "total_rows": 5,
+      "per_code": {
+        "B110": 4,
+        "B112": 1
+      },
+      "failroute_findings_matched_within_1_line": 3,
+      "commands": [
+        "/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python -m bandit -r /Users/fei/Desktop/申请季/新项目-failroute/src/failroute -f json -q -t B110,B112",
+        "/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python -m bandit -r /Users/fei/Desktop/申请季/新项目-failroute/tests/corpus -f json -q -t B110,B112"
+      ]
+    },
+    "pylint": {
+      "version": "pylint 4.0.8",
+      "total_rows": 3,
+      "per_code": {
+        "W0706": 2,
+        "W0702": 1
+      },
+      "failroute_findings_matched_within_1_line": 1,
+      "commands": [
+        "python -m pylint --disable=all --enable=W0702,W0703,W0705,W0706 --output-format=json --score=no <src/failroute/*.py>",
+        "python -m pylint --disable=all --enable=W0702,W0703,W0705,W0706 --output-format=json --score=no <tests/corpus/*.py>"
+      ]
+    },
+    "flake8+bugbear": {
+      "version": "flake8 7.3.0 (flake8-bugbear: 25.11.29, mccabe: 0.7.0, pycodestyle: 2.14.0, pyflakes:",
+      "total_rows": 2,
+      "per_code": {
+        "B001": 1,
+        "E722": 1
+      },
+      "failroute_findings_matched_within_1_line": 1,
+      "commands": [
+        "-m flake8 --select=E722,B001,B017 /Users/fei/Desktop/申请季/新项目-failroute/src/failroute",
+        "-m flake8 --select=E722,B001,B017 /Users/fei/Desktop/申请季/新项目-failroute/tests/corpus"
+      ]
+    },
+    "semgrep": {
+      "version": "not installed",
+      "total_rows": 0,
+      "per_code": {},
+      "failroute_findings_matched_within_1_line": 0,
+      "commands": []
+    }
+  }
+}

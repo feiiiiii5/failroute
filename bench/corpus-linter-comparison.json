@@ -1,0 +1,546 @@
+{
+  "generated_at_utc": "2026-08-31T01:01:40Z",
+  "corpus_lock": "paper/corpus-lock.json",
+  "line_tolerance": 1,
+  "tool_versions": {
+    "ruff": "ruff 0.16.4",
+    "bandit": "__main__.py 1.9.4",
+    "pylint": "pylint 4.0.8",
+    "flake8": "7.3.0 (flake8-bugbear: 25.11.29, mccabe: 0.7.0, pycodestyle: 2.14.0, pyflakes:",
+    "semgrep": "1.175.0"
+  },
+  "packages": [
+    {
+      "name": "garak",
+      "version": "0.16.0",
+      "scan_root": "paper/corpus/garak-0.16.0/garak",
+      "failroute_findings": 16,
+      "linters": {
+        "ruff": {
+          "status": "ok",
+          "select": "S110,S112",
+          "findings": 4,
+          "matched_failroute": 4,
+          "seconds": 0.1,
+          "codes": {
+            "S110": 4
+          }
+        },
+        "bandit": {
+          "status": "ok",
+          "select": "B110,B112",
+          "findings": 4,
+          "matched_failroute": 4,
+          "seconds": 0.8,
+          "codes": {
+            "B110": 4
+          }
+        },
+        "pylint": {
+          "status": "ok",
+          "select": "W0702,W0703,W0705,W0706",
+          "findings": 40,
+          "matched_failroute": 7,
+          "seconds": 3.0,
+          "codes": {
+            "W0718": 37,
+            "W0702": 3
+          }
+        },
+        "flake8+bugbear": {
+          "status": "ok",
+          "select": "E722,B001,B017",
+          "findings": 6,
+          "matched_failroute": 3,
+          "seconds": 0.7,
+          "codes": {
+            "B001": 3,
+            "E722": 3
+          }
+        },
+        "semgrep": {
+          "status": "ok",
+          "select": "tools/semgrep-rules/exception-handling.yaml",
+          "findings": 11,
+          "seconds": 0.0,
+          "matched_failroute": 0,
+          "codes": {
+            "fr-except-continue": 2,
+            "fr-broad-except": 5,
+            "fr-except-pass": 5,
+            "fr-bare-except": 3
+          },
+          "matched_by_failroute_rule": {}
+        }
+      }
+    },
+    {
+      "name": "inspect_ai",
+      "version": "0.3.260",
+      "scan_root": "paper/corpus/inspect_ai-0.3.260/src/inspect_ai",
+      "failroute_findings": 328,
+      "linters": {
+        "ruff": {
+          "status": "ok",
+          "select": "S110,S112",
+          "findings": 55,
+          "matched_failroute": 52,
+          "seconds": 0.1,
+          "codes": {
+            "S110": 53,
+            "S112": 2
+          }
+        },
+        "bandit": {
+          "status": "ok",
+          "select": "B110,B112",
+          "findings": 48,
+          "matched_failroute": 45,
+          "seconds": 3.8,
+          "codes": {
+            "B110": 46,
+            "B112": 2
+          }
+        },
+        "pylint": {
+          "status": "ok",
+          "select": "W0702,W0703,W0705,W0706",
+          "findings": 208,
+          "matched_failroute": 84,
+          "seconds": 7.1,
+          "codes": {
+            "W0718": 207,
+            "W0706": 1
+          }
+        },
+        "flake8+bugbear": {
+          "status": "ok",
+          "select": "E722,B001,B017",
+          "findings": 0,
+          "matched_failroute": 0,
+          "seconds": 2.2,
+          "codes": {}
+        },
+        "semgrep": {
+          "status": "ok",
+          "select": "tools/semgrep-rules/exception-handling.yaml",
+          "findings": 278,
+          "seconds": 0.0,
+          "matched_failroute": 7,
+          "codes": {
+            "fr-broad-except": 135,
+            "fr-except-return-constant": 67,
+            "fr-except-pass": 123,
+            "fr-except-continue": 11,
+            "fr-contextlib-suppress": 7
+          },
+          "matched_by_failroute_rule": {
+            "silent-suppress": 7
+          }
+        }
+      }
+    },
+    {
+      "name": "pydantic_ai_slim",
+      "version": "2.36.0",
+      "scan_root": "paper/corpus/pydantic_ai_slim-2.36.0",
+      "failroute_findings": 106,
+      "linters": {
+        "ruff": {
+          "status": "ok",
+          "select": "S110,S112",
+          "findings": 5,
+          "matched_failroute": 5,
+          "seconds": 0.1,
+          "codes": {
+            "S110": 5
+          }
+        },
+        "bandit": {
+          "status": "ok",
+          "select": "B110,B112",
+          "findings": 3,
+          "matched_failroute": 3,
+          "seconds": 2.6,
+          "codes": {
+            "B110": 3
+          }
+        },
+        "pylint": {
+          "status": "ok",
+          "select": "W0702,W0703,W0705,W0706",
+          "findings": 51,
+          "matched_failroute": 10,
+          "seconds": 8.0,
+          "codes": {
+            "W0706": 5,
+            "W0718": 46
+          }
+        },
+        "flake8+bugbear": {
+          "status": "ok",
+          "select": "E722,B001,B017",
+          "findings": 0,
+          "matched_failroute": 0,
+          "seconds": 1.5,
+          "codes": {}
+        },
+        "semgrep": {
+          "status": "ok",
+          "select": "tools/semgrep-rules/exception-handling.yaml",
+          "findings": 97,
+          "seconds": 0.0,
+          "matched_failroute": 19,
+          "codes": {
+            "fr-broad-except": 38,
+            "fr-except-pass": 18,
+            "fr-except-return-constant": 21,
+            "fr-contextlib-suppress": 19,
+            "fr-except-continue": 6
+          },
+          "matched_by_failroute_rule": {
+            "silent-suppress": 18,
+            "silent-fallback": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "uqlm",
+      "version": "0.6.5",
+      "scan_root": "paper/corpus/uqlm-0.6.5/uqlm",
+      "failroute_findings": 14,
+      "linters": {
+        "ruff": {
+          "status": "ok",
+          "select": "S110,S112",
+          "findings": 2,
+          "matched_failroute": 2,
+          "seconds": 0.1,
+          "codes": {
+            "S110": 2
+          }
+        },
+        "bandit": {
+          "status": "ok",
+          "select": "B110,B112",
+          "findings": 2,
+          "matched_failroute": 2,
+          "seconds": 0.4,
+          "codes": {
+            "B110": 2
+          }
+        },
+        "pylint": {
+          "status": "ok",
+          "select": "W0702,W0703,W0705,W0706",
+          "findings": 18,
+          "matched_failroute": 5,
+          "seconds": 2.6,
+          "codes": {
+            "W0718": 18
+          }
+        },
+        "flake8+bugbear": {
+          "status": "ok",
+          "select": "E722,B001,B017",
+          "findings": 0,
+          "matched_failroute": 0,
+          "seconds": 0.4,
+          "codes": {}
+        },
+        "semgrep": {
+          "status": "ok",
+          "select": "tools/semgrep-rules/exception-handling.yaml",
+          "findings": 10,
+          "seconds": 0.0,
+          "matched_failroute": 0,
+          "codes": {
+            "fr-broad-except": 9,
+            "fr-except-pass": 2,
+            "fr-except-return-constant": 1,
+            "fr-except-continue": 1
+          },
+          "matched_by_failroute_rule": {}
+        }
+      }
+    },
+    {
+      "name": "trl",
+      "version": "1.12.0",
+      "scan_root": "paper/corpus/trl-1.12.0/trl",
+      "failroute_findings": 28,
+      "linters": {
+        "ruff": {
+          "status": "ok",
+          "select": "S110,S112",
+          "findings": 3,
+          "matched_failroute": 3,
+          "seconds": 0.0,
+          "codes": {
+            "S110": 3
+          }
+        },
+        "bandit": {
+          "status": "ok",
+          "select": "B110,B112",
+          "findings": 3,
+          "matched_failroute": 3,
+          "seconds": 1.6,
+          "codes": {
+            "B110": 3
+          }
+        },
+        "pylint": {
+          "status": "ok",
+          "select": "W0702,W0703,W0705,W0706",
+          "findings": 28,
+          "matched_failroute": 6,
+          "seconds": 3.3,
+          "codes": {
+            "W0718": 28
+          }
+        },
+        "flake8+bugbear": {
+          "status": "ok",
+          "select": "E722,B001,B017",
+          "findings": 0,
+          "matched_failroute": 0,
+          "seconds": 1.1,
+          "codes": {}
+        },
+        "semgrep": {
+          "status": "ok",
+          "select": "tools/semgrep-rules/exception-handling.yaml",
+          "findings": 24,
+          "seconds": 0.0,
+          "matched_failroute": 0,
+          "codes": {
+            "fr-except-return-constant": 5,
+            "fr-except-pass": 10,
+            "fr-broad-except": 10,
+            "fr-except-continue": 2
+          },
+          "matched_by_failroute_rule": {}
+        }
+      }
+    },
+    {
+      "name": "smolagents",
+      "version": "1.26.0",
+      "scan_root": "paper/corpus/smolagents-1.26.0/src/smolagents",
+      "failroute_findings": 13,
+      "linters": {
+        "ruff": {
+          "status": "ok",
+          "select": "S110,S112",
+          "findings": 1,
+          "matched_failroute": 1,
+          "seconds": 0.0,
+          "codes": {
+            "S110": 1
+          }
+        },
+        "bandit": {
+          "status": "ok",
+          "select": "B110,B112",
+          "findings": 1,
+          "matched_failroute": 1,
+          "seconds": 0.4,
+          "codes": {
+            "B110": 1
+          }
+        },
+        "pylint": {
+          "status": "ok",
+          "select": "W0702,W0703,W0705,W0706",
+          "findings": 14,
+          "matched_failroute": 2,
+          "seconds": 2.0,
+          "codes": {
+            "W0718": 14
+          }
+        },
+        "flake8+bugbear": {
+          "status": "ok",
+          "select": "E722,B001,B017",
+          "findings": 0,
+          "matched_failroute": 0,
+          "seconds": 0.4,
+          "codes": {}
+        },
+        "semgrep": {
+          "status": "ok",
+          "select": "tools/semgrep-rules/exception-handling.yaml",
+          "findings": 13,
+          "seconds": 0.0,
+          "matched_failroute": 0,
+          "codes": {
+            "fr-except-pass": 9,
+            "fr-broad-except": 4,
+            "fr-except-return-constant": 1
+          },
+          "matched_by_failroute_rule": {}
+        }
+      }
+    },
+    {
+      "name": "deepteam",
+      "version": "1.0.9",
+      "scan_root": "paper/corpus/deepteam-1.0.9/deepteam",
+      "failroute_findings": 142,
+      "linters": {
+        "ruff": {
+          "status": "ok",
+          "select": "S110,S112",
+          "findings": 6,
+          "matched_failroute": 5,
+          "seconds": 0.0,
+          "codes": {
+            "S112": 1,
+            "S110": 5
+          }
+        },
+        "bandit": {
+          "status": "ok",
+          "select": "B110,B112",
+          "findings": 6,
+          "matched_failroute": 5,
+          "seconds": 1.3,
+          "codes": {
+            "B112": 1,
+            "B110": 5
+          }
+        },
+        "pylint": {
+          "status": "ok",
+          "select": "W0702,W0703,W0705,W0706",
+          "findings": 163,
+          "matched_failroute": 133,
+          "seconds": 3.4,
+          "codes": {
+            "W0718": 32,
+            "W0702": 131
+          }
+        },
+        "flake8+bugbear": {
+          "status": "ok",
+          "select": "E722,B001,B017",
+          "findings": 262,
+          "matched_failroute": 121,
+          "seconds": 0.9,
+          "codes": {
+            "B001": 131,
+            "E722": 131
+          }
+        },
+        "semgrep": {
+          "status": "ok",
+          "select": "tools/semgrep-rules/exception-handling.yaml",
+          "findings": 154,
+          "seconds": 0.0,
+          "matched_failroute": 0,
+          "codes": {
+            "fr-except-pass": 8,
+            "fr-broad-except": 19,
+            "fr-except-continue": 1,
+            "fr-except-return-constant": 8,
+            "fr-bare-except": 129
+          },
+          "matched_by_failroute_rule": {}
+        }
+      }
+    },
+    {
+      "name": "fickling",
+      "version": "0.1.12",
+      "scan_root": "paper/corpus/fickling-0.1.12/fickling",
+      "failroute_findings": 12,
+      "linters": {
+        "ruff": {
+          "status": "ok",
+          "select": "S110,S112",
+          "findings": 0,
+          "matched_failroute": 0,
+          "seconds": 0.0,
+          "codes": {}
+        },
+        "bandit": {
+          "status": "ok",
+          "select": "B110,B112",
+          "findings": 0,
+          "matched_failroute": 0,
+          "seconds": 0.2,
+          "codes": {}
+        },
+        "pylint": {
+          "status": "ok",
+          "select": "W0702,W0703,W0705,W0706",
+          "findings": 7,
+          "matched_failroute": 4,
+          "seconds": 1.3,
+          "codes": {
+            "W0718": 7
+          }
+        },
+        "flake8+bugbear": {
+          "status": "ok",
+          "select": "E722,B001,B017",
+          "findings": 0,
+          "matched_failroute": 0,
+          "seconds": 0.4,
+          "codes": {}
+        },
+        "semgrep": {
+          "status": "ok",
+          "select": "tools/semgrep-rules/exception-handling.yaml",
+          "findings": 5,
+          "seconds": 0.0,
+          "matched_failroute": 0,
+          "codes": {
+            "fr-except-pass": 1,
+            "fr-except-return-constant": 2,
+            "fr-broad-except": 3
+          },
+          "matched_by_failroute_rule": {}
+        }
+      }
+    }
+  ],
+  "totals": {
+    "failroute": 659,
+    "ruff": {
+      "findings": 76,
+      "matched_failroute": 72,
+      "matched_by_rule": {
+        "no-action": 72
+      }
+    },
+    "bandit": {
+      "findings": 67,
+      "matched_failroute": 63,
+      "matched_by_rule": {
+        "no-action": 63
+      }
+    },
+    "pylint": {
+      "findings": 529,
+      "matched_failroute": 251,
+      "matched_by_rule": {
+        "masked-exception": 3,
+        "no-action": 67,
+        "silent-fallback": 178,
+        "implicit-fallback": 4
+      }
+    },
+    "flake8+bugbear": {
+      "findings": 268,
+      "matched_failroute": 124,
+      "matched_by_rule": {
+        "no-action": 3,
+        "silent-fallback": 121
+      }
+    }
+  },
+  "semgrep_note": "semgrep row added by tools/run_semgrep_baseline.py on 2026-08-31. Rule set is hand-written (tools/semgrep-rules/exception-handling.yaml); it is not an upstream semgrep default ruleset."
+}

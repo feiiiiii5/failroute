@@ -1,0 +1,151 @@
+\begin{thebibliography}{10}
+
+\bibitem{amershi2019}
+Saleema Amershi, Andrew Begel, Christian Bird, Robert DeLine, Harald Gall, Ece
+  Kamar, Nachiappan Nagappan, Besmira Nushi, and Thomas Zimmermann.
+\newblock Software engineering for machine learning: A case study.
+\newblock In {\em 2019 IEEE/ACM 41st International Conference on Software
+  Engineering: Software Engineering in Practice (ICSE-SEIP)}, pages 291--300,
+  2019.
+
+\bibitem{ayewah2010}
+Nathaniel Ayewah and William Pugh.
+\newblock The google findbugs fixit.
+\newblock In {\em Proceedings of the 19th international symposium on Software
+  testing and analysis}, pages 241--252, 2010.
+
+\bibitem{depadua2017prevalence}
+Guilherme Bicalho De~Padua and Weiyi Shang.
+\newblock Studying the prevalence of exception handling anti-patterns.
+\newblock In {\em 2017 IEEE/ACM 25th International Conference on Program
+  Comprehension (ICPC)}, pages 328--331, 2017.
+
+\bibitem{breck2017}
+Eric Breck, Shanqing Cai, Eric Nielsen, Michael Salib, and D.~Sculley.
+\newblock The ml test score: A rubric for ml production readiness and technical
+  debt reduction.
+\newblock In {\em 2017 IEEE International Conference on Big Data (Big Data)},
+  pages 1123--1132, 2017.
+
+\bibitem{cabral2007}
+Bruno Cabral and Paulo Marques.
+\newblock Exception handling: A field study in java and .net.
+\newblock In {\em Lecture Notes in Computer Science}, pages 151--175, 2007.
+
+\bibitem{crisan2025}
+Anamaria Crisan and Andrew~M McNutt.
+\newblock Linting is people! exploring the potential of human computation as a
+  sociotechnical linter of data visualizations.
+\newblock In {\em Proceedings of the Extended Abstracts of the CHI Conference
+  on Human Factors in Computing Systems}, pages 1--10, 2025.
+
+\bibitem{depadua2017flow}
+Guilherme~B. De~Padua and Weiyi Shang.
+\newblock Revisiting exception handling practices with exception flow analysis.
+\newblock In {\em 2017 IEEE 17th International Working Conference on Source
+  Code Analysis and Manipulation (SCAM)}, pages 11--20, 2017.
+
+\bibitem{dixit2023}
+Harish Dixit.
+\newblock Keytone: Silent data corruptions at scale.
+\newblock In {\em 2023 IEEE 29th International Symposium on On-Line Testing and
+  Robust System Design (IOLTS)}, pages 1--2, 2023.
+
+\bibitem{do2022}
+Lisa Nguyen~Quang Do, James~R. Wright, and Karim Ali.
+\newblock Why do software developers use static analysis tools? a user-centered
+  study of developer needs and motivations.
+\newblock {\em IEEE Transactions on Software Engineering}, 48:835--847, 2022.
+
+\bibitem{guo2023}
+Zhaoqiang Guo, Tingting Tan, Shiran Liu, Xutong Liu, Wei Lai, Yibiao Yang,
+  Yanhui Li, Lin Chen, Wei Dong, and Yuming Zhou.
+\newblock Mitigating false positive static analysis warnings: Progress,
+  challenges, and opportunities.
+\newblock {\em IEEE Transactions on Software Engineering}, 49:5154--5188, 2023.
+
+\bibitem{hu2025suppressed}
+Huimin Hu, Yingying Wang, Julia Rubin, and Michael Pradel.
+\newblock An empirical study of suppressed static analysis warnings.
+\newblock {\em Proceedings of the ACM on Software Engineering}, 2:290--311,
+  2025.
+
+\bibitem{johnson2013}
+Brittany Johnson, Yoonki Song, Emerson Murphy-Hill, and Robert Bowdidge.
+\newblock Why don't software developers use static analysis tools to find bugs?
+\newblock In {\em 2013 35th International Conference on Software Engineering
+  (ICSE)}, pages 672--681, 2013.
+
+\bibitem{paleyes2022}
+Andrei Paleyes, Raoul-Gabriel Urma, and Neil~D. Lawrence.
+\newblock Challenges in deploying machine learning: A survey of case studies.
+\newblock {\em ACM Computing Surveys}, 55:1--29, 2022.
+
+\bibitem{breck2019}
+Neoklis Polyzotis, Martin Zinkevich, Sudip Roy, Eric Breck, and Steven Whang.
+\newblock Data validation for machine learning.
+\newblock In {\em Proceedings of the Machine Learning and Systems Conference
+  (MLSys) 2019}, 2019.
+
+\bibitem{querel2018}
+Louis-Philippe Querel and Peter~C. Rigby.
+\newblock Warningsguru: integrating statistical bug models with static analysis
+  to provide timely and specific bug warnings.
+\newblock In {\em Proceedings of the 2018 26th ACM Joint Meeting on European
+  Software Engineering Conference and Symposium on the Foundations of Software
+  Engineering}, pages 892--895, 2018.
+
+\bibitem{ruthruff2008}
+Joseph~R. Ruthruff, John Penix, J.~David Morgenthaler, Sebastian Elbaum, and
+  Gregg Rothermel.
+\newblock Predicting accurate and actionable static analysis warnings.
+\newblock In {\em Proceedings of the 30th international conference on Software
+  engineering}, pages 341--350, 2008.
+
+\bibitem{sadowski2018}
+Caitlin Sadowski, Edward Aftandilian, Alex Eagle, Liam Miller-Cushon, and Ciera
+  Jaspan.
+\newblock Lessons from building static analysis tools at google.
+\newblock {\em Communications of the ACM}, 61:58--66, 2018.
+
+\bibitem{sadowski2015}
+Caitlin Sadowski, Jeffrey Van~Gogh, Ciera Jaspan, Emma Soderberg, and Collin
+  Winter.
+\newblock Tricorder: Building a program analysis ecosystem.
+\newblock In {\em 2015 IEEE/ACM 37th IEEE International Conference on Software
+  Engineering}, pages 598--608, 2015.
+
+\bibitem{sambasivan2021}
+Nithya Sambasivan, Shivani Kapania, Hannah Highfill, Diana Akrong, Praveen
+  Paritosh, and Lora~M Aroyo.
+\newblock ``everyone wants to do the model work, not the data work'': Data
+  cascades in high-stakes ai.
+\newblock In {\em Proceedings of the 2021 CHI Conference on Human Factors in
+  Computing Systems}, pages 1--15, 2021.
+
+\bibitem{sawadpong2012}
+Puntitra Sawadpong, Edward~B. Allen, and Byron~J. Williams.
+\newblock Exception handling defects: An empirical study.
+\newblock In {\em 2012 IEEE 14th International Symposium on High-Assurance
+  Systems Engineering}, pages 90--97, 2012.
+
+\bibitem{sculley2015}
+D.~Sculley, Gary Holt, Daniel Golovin, Eugene Davydov, Todd Phillips, Dietmar
+  Ebner, Vinay Chaudhary, Michael Young, Jean-Fran\c{c}ois Crespo, and Dan
+  Dennison.
+\newblock Hidden technical debt in machine learning systems.
+\newblock In {\em Advances in Neural Information Processing Systems 28 (NeurIPS
+  2015)}, 2015.
+
+\bibitem{yedida2023}
+Rahul Yedida, Hong~Jin Kang, Huy Tu, Xueqi Yang, David Lo, and Tim Menzies.
+\newblock How to find actionable static analysis warnings: A case study with
+  findbugs.
+\newblock {\em IEEE Transactions on Software Engineering}, 49:2856--2872, 2023.
+
+\bibitem{zhang2022}
+Jie~M. Zhang, Mark Harman, Lei Ma, and Yang Liu.
+\newblock Machine learning testing: Survey, landscapes and horizons.
+\newblock {\em IEEE Transactions on Software Engineering}, 48:1--36, 2022.
+
+\end{thebibliography}

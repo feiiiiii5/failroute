@@ -1,0 +1,123 @@
+{
+  "frozen_at_utc": "2026-08-31T01:38:34Z",
+  "failroute": {
+    "commit": "01f0dd0db077f33b42f582984ed72ac6f9848bb8",
+    "version": "0.7.0"
+  },
+  "corpus": {
+    "version": 6,
+    "labelled": "2026-08-29",
+    "expected_true_positives": 36,
+    "labelled_true_negatives": 32
+  },
+  "environment": {
+    "python": "3.11.15",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "machine": "arm64"
+  },
+  "benchmark": {
+    "source": "bench/ruff-comparison.md",
+    "run": "2026-08-29 05:34 UTC",
+    "totals": {
+      "failroute": 670,
+      "no_action": 217,
+      "semantic_fallback_masked": 449,
+      "silent_suppress": 27,
+      "ruff_s110_s112": 79,
+      "overlap": 70,
+      "failroute_only": 600
+    },
+    "local_clones_removed": true,
+    "note": "Upstream clones under 'Open source/' were removed on 2026-08-30; paths and counts below are preserved verbatim from bench/ruff-comparison.md and cannot be reproduced without restoring those checkouts. Totals are column sums of the per-repo rows (the md total row omits the silent-suppress and scanned-path columns); the sums match the md total row on all shared columns (670/217/449/79/70/600).",
+    "repos": [
+      {
+        "name": "garak",
+        "scanned_path": "/Users/fei/Desktop/申请季/Open source/garak/garak",
+        "failroute_total": 16,
+        "no_action": 6,
+        "semantic_fallback_masked": 10,
+        "silent_suppress": 0,
+        "ruff_s110_s112": 9,
+        "overlap": 4,
+        "failroute_only": 12
+      },
+      {
+        "name": "inspect_ai",
+        "scanned_path": "/Users/fei/Desktop/申请季/Open source/inspect_ai-fork/src/inspect_ai",
+        "failroute_total": 346,
+        "no_action": 146,
+        "semantic_fallback_masked": 199,
+        "silent_suppress": 8,
+        "ruff_s110_s112": 55,
+        "overlap": 52,
+        "failroute_only": 294
+      },
+      {
+        "name": "pydantic_ai_slim",
+        "scanned_path": "/Users/fei/Desktop/申请季/Open source/pydantic-ai/pydantic_ai_slim",
+        "failroute_total": 103,
+        "no_action": 27,
+        "semantic_fallback_masked": 73,
+        "silent_suppress": 19,
+        "ruff_s110_s112": 4,
+        "overlap": 4,
+        "failroute_only": 99
+      },
+      {
+        "name": "uqlm",
+        "scanned_path": "/Users/fei/Desktop/申请季/Open source/uqlm/uqlm",
+        "failroute_total": 14,
+        "no_action": 8,
+        "semantic_fallback_masked": 6,
+        "silent_suppress": 0,
+        "ruff_s110_s112": 2,
+        "overlap": 2,
+        "failroute_only": 12
+      },
+      {
+        "name": "trl",
+        "scanned_path": "/Users/fei/Desktop/申请季/Open source/trl/trl",
+        "failroute_total": 24,
+        "no_action": 9,
+        "semantic_fallback_masked": 15,
+        "silent_suppress": 0,
+        "ruff_s110_s112": 2,
+        "overlap": 2,
+        "failroute_only": 22
+      },
+      {
+        "name": "smolagents",
+        "scanned_path": "/Users/fei/Desktop/申请季/Open source/smolagents/src/smolagents",
+        "failroute_total": 13,
+        "no_action": 9,
+        "semantic_fallback_masked": 4,
+        "silent_suppress": 0,
+        "ruff_s110_s112": 1,
+        "overlap": 1,
+        "failroute_only": 12
+      },
+      {
+        "name": "deepteam",
+        "scanned_path": "/Users/fei/Desktop/申请季/Open source/deepteam-fork/deepteam",
+        "failroute_total": 142,
+        "no_action": 10,
+        "semantic_fallback_masked": 132,
+        "silent_suppress": 0,
+        "ruff_s110_s112": 6,
+        "overlap": 5,
+        "failroute_only": 137
+      },
+      {
+        "name": "fickling",
+        "scanned_path": "/Users/fei/Desktop/申请季/Open source/fickling/fickling",
+        "failroute_total": 12,
+        "no_action": 2,
+        "semantic_fallback_masked": 10,
+        "silent_suppress": 0,
+        "ruff_s110_s112": 0,
+        "overlap": 0,
+        "failroute_only": 12
+      }
+    ]
+  }
+}

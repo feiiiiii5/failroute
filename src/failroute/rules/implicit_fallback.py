@@ -101,15 +101,68 @@ def _returns_real_value(func: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     return False
 
 
+_MATCH = getattr(ast, "Match", ())  # Python 3.10+; empty tuple on 3.9 makes isinstance() a no-op
+
+
+def _always_terminates(stmts: list[ast.stmt]) -> bool:
+    """True when *every* path through ``stmts`` leaves via return/raise/continue/break.
+
+    A handler that ends in an exhaustive ``if/else`` (or ``try``/``with``/``match``)
+    where each branch terminates does **not** fall through to the enclosing
+    function's implicit ``None`` — reporting it is a false positive.
+
+    Empirically grounded: a stratified annotation pass over eight pinned
+    AI/ML packages sampled four ``implicit-fallback`` findings and all four
+    were this shape (deepteam ``simulate_baseline_attacks``,
+    fickling ``check_pickle``, inspect_ai grok ``generate``,
+    pydantic-ai ``execute_output_function``). The previous implementation
+    only inspected *direct* statements of the handler body, so any
+    terminator nested one level down was invisible.
+    """
+    for stmt in stmts:
+        if isinstance(stmt, (ast.Raise, ast.Return, ast.Continue, ast.Break)):
+            return True
+        if isinstance(stmt, ast.If):
+            # Only an if/else with both sides terminating is exhaustive.
+            # A bare `if` (no else) can always fall through.
+            if stmt.orelse and _always_terminates(stmt.body) and _always_terminates(stmt.orelse):
+                return True
+        elif isinstance(stmt, (ast.With, ast.AsyncWith)):
+            if _always_terminates(stmt.body):
+                return True
+        elif isinstance(stmt, ast.Try):
+            # `finally` that terminates wins outright.
+            if stmt.finalbody and _always_terminates(stmt.finalbody):
+                return True
+            body_terminates = _always_terminates(stmt.body) or (
+                bool(stmt.orelse) and _always_terminates(stmt.orelse)
+            )
+            handlers_terminate = bool(stmt.handlers) and all(
+                _always_terminates(h.body) for h in stmt.handlers
+            )
+            if body_terminates and handlers_terminate:
+                return True
+        elif _MATCH and isinstance(stmt, _MATCH):
+            cases = stmt.cases  # type: ignore[attr-defined]
+            has_wildcard = any(
+                isinstance(c.pattern, ast.MatchAs)
+                and c.pattern.pattern is None
+                and c.guard is None
+                for c in cases
+            )
+            if has_wildcard and all(_always_terminates(c.body) for c in cases):
+                return True
+    return False
+
+
 def _has_top_level_terminal(handler: ast.ExceptHandler) -> bool:
-    """True when any *direct* statement of the handler terminates control flow.
+    """True when the handler cannot fall through to the implicit ``None``.
 
     ``raise``/``return`` end the handler; ``continue``/``break`` end it just
-    as decisively inside a loop — the skip-and-continue / retry-break shapes
-    are deliberate control flow, not fall-throughs to the enclosing
-    function's implicit ``None``.
+    as decisively inside a loop. Terminators nested inside an exhaustive
+    ``if/else`` (etc.) count too — see :func:`_always_terminates`.
     """
-    return any(isinstance(stmt, (ast.Raise, ast.Return, ast.Continue, ast.Break)) for stmt in handler.body)
+    return _always_terminates(handler.body)
 
 
 def _has_top_level_assign(handler: ast.ExceptHandler) -> bool:
