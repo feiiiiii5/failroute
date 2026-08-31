@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Build the three paper figures from artifacts that already exist on disk.
 
 Inputs (all produced by other scripts, never re-derived here):
@@ -16,7 +15,6 @@ readable when printed in black and white.
 from __future__ import annotations
 
 import csv
-import io
 import json
 import os
 
@@ -41,7 +39,7 @@ EDGE = '0.0'
 
 
 def load(path):
-    with io.open(os.path.join(ROOT, path), encoding='utf-8') as f:
+    with open(os.path.join(ROOT, path), encoding='utf-8') as f:
         return json.load(f)
 
 
@@ -183,7 +181,7 @@ def figure2(u5):
 def figure3(cells):
     """Recall of the six-rule family against merged security-relevant fixes."""
     path = os.path.join(ROOT, 'paper', 'merged-pr-recall.csv')
-    with io.open(path, encoding='utf-8') as f:
+    with open(path, encoding='utf-8') as f:
         rows = list(csv.DictReader(f))
     family = [r for r in rows
               if r.get('belongs_to_family', '').strip().lower() == 'yes']

@@ -282,7 +282,7 @@ def main() -> None:
     md.append("3. Compute overlap by file+line (±1 line tolerance) and regenerate the table; record new totals in a NEW file, never overwrite `bench/ruff-comparison.md` (frozen baseline).")
     (ROOT / "bench" / "linter-comparison.md").write_text("\n".join(md) + "\n", encoding="utf-8")
 
-    print(f"wrote bench/linter-comparison.json and bench/linter-comparison.md")
+    print("wrote bench/linter-comparison.json and bench/linter-comparison.md")
     for name, s in summary.items():
         print(f"  {name}: {s['total_rows']} rows, matched {s['failroute_findings_matched_within_1_line']}/{len(failroute_findings)}")
 

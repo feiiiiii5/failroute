@@ -81,7 +81,7 @@ def load_config(start: Path) -> FailrouteConfig:
         import tomllib
     except ModuleNotFoundError:  # pragma: no cover - py<3.11 path
         try:
-            import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+            import tomli as tomllib  # type: ignore[import-not-found,no-redef,unused-ignore]
         except ModuleNotFoundError:  # failroute: ignore - no TOML parser, no project config
             return FailrouteConfig()
 

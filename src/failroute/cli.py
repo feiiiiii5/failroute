@@ -8,6 +8,7 @@ import hashlib
 import json
 import sys
 from pathlib import Path
+from typing import Union
 
 from failroute.analyzer import Finding, scan_path, scan_repo
 from failroute.config import load_config
@@ -137,16 +138,19 @@ def _sort_key(finding: Finding) -> tuple[str, int, str]:
 
 
 def _stable_id(file: str, lineno: int, rule: str) -> str:
-    return hashlib.sha256(f"{file}\n{lineno}\n{rule}".encode("utf-8")).hexdigest()[:16]
+    return hashlib.sha256(f"{file}\n{lineno}\n{rule}".encode()).hexdigest()[:16]
+
+
+_FuncDef = Union[ast.FunctionDef, ast.AsyncFunctionDef]
 
 
 def _enclosing_signature(tree: ast.Module, lineno: int) -> str | None:
-    innermost: ast.AST | None = None
+    innermost: _FuncDef | None = None
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.lineno <= lineno <= (
-            node.end_lineno or node.lineno
-        ):
-            if innermost is None or node.lineno >= innermost.lineno:  # type: ignore[union-attr]
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if node.lineno <= lineno <= (node.end_lineno or node.lineno):
+            if innermost is None or node.lineno >= innermost.lineno:
                 innermost = node
     if innermost is None:
         return None
@@ -157,7 +161,7 @@ def _enclosing_signature(tree: ast.Module, lineno: int) -> str | None:
 
 
 def _finding_context(root: Path, file: str, lineno: int) -> dict[str, object]:
-    empty = {
+    empty: dict[str, object] = {
         "context_before": [],
         "context_after": [],
         "function_signature": None,

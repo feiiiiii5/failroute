@@ -3,7 +3,13 @@
 
 用法：.venv/bin/python tools/draw_sample.py --n 80 --seed 20260831
 """
-import json, io, os, glob, random, argparse, hashlib
+import argparse
+import glob
+import hashlib
+import json
+import os
+import random
+
 ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__))); os.chdir(ROOT)
 ap=argparse.ArgumentParser(); ap.add_argument('--n',type=int,default=80)
 ap.add_argument('--seed',type=int,default=20260831)
@@ -12,7 +18,7 @@ a=ap.parse_args()
 
 items=[]
 for f in sorted(glob.glob('paper/scan/*.jsonl')):
-    for line in io.open(f,encoding='utf-8'):
+    for line in open(f,encoding='utf-8'):
         d=json.loads(line); items.append(d)
 strata={}
 for d in items: strata.setdefault((d['rule'], d['repo']), []).append(d)
@@ -43,13 +49,14 @@ for k in keys:
 
 picked=picked[:a.n]
 picked.sort(key=lambda kx:(kx[0][0],kx[0][1],kx[1]['file'],kx[1]['lineno']))
-with io.open(a.out,'w',encoding='utf-8') as fh:
+with open(a.out,'w',encoding='utf-8') as fh:
     for i,(k,d) in enumerate(picked,1):
         d=dict(d); d['sample_index']=i; d['stratum']=f"{k[0]}|{k[1]}"
         fh.write(json.dumps(d,ensure_ascii=False)+"\n")
-blob=io.open(a.out,'rb').read()
+blob=open(a.out,'rb').read()
 print(f"抽样 {len(picked)} 条 → {a.out}")
 print(f"seed={a.seed}  sha256={hashlib.sha256(blob).hexdigest()[:32]}")
 from collections import Counter
+
 c=Counter(k[0] for k,_ in picked); cr=Counter(k[1] for k,_ in picked)
 print("按规则:", dict(c)); print("按包  :", dict(cr))

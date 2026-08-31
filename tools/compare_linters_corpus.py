@@ -7,13 +7,16 @@
 用法：cd 新项目-failroute && .venv/bin/python tools/compare_linters_corpus.py
 """
 import json
-import sys, io, os, subprocess, sys, time
+import os
+import subprocess
+import sys
+import time
 from collections import Counter, defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 PY = '.venv/bin/python'
-LOCK = json.load(io.open('paper/corpus-lock.json', encoding='utf-8'))
+LOCK = json.load(open('paper/corpus-lock.json', encoding='utf-8'))
 TOL = 1  # 行号容差
 
 
@@ -115,7 +118,7 @@ for p in LOCK['packages']:
     # 早期版本在此处又拼了一次 scan_root，导致索引全部落空、重叠静默为 0。
     fr = []
     missing = 0
-    with io.open(f"paper/scan/{p['name']}.jsonl", encoding='utf-8') as fh:
+    with open(f"paper/scan/{p['name']}.jsonl", encoding='utf-8') as fh:
         for line in fh:
             d = json.loads(line)
             f = os.path.abspath(d['file'])
@@ -167,7 +170,7 @@ report['totals'] = {'failroute': grand['failroute'],
                     **{k: {'findings': grand[k], 'matched_failroute': grand_match[k],
                            'matched_by_rule': dict(grand_rule_match[k])}
                        for k, _, _ in LINTERS}}
-io.open('bench/corpus-linter-comparison.json', 'w', encoding='utf-8').write(
+open('bench/corpus-linter-comparison.json', 'w', encoding='utf-8').write(
     json.dumps(report, ensure_ascii=False, indent=2))
 print("\n" + "=" * 72)
 print(f"failroute 总发现: {grand['failroute']}")

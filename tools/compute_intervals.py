@@ -9,7 +9,11 @@ closed form 1 - alpha**(1/n)) is also reported.
 Usage: cd 新项目-failroute && .venv/bin/python tools/compute_intervals.py
 Writes paper/intervals.json and prints a markdown table.
 """
-import csv, io, json, math, os, time
+import csv
+import json
+import math
+import os
+import time
 from collections import Counter, defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,19 +36,19 @@ def cp_upper_zero(n, alpha=ALPHA):
 
 
 def labels(path):
-    with io.open(path, encoding='utf-8') as f:
+    with open(path, encoding='utf-8') as f:
         return {int(r['sample_index']): r for r in csv.DictReader(f)}
 
 
 PASS = {'pass1': labels('paper/annotations.csv'),
         'pass2': labels('paper/annotations-second-pass.csv')}
 
-COV = json.load(io.open('bench/corpus-coverage-union.json', encoding='utf-8'))
+COV = json.load(open('bench/corpus-coverage-union.json', encoding='utf-8'))
 
 # --- recall ground truth: re-count from the csv, do not trust the prose --------
 # paper/merged-pr-recall.csv lists ALL 70 merged PRs; the recall denominator is the
 # subset whose belongs_to_family == 'yes'. detected == 'n/a' marks out-of-scope rows.
-with io.open('paper/merged-pr-recall.csv', encoding='utf-8') as f:
+with open('paper/merged-pr-recall.csv', encoding='utf-8') as f:
     rec_rows = list(csv.DictReader(f))
     rec_cols = list(rec_rows[0].keys()) if rec_rows else []
 family = [r for r in rec_rows if r.get('belongs_to_family', '').strip().lower() == 'yes']
@@ -105,7 +109,7 @@ out = {'generated_at_utc8': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
                  'given the exact one-sided Clopper-Pearson upper bound 1-alpha**(1/n)' % Z,
        'recall_csv_columns': rec_cols,
        'cells': cells}
-json.dump(out, io.open('paper/intervals.json', 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
+json.dump(out, open('paper/intervals.json', 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
 
 print('| Group | Proportion | k/n | point | 95% Wilson CI | one-sided 95% upper |')
 print('|---|---|---|---|---|---|')

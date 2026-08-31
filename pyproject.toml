@@ -58,6 +58,23 @@ select = ["E", "F", "I", "B", "UP"]
 # Corpus fixtures are intentionally synthetic snippets with undefined names.
 "tests/corpus/*" = ["F821", "B017"]
 
+# tools/ holds one-off analysis and benchmark scripts that produce the numbers in
+# paper/. They are kept exactly as they were run, so that the published figures stay
+# traceable to executed code; reformatting them for style would break that link for
+# no correctness gain. Only cosmetic rules are relaxed -- E (except E501/E70x/E741),
+# F, B, I and the correctness-relevant UP rules still apply, and src/ and tests/ are
+# held to the full rule set.
+"tools/*" = [
+    "E501",   # long lines in tabular print statements
+    "E701",   # `if x: y` on one line
+    "E702",   # `a = 1; b = 2` on one line
+    "E741",   # `l` as a loop variable
+    "UP031",  # printf-style % formatting
+    "B007",   # unused loop control variable
+    "E402",   # imports after a sys.path tweak
+    "F841",   # assigned-and-unused, kept for readability at a debug point
+]
+
 [tool.mypy]
 strict = true
 

@@ -10,7 +10,10 @@ Writes:  bench/corpus-linter-comparison.json   (adds linters["semgrep"] per pack
                                                  is deliberately NOT overwritten)
 Usage: cd 新项目-failroute && .venv/bin/python tools/run_semgrep_baseline.py
 """
-import json, io, os, subprocess, sys, time
+import json
+import os
+import subprocess
+import time
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
@@ -18,7 +21,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); os.chdir(ROO
 PY = '.venv/bin/python'
 SG = os.environ.get('SEMGREP', '/tmp/sgvenv/bin/semgrep')
 RULES = 'tools/semgrep-rules/exception-handling.yaml'
-LOCK = json.load(io.open('paper/corpus-lock.json', encoding='utf-8'))
+LOCK = json.load(open('paper/corpus-lock.json', encoding='utf-8'))
 TOL = 1
 
 
@@ -72,7 +75,7 @@ def semgrep(r):
 TOOLS = [('ruff', ruff), ('bandit', bandit), ('pylint', pylint),
          ('flake8+bugbear', flake8), ('semgrep', semgrep)]
 
-cmp_doc = json.load(io.open('bench/corpus-linter-comparison.json', encoding='utf-8'))
+cmp_doc = json.load(open('bench/corpus-linter-comparison.json', encoding='utf-8'))
 per_tool = defaultdict(Counter)
 union_by_rule = Counter()
 union_by_rule_4 = Counter()
@@ -87,7 +90,7 @@ for p in LOCK['packages']:
     name = p['name']
     root = os.path.normpath(os.path.join('paper/corpus', p['extracted_to'], p['scan_root']))
     fr = []
-    for line in io.open('paper/scan/%s.jsonl' % name, encoding='utf-8'):
+    for line in open('paper/scan/%s.jsonl' % name, encoding='utf-8'):
         d = json.loads(line)
         fr.append((os.path.abspath(d['file']), d['lineno'], d['rule']))
     fr_total += len(fr)
@@ -151,7 +154,7 @@ cmp_doc['semgrep_note'] = ('semgrep row added by tools/run_semgrep_baseline.py o
                            'Rule set is hand-written (tools/semgrep-rules/'
                            'exception-handling.yaml); it is not an upstream semgrep '
                            'default ruleset.' % time.strftime('%Y-%m-%d', time.gmtime()))
-json.dump(cmp_doc, io.open('bench/corpus-linter-comparison.json', 'w', encoding='utf-8'),
+json.dump(cmp_doc, open('bench/corpus-linter-comparison.json', 'w', encoding='utf-8'),
           ensure_ascii=False, indent=2)
 
 out = {'generated_at_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
@@ -167,7 +170,7 @@ out = {'generated_at_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
                    for r in total_by_rule},
        'per_tool_by_rule': {n: dict(per_tool[n]) for n, _ in TOOLS},
        'per_package': pkg_rows}
-json.dump(out, io.open('bench/corpus-coverage-union-5tool.json', 'w', encoding='utf-8'),
+json.dump(out, open('bench/corpus-coverage-union-5tool.json', 'w', encoding='utf-8'),
           ensure_ascii=False, indent=2)
 print('\n4-tool recheck=%d  5-tool=%d  (baseline file said 253)  semgrep-new=%d' % (
     covered_total_4, covered_total, semgrep_codes['newly_covered_by_semgrep']))

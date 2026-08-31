@@ -8,14 +8,17 @@ hand-written rule fired. Read-only w.r.t. the corpus; rewrites only the comparis
 
 Usage: cd 新项目-failroute && SEMGREP=/tmp/sgvenv/bin/semgrep .venv/bin/python tools/semgrep_detail.py
 """
-import json, io, os, subprocess, collections
+import collections
+import json
+import os
+import subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); os.chdir(ROOT)
 SG = os.environ.get('SEMGREP', '/tmp/sgvenv/bin/semgrep')
 RULES = 'tools/semgrep-rules/exception-handling.yaml'
-LOCK = json.load(io.open('paper/corpus-lock.json', encoding='utf-8'))
+LOCK = json.load(open('paper/corpus-lock.json', encoding='utf-8'))
 TOL = 1
-cmp_doc = json.load(io.open('bench/corpus-linter-comparison.json', encoding='utf-8'))
+cmp_doc = json.load(open('bench/corpus-linter-comparison.json', encoding='utf-8'))
 codes_all = collections.Counter()
 for p in LOCK['packages']:
     root = os.path.normpath(os.path.join('paper/corpus', p['extracted_to'], p['scan_root']))
@@ -26,7 +29,7 @@ for p in LOCK['packages']:
     for x in res:
         idx[os.path.abspath(x['path'])].add(x['start']['line'])
     fr = []
-    for line in io.open('paper/scan/%s.jsonl' % p['name'], encoding='utf-8'):
+    for line in open('paper/scan/%s.jsonl' % p['name'], encoding='utf-8'):
         d = json.loads(line)
         fr.append((os.path.abspath(d['file']), d['lineno'], d['rule']))
     matched = 0
@@ -46,7 +49,7 @@ for p in LOCK['packages']:
         p['name'], len(res), matched, len(set((os.path.abspath(x['path']), x['start']['line'])
                                              for x in res)),
         ' '.join('%s=%d' % kv for kv in codes.most_common())), flush=True)
-json.dump(cmp_doc, io.open('bench/corpus-linter-comparison.json', 'w', encoding='utf-8'),
+json.dump(cmp_doc, open('bench/corpus-linter-comparison.json', 'w', encoding='utf-8'),
           ensure_ascii=False, indent=2)
 print('\nrule tallies corpus-wide:', dict(codes_all.most_common()))
 print('updated bench/corpus-linter-comparison.json')

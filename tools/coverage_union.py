@@ -4,12 +4,15 @@
 诚实口径：不要只对照 ruff。pylint 的 W0702/W0703 覆盖面远大于 ruff S110/S112。
 用法：cd 新项目-failroute && .venv/bin/python tools/coverage_union.py
 """
-import json, io, os, subprocess, sys, time
+import json
+import os
+import subprocess
+import time
 from collections import Counter, defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); os.chdir(ROOT)
 PY = '.venv/bin/python'
-LOCK = json.load(io.open('paper/corpus-lock.json', encoding='utf-8'))
+LOCK = json.load(open('paper/corpus-lock.json', encoding='utf-8'))
 TOL = 1
 
 def sh(c, t=900): return subprocess.run(c, capture_output=True, text=True, timeout=t)
@@ -44,7 +47,7 @@ covered_total=0; fr_total=0; rows=[]
 for p in LOCK['packages']:
     root=os.path.normpath(os.path.join('paper/corpus',p['extracted_to'],p['scan_root']))
     fr=[]
-    for line in io.open(f"paper/scan/{p['name']}.jsonl",encoding='utf-8'):
+    for line in open(f"paper/scan/{p['name']}.jsonl",encoding='utf-8'):
         d=json.loads(line); f=os.path.abspath(d['file'])
         assert os.path.exists(f), f
         fr.append((f,d['lineno'],d['rule']))
@@ -82,5 +85,5 @@ json.dump({'generated_at_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),
  'by_rule':{r:{'total':total_by_rule[r],'covered':union_by_rule[r],'only':total_by_rule[r]-union_by_rule[r]} for r in total_by_rule},
  'per_tool_by_rule':{n:dict(per_tool[n]) for n,_ in TOOLS},
  'per_package':[{'name':a,'failroute':b,'covered':c,'only':d} for a,b,c,d in rows]},
- io.open('bench/corpus-coverage-union.json','w',encoding='utf-8'),ensure_ascii=False,indent=2)
+ open('bench/corpus-coverage-union.json','w',encoding='utf-8'),ensure_ascii=False,indent=2)
 print("\nwrote bench/corpus-coverage-union.json")

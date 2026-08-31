@@ -143,7 +143,7 @@ def _always_terminates(stmts: list[ast.stmt]) -> bool:
             if body_terminates and handlers_terminate:
                 return True
         elif _MATCH and isinstance(stmt, _MATCH):
-            cases = stmt.cases  # type: ignore[attr-defined]
+            cases = stmt.cases  # type: ignore[attr-defined,unused-ignore]  # needed on 3.9, redundant on 3.10+
             has_wildcard = any(
                 isinstance(c.pattern, ast.MatchAs)
                 and c.pattern.pattern is None
