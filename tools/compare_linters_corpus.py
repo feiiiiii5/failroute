@@ -6,7 +6,8 @@
 
 用法：cd 新项目-failroute && .venv/bin/python tools/compare_linters_corpus.py
 """
-import json, io, os, subprocess, sys, time
+import json
+import sys, io, os, subprocess, sys, time
 from collections import Counter, defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,8 +33,13 @@ def run_ruff(root):
     try:
         for d in json.loads(r.stdout or '[]'):
             hits.append((os.path.abspath(d['filename']), d['location']['row'], d.get('code')))
-    except Exception:
-        pass
+    except Exception as e:
+        # A malformed payload means this linter contributed zero coverage to the
+        # comparison. Swallowing it would silently understate the baseline and
+        # overstate failroute's novelty -- the exact defect class this repo is about.
+        raise RuntimeError(
+            f"{__name__}: could not parse output; the comparison would be wrong. "
+            f"stderr={(r.stderr or '')[:300]!r}") from e
     return hits
 
 
@@ -43,8 +49,13 @@ def run_bandit(root):
     try:
         for d in json.loads(r.stdout or '{}').get('results', []):
             hits.append((os.path.abspath(d['filename']), d['line_number'], d.get('test_id')))
-    except Exception:
-        pass
+    except Exception as e:
+        # A malformed payload means this linter contributed zero coverage to the
+        # comparison. Swallowing it would silently understate the baseline and
+        # overstate failroute's novelty -- the exact defect class this repo is about.
+        raise RuntimeError(
+            f"{__name__}: could not parse output; the comparison would be wrong. "
+            f"stderr={(r.stderr or '')[:300]!r}") from e
     return hits
 
 
@@ -56,8 +67,13 @@ def run_pylint(root):
     try:
         for d in json.loads(r.stdout or '[]'):
             hits.append((os.path.abspath(d['path']), d['line'], d.get('message-id')))
-    except Exception:
-        pass
+    except Exception as e:
+        # pylint is the strongest baseline in this comparison (178 + 67 of the 253).
+        # If its output fails to parse and we return [], the headline coverage number
+        # collapses without anyone noticing. Fail loudly instead.
+        raise RuntimeError(
+            f"pylint: could not parse output; the comparison would be wrong. "
+            f"stderr={(r.stderr or '')[:300]!r}") from e
     return hits
 
 
@@ -65,13 +81,16 @@ def run_flake8(root):
     r = sh([PY, '-m', 'flake8', '--select', 'E722,B001,B017',
             '--format', '%(path)s\t%(row)d\t%(code)s', root])
     hits = []
+    dropped = 0
     for line in (r.stdout or '').splitlines():
         parts = line.split('\t')
         if len(parts) == 3:
             try:
                 hits.append((os.path.abspath(parts[0]), int(parts[1]), parts[2]))
             except ValueError:
-                pass
+                dropped += 1
+    if dropped:
+        print(f"  [warn] flake8: {dropped} unparseable row(s) dropped", file=sys.stderr)
     return hits
 
 
@@ -118,7 +137,10 @@ for p in LOCK['packages']:
         t0 = time.time()
         try:
             hits = fn(root)
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired:  # failroute: ignore
+            # Intentional: None is a sentinel meaning "this linter timed out", and the
+            # caller below branches on `hits is None` and records the timeout in the
+            # output JSON. The failure is reported, not discarded.
             hits = None
         dt = round(time.time() - t0, 1)
         if hits is None:

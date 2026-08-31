@@ -84,7 +84,10 @@ def fetch_file(repo: str, path: str, ref: str) -> str | None:
         return None
     try:
         return base64.b64decode(proc.stdout.strip()).decode("utf-8", errors="replace")
-    except Exception:
+    except Exception:  # failroute: ignore
+        # Intentional: None means "file not retrievable at this ref" and every caller
+        # branches on it; the row is then written with detected="n/a" rather than
+        # counted as a miss. Same contract as the returncode check three lines up.
         return None
 
 

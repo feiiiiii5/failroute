@@ -47,13 +47,16 @@ def pylint(r):
 def flake8(r):
     o = sh([PY, '-m', 'flake8', '--select', 'E722,B001,B017', '--format', '%(path)s\t%(row)d', r]).stdout
     out = []
+    dropped = 0
     for ln in (o or '').splitlines():
         a = ln.split('\t')
         if len(a) == 2:
             try:
                 out.append((os.path.abspath(a[0]), int(a[1])))
             except ValueError:
-                pass
+                dropped += 1
+    if dropped:
+        print(f'  [warn] {dropped} unparseable row(s) dropped', file=__import__('sys').stderr)
     return out
 
 
@@ -100,7 +103,9 @@ for p in LOCK['packages']:
             try:
                 hits[n] = fu.result()
                 status, err = 'ok', None
-            except Exception as e:
+            except Exception as e:  # failroute: ignore
+                # Intentional: the error is recorded in `status`/`err` two lines down
+                # and written to the output JSON, so the failure is visible, not silent.
                 hits[n] = []
                 status, err = 'error', repr(e)[:400]
             secs = round(time.time() - t0, 1)
