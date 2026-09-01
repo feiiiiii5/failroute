@@ -161,7 +161,7 @@ def main() -> int:
         sys.exit(f"error: expected 49 no-updates + 3 flips, got {n_ts} + {n_flip}")
 
     out = io.StringIO()
-    w = _csv.DictWriter(out, fieldnames=records[0].keys())
+    w = _csv.DictWriter(out, fieldnames=records[0].keys(), lineterminator="\n")
     w.writeheader()
     w.writerows(records)
     CSV.write_text(out.getvalue(), encoding="utf-8")
