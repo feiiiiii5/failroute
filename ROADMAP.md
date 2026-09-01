@@ -73,8 +73,13 @@ reason:
   fallback value eventually get consumed as a success value" is a
   call-graph question (CodeQL-shaped). failroute's lane is the
   high-precision hint layer plus human triage (`docs/triage.md`); the
-  remaining ~20-30% of shapes belong in the dataflow tier, documented here
-  rather than feigned.
+  remaining shapes belong in the dataflow tier, documented here
+  rather than feigned. Measured (H batch recall audit, 09-01; source:
+  `paper/merged-pr-recall.csv` miss-reason notes): of the 8 in-scope
+  real defects among the applicant's merged fixes, 5 (62.5%) do not
+  route through an except-handler at all, and a further 2 (25%) are
+  handler-shape gaps adjudicated as new candidate patterns (CHANGELOG
+  0.8.0, I0 entry).
 
 ## Non-goals (project)
 

@@ -81,15 +81,22 @@ def check_readme_numbers() -> tuple[bool, str]:
     for token in ("649", "253", "39.0%", "61.0%", "43.0%", "396", "279"):
         if token in readme:
             stale.append(token)
-    required = ["621 findings", "**250**", "40.3%", "**269**", "43.3%", "**371**", "59.7%"]
+    # 269 is the five-tool union figure; it appears in the baseline-note
+    # prose, not in the bold four-linter table.
+    required = ["621 findings", "**250**", "40.3%", "269 (43.3%)", "**371**", "59.7%"]
     missing = [t for t in required if t not in readme]
     ok = not stale and not missing
     return (ok, f"stale={stale or 'none'} missing={missing or 'none'}")
 
 
+def _strip_md(text: str) -> str:
+    return re.sub(r"[*_`]", "", text)
+
+
 def check_artifact() -> tuple[bool, str]:
     art = (ROOT / "paper" / "ARTIFACT.md").read_text(encoding="utf-8")
-    bad = [m for m in re.findall(r".{0,60}could not re-derive.{0,60}", art, re.I)]
+    # robust against markdown emphasis inside the phrase
+    bad = [m for m in re.findall(r".{0,60}could not re-derive.{0,60}", _strip_md(art), re.I)]
     return (not bad, bad[0].strip() if bad else "no 'could not re-derive' open items")
 
 

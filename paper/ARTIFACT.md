@@ -75,6 +75,12 @@ failroute 0.7.0
 is **independent of this** and still applies to the in-tree `python -m failroute` form;
 it is *not* needed for the installed console script (verified in §5.1).
 
+> **Update (H batch I2, 09-01):** the release was bumped to **0.8.0** and the same
+> four locations were synchronised again (`pyproject.toml`, `__init__.py`,
+> `action/action.yml` default, README `rev:`), enforced by
+> `tests/test_release_consistency.py` and `tools/closure_check.py`. The historical
+> 0.5.1 → 0.7.0 resolution above is kept as recorded.
+
 ---
 
 ## 2. What was actually re-run, and what it produced
@@ -249,9 +255,9 @@ all eight runs.
 
 | Item | Outcome |
 |---|---|
-| `tools/coverage_union.py` | **Failed twice over.** (a) The script hard-codes the interpreter `.venv/bin/python` and invokes it with a *relative* path after `os.chdir(ROOT)` → in a clean virtualenv: `FileNotFoundError: [Errno 2] No such file or directory: '.venv/bin/python'`. (b) With a `.venv` shim pointing at the repo venv, it then died on its own subprocess timeout: `pylint --disable=all --enable=W0702,W0703,W0705,W0706 --jobs=4 paper/corpus/garak-0.16.0/garak` **timed out after 900 seconds**. ⚠️ Consequence: **the 253 / 39.0% union-coverage figure was NOT independently re-derived by this pass.** Reproducing it needs a much larger per-linter timeout. |
+| `tools/coverage_union.py` | **Resolved (H batch, 09-01).** History: the original script hard-coded `.venv/bin/python` as a relative path and died on its own 900 s pylint timeout, so the union figure was NOT re-derived by the earlier pass. The script was fixed (interpreter resolution with env override, pylint timeout 1800 s, parameterised findings dir) and re-run live: **the 253 / 39.0% figure was reproduced on the v0.7.0 finding set (56 s wall)**, and the final v0.8.0 baseline (621 findings) measures **250 / 621 = 40.3%** (49 s). Re-run: `PYTHONPATH=src .venv/bin/python tools/coverage_union.py --findings-dir paper/scan --out /tmp/u4.json`. |
 | `tools/compare_linters_corpus.py` | **Not run.** Same linter cost, and it overwrites `bench/corpus-linter-comparison.json`, which now also carries the merged `linters.semgrep` results. §0.2's warning stands, untested. |
-| semgrep (5-tool union, 279 / 43.0%) | **Not run.** `tools/run_semgrep_baseline.py` exists, but semgrep was not installed in this pass. |
+| semgrep (5-tool union, 279 / 43.0%) | **Resolved (H batch, 09-01).** semgrep 1.175.0 installed and run live via `tools/coverage_union.py --with-semgrep`: **279 / 43.0% reproduced on the v0.7.0 finding set (73 s)**; the v0.8.0 baseline measures **269 / 621 = 43.3%** (63 s). |
 | `tools/make_figures.py` | **Needs an undeclared dependency.** On the clean venv: `ModuleNotFoundError: No module named 'matplotlib'`. After installing matplotlib it produced **fig1, fig2 and fig3** (each `.pdf` + `.png`) — §2.3 and §4 mention only fig1. `matplotlib` is absent from `pyproject.toml`, so the documented clean install cannot build the figures at all. |
 | `tools/fetch_corpus.py` (download path) | **Not re-downloaded.** `--verify` (disk vs lock, no network) ran clean: `8/8 packages verified`. Byte-identical re-download therefore stays unverified, though every input is sha256-locked. |
 
