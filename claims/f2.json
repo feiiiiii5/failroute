@@ -1,0 +1,41 @@
+[
+  {
+    "id": "F2.tests_green",
+    "stmt": "两条设计决策各有回归测试且全绿（豁免边界都有成对的『仍然报』对照用例）",
+    "value": "13 passed",
+    "cmd": "PYTHONPATH=src .venv/bin/python -m pytest tests/test_f2_decisions.py --tb=no 2>&1 | tail -1",
+    "expect": "13 passed"
+  },
+  {
+    "id": "F2.corpus_delta",
+    "stmt": "语料 delta（639→621）：F-④ 探针豁免 -11、F-⑤ re-raise 清理豁免 -7，逐条归因，无新出现项",
+    "value": "vanished=18 appeared=0; F4-import-probe=11 F5-suppress-reraise=7",
+    "cmd": "git worktree remove --force /tmp/fr-f2-base 2>/dev/null; git worktree add /tmp/fr-f2-base 6eb7973 >/dev/null 2>&1 && ln -s \"/Users/fei/Desktop/申请季/新项目-failroute/paper/corpus\" /tmp/fr-f2-base/paper/corpus && git show HEAD:tools/rescan_corpus.py > /tmp/fr-f2-base/tools/rescan_corpus.py && (cd /tmp/fr-f2-base && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-f2-base-scan >/dev/null) && PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f2-new >/dev/null && PYTHONPATH=src .venv/bin/python tools/delta_findings.py --base /tmp/fr-f2-base-scan --new /tmp/fr-f2-new | /usr/bin/grep SUMMARY; rc=$?; git worktree remove --force /tmp/fr-f2-base >/dev/null 2>&1; rm -rf /tmp/fr-f2-base-scan /tmp/fr-f2-new; exit $rc",
+    "expect": "SUMMARY vanished=18 appeared=0 .*F4-import-probe=11 F5-suppress-reraise=7",
+    "slow": true
+  },
+  {
+    "id": "F2.truth_check",
+    "stmt": "外部真值验收（F2 标准 2）：18 个新抑制站点对接 contractlens 维护者行为标签——1 条可接上真值且为 SURVIVED，0 条 FIXED；诚实口径：17 条无真值覆盖（其中 11 条所在包 pydantic_ai 根本不在数据集内），详见报告 §F2",
+    "value": "SUPPRESSED=18 SURVIVED=1 FIXED=0 NO_TRUTH=17 → PASS",
+    "cmd": "git worktree remove --force /tmp/fr-f2-tbase 2>/dev/null; git worktree add /tmp/fr-f2-tbase 6eb7973 >/dev/null 2>&1 && ln -s \"/Users/fei/Desktop/申请季/新项目-failroute/paper/corpus\" /tmp/fr-f2-tbase/paper/corpus && git show HEAD:tools/rescan_corpus.py > /tmp/fr-f2-tbase/tools/rescan_corpus.py && (cd /tmp/fr-f2-tbase && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-f2-tbase-scan >/dev/null) && PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f2-tnew >/dev/null && PYTHONPATH=src .venv/bin/python tools/truth_probe_check.py --mode f2 --dataset '/Users/fei/Desktop/申请季/新项目-contractlens/data/dataset.jsonl' --base /tmp/fr-f2-tbase-scan --new /tmp/fr-f2-tnew 2>&1 | /usr/bin/grep -E 'SUPPRESSED=|PASS|FAIL'; rc=$?; git worktree remove --force /tmp/fr-f2-tbase >/dev/null 2>&1; rm -rf /tmp/fr-f2-tbase-scan /tmp/fr-f2-tnew; exit $rc",
+    "expect": "SUPPRESSED=18 SURVIVED=1 FIXED=0 MUTATED=0 VANISHED=0 NO_TRUTH=17.*\\nPASS",
+    "slow": true
+  },
+  {
+    "id": "F2.ablation_no_fixed_loss",
+    "stmt": "ADR-0001 消融：三个条件各自放宽后，在可接真值的站点上同样零 FIXED 损失——保守取舍是政策选择而非数据强迫（数据覆盖稀薄本身已如实报告）",
+    "value": "shipped 5 站点(1 SURV/0 FIXED); drop-cond-3 最宽 53 站点仍 0 FIXED",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/truth_probe_check.py --mode ablation --dataset '/Users/fei/Desktop/申请季/新项目-contractlens/data/dataset.jsonl' | /usr/bin/grep -E 'shipped|drop cond'",
+    "expect": "shipped \\(all three\\) +5 +1 +0.*\\ndrop cond-1 \\(any exc type\\) +5 +1 +0.*\\ndrop cond-2 \\(any guarded body\\) +20 +5 +0.*\\ndrop cond-3 \\(any handler body\\) +53 +5 +0",
+    "slow": true
+  },
+  {
+    "id": "F2.importerror_still_reported",
+    "stmt": "保守边界核对：33 条 ImportError 发现中仍有 22 条被报（探针谓词只豁免了 11 条）——『一刀切忽略』被否决",
+    "value": "33-11=22 条 ImportError 相关发现仍在新扫描结果中",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f2-ie >/dev/null && PYTHONPATH=src .venv/bin/python tools/delta_findings.py --base paper/scan --new /tmp/fr-f2-ie | /usr/bin/grep SUMMARY",
+    "expect": "vanished=28",
+    "slow": true
+  }
+]

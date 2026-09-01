@@ -35,6 +35,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# F-④/F-⑤ classifiers consult the live detector predicates; on pre-F2 trees
+# those symbols do not exist, and the classes are simply unavailable (the
+# vanished findings of an F1-era diff never need them).
+try:
+    from failroute.rules._shared import is_import_probe_handler
+except ImportError:
+    is_import_probe_handler = None  # type: ignore[assignment]
+try:
+    from failroute.rules.silent_suppress import _inside_reraising_handler
+except ImportError:
+    _inside_reraising_handler = None  # type: ignore[assignment]
+
 IGNORED = {
     "KeyboardInterrupt",
     "SystemExit",
@@ -140,9 +152,6 @@ def body_warns(handler: ast.ExceptHandler) -> bool:
 
 
 def classify(row: dict) -> str:
-    from failroute.rules._shared import is_import_probe_handler
-    from failroute.rules.silent_suppress import _inside_reraising_handler
-
     source_path = ROOT / row["file"]
     if not source_path.is_file():
         return "other:source-missing"
@@ -151,7 +160,11 @@ def classify(row: dict) -> str:
     if handler is None:
         # with-suppress findings report at the With node's line, not a handler.
         with_node = suppress_at(source_path, row["lineno"])
-        if with_node is not None and _inside_reraising_handler(with_node, parents):
+        if (
+            with_node is not None
+            and _inside_reraising_handler is not None
+            and _inside_reraising_handler(with_node, parents)
+        ):
             return "F5-suppress-reraise"
         if with_node is not None:
             call = with_node.items[0].context_expr
@@ -170,13 +183,14 @@ def classify(row: dict) -> str:
                 return "F3-stopasync" if "StopAsyncIteration" in names else "F1-ignored-tuple"
         return "other:no-handler(suppress?)"
     # F-④: does the handler's enclosing try adjudicate it an import probe?
-    cur = parents.get(id(handler))
-    while cur is not None:
-        if isinstance(cur, ast.Try) and handler in cur.handlers:
-            if is_import_probe_handler(cur, handler):
-                return "F4-import-probe"
-            break
-        cur = parents.get(id(cur))
+    if is_import_probe_handler is not None:
+        cur = parents.get(id(handler))
+        while cur is not None:
+            if isinstance(cur, ast.Try) and handler in cur.handlers:
+                if is_import_probe_handler(cur, handler):
+                    return "F4-import-probe"
+                break
+            cur = parents.get(id(cur))
     names = member_names(handler.type) or []
     if "StopAsyncIteration" in names and all(n in IGNORED for n in names):
         return "F3-stopasync"

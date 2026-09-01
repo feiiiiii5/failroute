@@ -14,10 +14,15 @@ ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__))); os.chdir(ROOT)
 ap=argparse.ArgumentParser(); ap.add_argument('--n',type=int,default=80)
 ap.add_argument('--seed',type=int,default=20260831)
 ap.add_argument('--out',default='paper/sample.jsonl')
+ap.add_argument('--findings-dir',default='paper/scan',
+                help='per-package findings jsonl directory (default: frozen paper/scan)')
 a=ap.parse_args()
 
+if not os.path.isdir(a.findings_dir):
+    raise SystemExit(f'error: findings dir missing: {a.findings_dir}')
+
 items=[]
-for f in sorted(glob.glob('paper/scan/*.jsonl')):
+for f in sorted(glob.glob(os.path.join(a.findings_dir,'*.jsonl'))):
     for line in open(f,encoding='utf-8'):
         d=json.loads(line); items.append(d)
 strata={}

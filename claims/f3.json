@@ -1,0 +1,58 @@
+[
+  {
+    "id": "F3.union_old_4tool_repro",
+    "stmt": "并集口径真跑通（四工具）：冻结发现集上重算并集 = 冻结值 253/649（上一批未跑通，本批 09-01 实跑 56s）",
+    "value": "253 / 649 = 39.0%，failroute-only 396",
+    "cmd": ".venv/bin/python tools/coverage_union.py --findings-dir paper/scan --out /tmp/fr-union-old4.json 2>&1 | /usr/bin/grep -E '并集能覆盖|failroute-only '",
+    "expect": "253 +\\(39\\.0%\\)",
+    "slow": true
+  },
+  {
+    "id": "F3.union_old_5tool_repro",
+    "stmt": "并集口径真跑通（五工具含自写 semgrep 1.175.0）：冻结发现集上重算 = 冻结值 279/649",
+    "value": "279 / 649 = 43.0%，failroute-only 370",
+    "cmd": ".venv/bin/python tools/coverage_union.py --findings-dir paper/scan --out /tmp/fr-union-old5.json --with-semgrep 2>&1 | /usr/bin/grep '并集能覆盖'",
+    "expect": "279 +\\(43\\.0%\\)",
+    "slow": true
+  },
+  {
+    "id": "F3.union_new_4tool",
+    "stmt": "新基线四工具并集（621 条新发现，实跑）",
+    "value": "250 / 621 = 40.3%，failroute-only 371（59.7%）——独有比例如实下降 1.3 个百分点",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-union >/dev/null && .venv/bin/python tools/coverage_union.py --findings-dir /tmp/fr-f3-union --out /tmp/fr-union-new4.json 2>&1 | /usr/bin/grep -E '并集能覆盖'",
+    "expect": "250 +\\(40\\.3%\\)",
+    "slow": true
+  },
+  {
+    "id": "F3.union_new_5tool",
+    "stmt": "新基线五工具并集（含自写 semgrep，实跑）",
+    "value": "269 / 621 = 43.3%，failroute-only 352（56.7%）",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-union5 >/dev/null && .venv/bin/python tools/coverage_union.py --findings-dir /tmp/fr-f3-union5 --out /tmp/fr-union-new5.json --with-semgrep 2>&1 | /usr/bin/grep -E '并集能覆盖'",
+    "expect": "269 +\\(43\\.3%\\)",
+    "slow": true
+  },
+  {
+    "id": "F3.truth_f3_154",
+    "stmt": "154 条维护者真值对照（145 SURVIVED + 9 FIXED，按版本域定界）：v0.7.0 vs 新版检出数",
+    "value": "SURVIVED 检出 72→71（少报的 1 条本身是 SURVIVED=疑似误报，属精度改善）；FIXED 检出 0→0",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-truth >/dev/null && PYTHONPATH=src .venv/bin/python tools/truth_probe_check.py --mode f3 --dataset '/Users/fei/Desktop/申请季/新项目-contractlens/data/dataset.jsonl' --base paper/scan --new /tmp/fr-f3-truth 2>&1 | /usr/bin/grep -E 'SUMMARY|RECALL_GATE'",
+    "expect": "SUMMARY SURVIVED: sites=145 detected_old=72 detected_new=71\\nSUMMARY FIXED: sites=9 detected_old=0 detected_new=0\\nRECALL_GATE PASS",
+    "slow": true
+  },
+  {
+    "id": "F3.recall_gate_no_drop",
+    "stmt": "唯一『不许失败』项：9 条 FIXED 上新版检出 ≥ v0.7.0（0 ≥ 0，且已合并修复唯一可检出站点 uqlm#450 在新扫描中仍在，钉版语料行为 252 行）",
+    "value": "RECALL_GATE PASS；uqlm#450 站点仍被 no-action 检出",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-recall >/dev/null && /usr/bin/grep -h 'response_generator.py' /tmp/fr-f3-recall/uqlm.jsonl | /usr/bin/grep -c '\"lineno\": 252'",
+    "expect": "^1$",
+    "slow": true
+  },
+  {
+    "id": "F3.sample_overlap",
+    "stmt": "标注样本格作废量化：同样子 20260831 在新抽样框（621 条）上重抽 80 条，与旧 80 条只重合 23 条——旧 64-12-4 标注对新框基本不可复用，须重标（重标是本批之外的动作）",
+    "value": "overlap=23 / 80",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-rescan >/dev/null && .venv/bin/python tools/draw_sample.py --n 80 --seed 20260831 --findings-dir /tmp/fr-f3-rescan --out /tmp/fr-f3-sample.jsonl >/dev/null && /usr/bin/python3 -c \"import json; old={(d['file'],d['lineno'],d['rule']) for d in map(json.loads,open('paper/sample.jsonl'))}; new={(d['file'],d['lineno'],d['rule']) for d in map(json.loads,open('/tmp/fr-f3-sample.jsonl'))}; print('overlap=%d' % len(old&new))\"",
+    "expect": "overlap=23",
+    "slow": true
+  }
+]

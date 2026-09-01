@@ -2,16 +2,43 @@
 """计算四个句法 linter 的并集覆盖，得出真正的 failroute-only 数。
 
 诚实口径：不要只对照 ruff。pylint 的 W0702/W0703 覆盖面远大于 ruff S110/S112。
-用法：cd 新项目-failroute && .venv/bin/python tools/coverage_union.py
+
+F 批改动（2026-09-01）：
+- 解释器不再硬编码相对路径 `.venv/bin/python`：优先环境变量 FAILROUTE_PY，
+  其次仓内 .venv 的绝对路径，最后 sys.executable；找不到直接报错退出。
+- pylint 超时 900s → 1800s（上一批撞超时，见工作计划 §1.5-⑨）；超时/解析失败一律抛出，不静默吞掉。
+- findings 来源可参数化（--findings-dir），输出路径可参数化（--out），
+  于是同一套口径既能复现冻结基线（paper/scan），也能算修复后的新基线。
+- --with-semgrep 把自写 semgrep 规则作为第 5 个工具并入（需要 SEMGREP 指向可用二进制，默认 /tmp/sgvenv/bin/semgrep）。
+
+用法：cd 新项目-failroute && .venv/bin/python tools/coverage_union.py [--findings-dir paper/scan] [--out ...] [--with-semgrep]
 """
+import argparse
 import json
 import os
 import subprocess
+import sys
 import time
 from collections import Counter, defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); os.chdir(ROOT)
-PY = '.venv/bin/python'
+
+
+def _resolve_python() -> str:
+    env = os.environ.get('FAILROUTE_PY')
+    if env:
+        if not os.path.exists(env):
+            sys.exit(f'error: FAILROUTE_PY points to a missing interpreter: {env}')
+        return env
+    venv_py = os.path.abspath('.venv/bin/python')
+    if os.path.exists(venv_py):
+        return venv_py
+    return sys.executable
+
+
+PY = _resolve_python()
+SG = os.environ.get('SEMGREP', '/tmp/sgvenv/bin/semgrep')
+RULES = 'tools/semgrep-rules/exception-handling.yaml'
 LOCK = json.load(open('paper/corpus-lock.json', encoding='utf-8'))
 TOL = 1
 
@@ -25,7 +52,7 @@ def bandit(r):
     return [(os.path.abspath(d['filename']), d['line_number']) for d in json.loads(o or '{}').get('results',[])]
 def pylint(r):
     o = sh([PY,'-m','pylint','--disable=all','--enable=W0702,W0703,W0705,W0706',
-            '--output-format=json','--persistent=n','--jobs=4',r]).stdout
+            '--output-format=json','--persistent=n','--jobs=4',r], t=1800).stdout
     return [(os.path.abspath(d['path']), d['line']) for d in json.loads(o or '[]')]
 def flake8(r):
     o = sh([PY,'-m','flake8','--select','E722,B001,B017','--format','%(path)s\t%(row)d',r]).stdout
@@ -41,13 +68,42 @@ def flake8(r):
     return out
 
 TOOLS=[('ruff',ruff),('bandit',bandit),('pylint',pylint),('flake8+bugbear',flake8)]
+
+
+def semgrep(r):
+    o = sh([SG,'--metrics=off','--disable-version-check','--no-git-ignore','--json',
+            '-f',RULES,r], t=1800).stdout
+    d = json.loads(o or '{}')
+    return [(os.path.abspath(x['path']), x['start']['line']) for x in d.get('results',[])]
+
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--findings-dir', default='paper/scan',
+                    help='per-package findings jsonl directory (default: frozen paper/scan)')
+parser.add_argument('--out', default='bench/corpus-coverage-union.json',
+                    help='where to write the union summary JSON')
+parser.add_argument('--with-semgrep', action='store_true',
+                    help='add the hand-written semgrep rules as a 5th tool')
+args = parser.parse_args()
+if args.with_semgrep:
+    if not os.path.exists(SG):
+        sys.exit(f'error: semgrep binary missing: {SG} (set SEMGREP)')
+    if not os.path.isfile(RULES):
+        sys.exit(f'error: semgrep rules missing: {RULES}')
+    TOOLS.append(('semgrep', semgrep))
+if not os.path.isdir(args.findings_dir):
+    sys.exit(f'error: findings dir missing: {args.findings_dir}')
+
 per_tool=defaultdict(Counter); union_by_rule=Counter(); total_by_rule=Counter()
 covered_total=0; fr_total=0; rows=[]
 
 for p in LOCK['packages']:
     root=os.path.normpath(os.path.join('paper/corpus',p['extracted_to'],p['scan_root']))
     fr=[]
-    for line in open(f"paper/scan/{p['name']}.jsonl",encoding='utf-8'):
+    findings_path = os.path.join(args.findings_dir, f"{p['name']}.jsonl")
+    if not os.path.isfile(findings_path):
+        sys.exit(f'error: findings file missing for {p["name"]}: {findings_path}')
+    for line in open(findings_path, encoding='utf-8'):
         d=json.loads(line); f=os.path.abspath(d['file'])
         assert os.path.exists(f), f
         fr.append((f,d['lineno'],d['rule']))
@@ -80,10 +136,11 @@ for n,_ in TOOLS:
     print(f"  {n:<16} 合计 {tot:<5} " + " ".join(f"{k}={v}" for k,v in per_tool[n].most_common()))
 
 json.dump({'generated_at_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),
+ 'findings_dir':args.findings_dir,'tools':[n for n,_ in TOOLS],
  'line_tolerance':TOL,'failroute_total':fr_total,'union_covered':covered_total,
  'failroute_only':fr_total-covered_total,
  'by_rule':{r:{'total':total_by_rule[r],'covered':union_by_rule[r],'only':total_by_rule[r]-union_by_rule[r]} for r in total_by_rule},
  'per_tool_by_rule':{n:dict(per_tool[n]) for n,_ in TOOLS},
  'per_package':[{'name':a,'failroute':b,'covered':c,'only':d} for a,b,c,d in rows]},
- open('bench/corpus-coverage-union.json','w',encoding='utf-8'),ensure_ascii=False,indent=2)
-print("\nwrote bench/corpus-coverage-union.json")
+ open(args.out,'w',encoding='utf-8'),ensure_ascii=False,indent=2)
+print(f"\nwrote {args.out}")
