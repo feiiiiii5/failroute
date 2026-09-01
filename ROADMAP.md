@@ -75,11 +75,12 @@ reason:
   high-precision hint layer plus human triage (`docs/triage.md`); the
   remaining shapes belong in the dataflow tier, documented here
   rather than feigned. Measured (H batch recall audit, 09-01; source:
-  `paper/merged-pr-recall.csv` miss-reason notes): of the 8 in-scope
-  real defects among the applicant's merged fixes, 5 (62.5%) do not
-  route through an except-handler at all, and a further 2 (25%) are
-  handler-shape gaps adjudicated as new candidate patterns (CHANGELOG
-  0.8.0, I0 entry).
+  `paper/merged-pr-recall.csv` miss-reason notes, corrected denominator):
+  of the 11 in-scope real defects among the applicant's merged fixes,
+  7 (63.6%, Wilson95 [35.4%, 84.8%]) do not route through an
+  except-handler at all, 2 (18.2%) are handler-shape gaps adjudicated as
+  new candidate patterns (CHANGELOG 0.8.0, I0 entry), and 2 (18.2%) are
+  detected.
 
 ## Non-goals (project)
 
