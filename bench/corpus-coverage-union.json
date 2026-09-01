@@ -1,9 +1,16 @@
 {
-  "generated_at_utc": "2026-08-31T01:37:15Z",
+  "generated_at_utc": "2026-09-01T12:27:09Z",
+  "findings_dir": "/tmp/i1-scan",
+  "tools": [
+    "ruff",
+    "bandit",
+    "pylint",
+    "flake8+bugbear"
+  ],
   "line_tolerance": 1,
-  "failroute_total": 649,
-  "union_covered": 253,
-  "failroute_only": 396,
+  "failroute_total": 621,
+  "union_covered": 250,
+  "failroute_only": 371,
   "by_rule": {
     "masked-exception": {
       "total": 3,
@@ -11,19 +18,19 @@
       "only": 0
     },
     "no-action": {
-      "total": 219,
+      "total": 213,
       "covered": 72,
-      "only": 147
+      "only": 141
     },
     "silent-fallback": {
-      "total": 400,
-      "covered": 178,
-      "only": 222
+      "total": 386,
+      "covered": 175,
+      "only": 211
     },
     "silent-suppress": {
-      "total": 27,
+      "total": 19,
       "covered": 0,
-      "only": 27
+      "only": 19
     }
   },
   "per_tool_by_rule": {
@@ -36,7 +43,7 @@
     "pylint": {
       "masked-exception": 3,
       "no-action": 67,
-      "silent-fallback": 178
+      "silent-fallback": 175
     },
     "flake8+bugbear": {
       "no-action": 3,
@@ -52,26 +59,26 @@
     },
     {
       "name": "inspect_ai",
-      "failroute": 324,
+      "failroute": 321,
       "covered": 90,
-      "only": 234
+      "only": 231
     },
     {
       "name": "pydantic_ai_slim",
-      "failroute": 103,
-      "covered": 9,
-      "only": 94
+      "failroute": 82,
+      "covered": 8,
+      "only": 74
     },
     {
       "name": "uqlm",
-      "failroute": 14,
+      "failroute": 13,
       "covered": 5,
-      "only": 9
+      "only": 8
     },
     {
       "name": "trl",
-      "failroute": 28,
-      "covered": 6,
+      "failroute": 26,
+      "covered": 4,
       "only": 22
     },
     {
@@ -88,9 +95,9 @@
     },
     {
       "name": "fickling",
-      "failroute": 11,
+      "failroute": 10,
       "covered": 3,
-      "only": 8
+      "only": 7
     }
   ]
 }

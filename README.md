@@ -147,7 +147,7 @@ system temp dir; both produce findings identical to the serial scan.
 ```yaml
 repos:
   - repo: https://github.com/feiiiiii5/failroute
-    rev: v0.7.0
+    rev: v0.8.0
     hooks:
       - id: failroute
 ```
@@ -285,31 +285,34 @@ Re-run: `python tools/benchmark.py` (also enforced by `pytest`).
 Measured against **eight pinned PyPI releases** (garak, inspect_ai, pydantic-ai,
 uqlm, trl, smolagents, deepteam, fickling — 2,354 files, 563,270 lines), locked by
 URL, SHA-256 and tree hash in `paper/corpus-lock.json` so the corpus is
-byte-reproducible. failroute reports **649 findings**.
+byte-reproducible. failroute reports **621 findings** (v0.8.0). The v0.7.0
+detector reported 28 more on this same corpus; all 28 were precision fixes
+(this CHANGELOG's 0.8.0 entry), each one individually attributed in
+`docs/f-batch-report.md`.
 
 Compared against **four standard linters** at their default configurations
 (ruff, bandit, pylint, flake8 + bugbear), matching on ±1 line:
 
 | | Findings co-located | Share |
 | --- | --- | --- |
-| Union of all four linters | **253** | 39.0% |
-| **failroute only** | **396** | **61.0%** |
+| Union of all four linters | **250** | 40.3% |
+| **failroute only** | **371** | **59.7%** |
 
 Per mode, and which tool (if any) reaches it:
 
 | Mode | Total | Covered by the four | Notes |
 | --- | --- | --- | --- |
-| `silent-fallback` | 400 | 179 (pylint 178) | the defect is what the handler *returns*, not its shape |
-| `no-action` | 219 | 72 (ruff 72 / pylint 67 / bandit 63) | the one family syntactic rules do reach |
-| `silent-suppress` | 27 | **0** | `contextlib.suppress` is a call expression, not an `ExceptHandler`; ruff's SIM105 actively *recommends* rewriting `try-except-pass` into it |
+| `silent-fallback` | 386 | 176 (pylint 175) | the defect is what the handler *returns*, not its shape |
+| `no-action` | 213 | 72 (ruff 72 / pylint 67 / bandit 63) | the one family syntactic rules do reach |
+| `silent-suppress` | 19 | **0** | `contextlib.suppress` is a call expression, not an `ExceptHandler`; ruff's SIM105 actively *recommends* rewriting `try-except-pass` into it |
 | `masked-exception` | 3 | 3 (pylint) | branch-dependent outcome |
 
 > **A note on baselines.** Earlier versions of this README compared only against
 > ruff's `S110`/`S112`. That is not a fair baseline: **pylint is much stronger**
-> (178 + 67 on its own), and a ruff-only comparison overstates the gap by roughly
+> (175 + 67 on its own), and a ruff-only comparison overstates the gap by roughly
 > 3.4×. The numbers above use the union of four linters. A hand-written semgrep
-> ruleset targeting these patterns raises the union to 279 (43.0%) — mostly by
-> covering 25 of the 27 `silent-suppress` findings — so "no shipped linter reaches
+> ruleset targeting these patterns raises the union to 269 (43.3%) — mostly by
+> covering 18 of the 19 `silent-suppress` findings — so "no shipped linter reaches
 > this" is a statement about *default configurations*, not about what is expressible.
 
 Re-run: see `paper/ARTIFACT.md`. Results are checked into `bench/`.
@@ -318,8 +321,12 @@ Re-run: see `paper/ARTIFACT.md`. Results are checked into `bench/`.
 
 **Mostly, it is not — and that is the most useful thing this project measured.**
 
-On a stratified random sample of **80** of the 649 findings (by rule × package,
-fixed seed, reproducible), independently labelled twice:
+On a stratified random sample of **80** findings drawn from the *v0.7.0*
+finding set (by rule × package, fixed seed, reproducible), independently
+labelled twice. 🔴 **Provenance caveat (since v0.8.0):** both labelling
+rounds were performed by LLM agents, and the v0.8 precision fixes changed
+the sampling frame, so these labels describe the v0.7.0 finding set only;
+see `paper/ARTIFACT.md` before citing them.
 
 | Verdict | Count | Share |
 | --- | --- | --- |

@@ -2,7 +2,21 @@
 
 All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.8.0] - 2026-09-01
+
+### Changed
+- **Baseline re-freeze**: the eight-package corpus baseline is now the v0.8.0
+  finding set (621 findings); README benchmark tables updated to the re-run
+  union numbers (four-linter union 250/621 = 40.3%; + hand-written semgrep
+  269/621 = 43.3%), and the 80-sample annotation section carries a
+  provenance caveat (LLM-labelled, v0.7.0 frame).
+- **Recall-gap adjudication (I0)**: the two known in-scope recall misses
+  (inspect_ai#5068 state-mutation routing, inspect_ai#4906 tenacity
+  RetryError masking) are adjudicated NEW CANDIDATE PATTERNS, not rule bugs;
+  both fail the ROADMAP candidate gate (no independent hand-labelled
+  fixtures; the second needs library semantics the tool refuses to guess),
+  so neither ships. Rationale recorded in `docs/f-batch-report.md` §I0 and
+  `paper/merged-pr-recall.csv` notes.
 
 ### Fixed
 - **Precision round (F batch)**: three deterministic false-positive classes
