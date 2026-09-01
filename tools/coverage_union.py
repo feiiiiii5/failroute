@@ -95,7 +95,8 @@ if not os.path.isdir(args.findings_dir):
     sys.exit(f'error: findings dir missing: {args.findings_dir}')
 
 per_tool=defaultdict(Counter); union_by_rule=Counter(); total_by_rule=Counter()
-covered_total=0; fr_total=0; rows=[]
+union4_by_rule=Counter(); union5_by_rule=Counter()
+covered_total=0; covered_total_4=0; covered_total_5=0; fr_total=0; rows=[]
 
 for p in LOCK['packages']:
     root=os.path.normpath(os.path.join('paper/corpus',p['extracted_to'],p['scan_root']))
@@ -118,6 +119,9 @@ for p in LOCK['packages']:
         tools_hit=[n for n in hits if any(abs(c-l)<=TOL for c in idx[n].get(f,()))]
         for n in tools_hit: per_tool[n][rl]+=1
         if tools_hit: union_by_rule[rl]+=1; cov+=1
+        hit4=[n for n in tools_hit if n!='semgrep']
+        if hit4: union4_by_rule[rl]+=1; covered_total_4+=1
+        if tools_hit: union5_by_rule[rl]+=1; covered_total_5+=1
     covered_total+=cov
     rows.append((p['name'],len(fr),cov,len(fr)-cov))
     print(f"{p['name']:<20} failroute={len(fr):<5} 被任一工具覆盖={cov:<5} failroute-only={len(fr)-cov}")
@@ -139,7 +143,11 @@ json.dump({'generated_at_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),
  'findings_dir':args.findings_dir,'tools':[n for n,_ in TOOLS],
  'line_tolerance':TOL,'failroute_total':fr_total,'union_covered':covered_total,
  'failroute_only':fr_total-covered_total,
- 'by_rule':{r:{'total':total_by_rule[r],'covered':union_by_rule[r],'only':total_by_rule[r]-union_by_rule[r]} for r in total_by_rule},
+ 'union_covered_4tool_recheck':covered_total_4,
+ 'union_covered_5tool':covered_total_5,
+ 'by_rule':{r:{'total':total_by_rule[r],'covered':union_by_rule[r],
+               'covered_4':union4_by_rule[r],'covered_5':union5_by_rule[r],
+               'only':total_by_rule[r]-union_by_rule[r]} for r in total_by_rule},
  'per_tool_by_rule':{n:dict(per_tool[n]) for n,_ in TOOLS},
  'per_package':[{'name':a,'failroute':b,'covered':c,'only':d} for a,b,c,d in rows]},
  open(args.out,'w',encoding='utf-8'),ensure_ascii=False,indent=2)
