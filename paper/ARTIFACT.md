@@ -251,7 +251,7 @@ which is why a naive byte-compare showed ≈649 cosmetic diffs on that single ke
 exit-code gotcha (exit **1** on a successful scan that found something) reproduced on
 all eight runs.
 
-### 5.4 🔴 What this pass could **not** re-derive
+### 5.4 Re-derivation gaps from the earlier pass — status as of the H batch (09-01)
 
 | Item | Outcome |
 |---|---|
