@@ -54,5 +54,29 @@
     "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-rescan >/dev/null && .venv/bin/python tools/draw_sample.py --n 80 --seed 20260831 --findings-dir /tmp/fr-f3-rescan --out /tmp/fr-f3-sample.jsonl >/dev/null && /usr/bin/python3 -c \"import json; old={(d['file'],d['lineno'],d['rule']) for d in map(json.loads,open('paper/sample.jsonl'))}; new={(d['file'],d['lineno'],d['rule']) for d in map(json.loads,open('/tmp/fr-f3-sample.jsonl'))}; print('overlap=%d' % len(old&new))\"",
     "expect": "overlap=23",
     "slow": true
+  },
+  {
+    "id": "F3.new_total",
+    "stmt": "新基线发现总数（8 包钉版语料，重扫实算）",
+    "value": "621（649-10-18）",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-total >/dev/null && cat /tmp/fr-f3-total/*.jsonl | wc -l | tr -d ' '",
+    "expect": "^621$",
+    "slow": true
+  },
+  {
+    "id": "F3.per_rule",
+    "stmt": "新基线逐规则分布（重扫实算）",
+    "value": "silent-fallback=386 no-action=213 silent-suppress=19 masked-exception=3 implicit-fallback=0",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-rules >/dev/null && cat /tmp/fr-f3-rules/*.jsonl | /usr/bin/python3 -c \"import json,sys,collections; c=collections.Counter(json.loads(l)['rule'] for l in sys.stdin); print(' '.join(f'{k}={v}' for k,v in sorted(c.items())))\"",
+    "expect": "masked-exception=3 no-action=213 silent-fallback=386 silent-suppress=19",
+    "slow": true
+  },
+  {
+    "id": "F3.per_pkg",
+    "stmt": "新基线逐包分布（重扫实算）",
+    "value": "inspect_ai 321 · deepteam 140 · pydantic_ai_slim 82 · trl 26 · garak 16 · smolagents 13 · uqlm 13 · fickling 10",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-pkg 2>&1 | /usr/bin/grep -E '^(inspect_ai|deepteam|pydantic_ai_slim|trl|garak|smolagents|uqlm|fickling) '",
+    "expect": "(?s)inspect_ai +321.*deepteam +140",
+    "slow": true
   }
 ]

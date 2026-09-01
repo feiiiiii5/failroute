@@ -5,6 +5,20 @@ All notable changes to failroute. Format follows [Keep a Changelog](https://keep
 ## [Unreleased]
 
 ### Fixed
+- **Precision round (F batch)**: three deterministic false-positive classes
+  closed. `except (A, B)` tuple handlers are now matched against the
+  control-flow ignore list when every member is ignored; `warnings.warn()` /
+  `warnings.warn_explicit()` count as an error signal in typed and catch-all
+  handlers alike; `StopAsyncIteration` joins `IGNORED_EXC_NAMES` (async twin
+  of `StopIteration`).
+- **Two precision adjudications** (see `docs/f-batch-report.md` ADR-0001 /
+  ADR-0002): optional-dependency probes (`try: import x / except ImportError:`
+  with a pure import/setup body and a minimal capability fallback) are
+  contracts, not findings; `with suppress(...)` inside a handler that
+  re-raises at top level is best-effort cleanup, not failure routing. Both
+  exemptions are deliberately narrow — mixed tuples, non-import guarded
+  bodies, non-minimal fallbacks, and branch-conditional raises all stay
+  reported.
 - **CI on Python 3.9**: `tests/corpus/v06_shapes.py` carried a PEP 634
   `match`/`case` handler, which made the *whole corpus file* unparseable on the
   oldest supported interpreter. Every label in that file was scored as a miss,
