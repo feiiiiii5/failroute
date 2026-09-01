@@ -106,6 +106,11 @@ class ScanContext:
     #: Project-configured dotted-name sentinels (``[tool.failroute]
     #: fallback_names``, e.g. ``Status.UNKNOWN``) matched on attribute chains.
     extra_fallback_names: frozenset[str] = frozenset()
+    #: ``id()``s of handlers adjudicated as optional-dependency probes
+    #: (``except ImportError`` guarding an import-only block with a minimal
+    #: fallback body). Computed once by the dispatcher; the no-action and
+    #: silent-fallback rules consult it instead of re-deriving the predicate.
+    probe_handlers: frozenset[int] = frozenset()
 
 
 class Rule:

@@ -60,6 +60,11 @@ class SilentFallbackRule(Rule):
         # informational rather than silent.
         if _is_masked(handler, ctx) or handler_logs_error(handler):
             return []
+        # Optional-dependency probe contract (``try: import x / except
+        # ImportError: return False`` and capability-flag bindings) --
+        # adjudicated centrally, see ADR-0001.
+        if id(handler) in ctx.probe_handlers:
+            return []
         # A handler that terminates the process never lets a caller observe
         # an assigned fallback value, so assignments are not "silent".
         exits_process = body_has_call(handler.body, ACTIVE_CALL_NAMES)

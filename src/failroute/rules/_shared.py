@@ -370,6 +370,91 @@ def suppress_type_is_ignored(name: str) -> bool:
     return name in IGNORED_EXC_NAMES or name.rsplit(".", 1)[-1] in IGNORED_EXC_NAMES
 
 
+#: Exception names that mark optional-dependency probes. ModuleNotFoundError
+#: is ImportError's subclass and the type raised by modern import machinery;
+#: both spell the same contract.
+IMPORT_EXC_NAMES = frozenset({"ImportError", "ModuleNotFoundError"})
+
+
+def _is_docstring_stmt(stmt: ast.stmt) -> bool:
+    return (
+        isinstance(stmt, ast.Expr)
+        and isinstance(stmt.value, ast.Constant)
+        and isinstance(stmt.value.value, str)
+    )
+
+
+def _try_body_is_import_probe(body: list[ast.stmt]) -> bool:
+    """True when the guarded block is an import/setup block, nothing else.
+
+    Allowed statements: imports, and bindings that derive from the import
+    attempt (capability flags ``HAS_X = True``, module aliases ``mod = None``
+    pre-bindings, error-class aliases). At least one import must be present.
+    Anything else — calls with side effects, control flow, nested tries —
+    means the ImportError handler may be masking more than an absent optional
+    dependency, so it stays reportable (conservative).
+    """
+    stmts = [s for s in body if not _is_docstring_stmt(s)]
+    if not stmts or not any(isinstance(s, (ast.Import, ast.ImportFrom)) for s in stmts):
+        return False
+    return all(
+        isinstance(s, (ast.Import, ast.ImportFrom, ast.Assign, ast.AnnAssign)) for s in stmts
+    )
+
+
+def _handler_body_is_minimal_fallback(handler: ast.ExceptHandler) -> bool:
+    """True when the handler's reaction is a minimal capability fallback.
+
+    Shapes: nothing (``pass``), a single constant return (``return False``),
+    or constant/name bindings only (``HAS_X = False`` plus a fallback error
+    alias). Any control flow, call, raise, or nested definition means the
+    handler is doing real work on the failure path -- keep it reportable.
+    """
+    stmts = handler.body
+    if all(isinstance(s, ast.Pass) for s in stmts):
+        return True
+    if len(stmts) == 1 and isinstance(stmts[0], ast.Return):
+        value = stmts[0].value
+        return value is None or isinstance(value, ast.Constant)
+    return all(
+        isinstance(s, (ast.Assign, ast.AnnAssign))
+        and isinstance(getattr(s, "value", None), (ast.Constant, ast.Name, ast.Attribute))
+        for s in stmts
+    )
+
+
+def is_import_probe_handler(try_node: ast.Try, handler: ast.ExceptHandler) -> bool:
+    """True when the handler is an optional-dependency probe contract.
+
+    Three conditions, all mandatory; the design decision and the rejected
+    broader variants (with their ground-truth cost) are recorded in
+    ``docs/f-batch-report.md`` ADR-0001:
+
+    1. it catches *only* ImportError-family names (a mixed tuple could absorb
+       real errors raised beside the import);
+    2. the guarded block is an import/setup block (:func:`_try_body_is_import_probe`);
+    3. the handler body is a minimal capability fallback
+       (:func:`_handler_body_is_minimal_fallback`).
+    """
+    names = _handler_exc_member_names(handler)
+    if not names or not all(name in IMPORT_EXC_NAMES for name in names):
+        return False
+    if not _try_body_is_import_probe(try_node.body):
+        return False
+    return _handler_body_is_minimal_fallback(handler)
+
+
+def import_probe_handler_ids(tree: ast.AST) -> frozenset[int]:
+    """``id()``s of every handler in ``tree`` adjudicated as an import probe."""
+    ids: set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Try):
+            for handler in node.handlers:
+                if is_import_probe_handler(node, handler):
+                    ids.add(id(handler))
+    return frozenset(ids)
+
+
 def marked_off(node: ast.stmt, lines: list[str] | None) -> bool:
     """True when the node's exact source slice carries an opt-out marker.
 

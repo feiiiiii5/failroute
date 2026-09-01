@@ -47,11 +47,49 @@ def _is_suppress_call(func: ast.expr, bindings: dict[str, str]) -> bool:
     return False
 
 
+def _parent_map(tree: ast.AST) -> dict[int, ast.AST]:
+    parents: dict[int, ast.AST] = {}
+    for node in ast.walk(tree):
+        for child in ast.iter_child_nodes(node):
+            parents[id(child)] = node
+    return parents
+
+
+def _inside_reraising_handler(
+    node: ast.AST, parents: dict[int, ast.AST]
+) -> bool:
+    """True when ``node`` sits inside a handler that re-raises at top level.
+
+    Best-effort cleanup inside such a handler is not failure routing: the outer
+    failure still propagates, so the suppressed error changes nothing about the
+    outcome (pydantic-ai's ``except BaseException: with suppress(BaseException):
+    ...`` cleanup paths are the motivating shape). Deliberately narrow --
+    see ADR-0002:
+
+    * the *nearest* enclosing handler decides; a raise further out does not
+      count (an inner handler may still swallow);
+    * the raise must be a **direct statement** of that handler's body -- a
+      branch-conditional raise may never execute;
+    * a nested function/class/lambda boundary stops the walk: a suppress
+      inside a callback defined in the handler may run long after the
+      handler's raise has done its work.
+    """
+    cur = parents.get(id(node))
+    while cur is not None:
+        if isinstance(cur, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)):
+            return False
+        if isinstance(cur, ast.ExceptHandler):
+            return any(isinstance(stmt, ast.Raise) for stmt in cur.body)
+        cur = parents.get(id(cur))
+    return False
+
+
 class SilentSuppressRule(Rule):
     spec = SPEC
 
     def check_file(self, tree: ast.AST, ctx: ScanContext) -> list[Finding]:
         bindings = ctx.bindings if ctx.bindings else collect_import_bindings(tree)
+        parents = _parent_map(tree)
         findings: list[Finding] = []
         for node in ast.walk(tree):
             if not isinstance(node, (ast.With, ast.AsyncWith)):
@@ -63,6 +101,10 @@ class SilentSuppressRule(Rule):
                 and _is_suppress_call(item.context_expr.func, bindings)
             ]
             if not hits or marked_off(node, ctx.source_lines):
+                continue
+            # Cleanup inside a handler that re-raises: the outer failure still
+            # propagates, so the silence changes nothing (ADR-0002).
+            if _inside_reraising_handler(node, parents):
                 continue
             exc_names = [
                 exc_type_name(arg) for arg in hits[0].args if isinstance(arg, (ast.Name, ast.Attribute))

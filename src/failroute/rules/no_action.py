@@ -43,6 +43,10 @@ class NoActionRule(Rule):
     ) -> list[Finding]:
         if not _body_is_effectively_empty(handler):
             return []
+        # Optional-dependency probe contract (``try: import x / except
+        # ImportError: pass``) -- adjudicated centrally, see ADR-0001.
+        if id(handler) in ctx.probe_handlers:
+            return []
         return [
             make_finding(
                 self.spec.rule_id,

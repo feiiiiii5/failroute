@@ -52,6 +52,7 @@ from failroute.rules import FILE_RULES, HANDLER_RULES
 from failroute.rules._shared import (
     collect_import_bindings,
     handler_marked_off,
+    import_probe_handler_ids,
     is_ignored_handler,
 )
 
@@ -95,6 +96,7 @@ def scan_tree(
         bindings=collect_import_bindings(tree),
         extra_fallback_values=frozenset(extra_fallback_values),
         extra_fallback_names=frozenset(extra_fallback_names),
+        probe_handlers=import_probe_handler_ids(tree),
     )
 
     findings: list[Finding] = []

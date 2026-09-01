@@ -12,6 +12,10 @@ source:
 * ``F1-ignored-tuple``— handler type is a tuple whose members are all on the
                         control-flow ignore list
 * ``F2-warnings-warn``— handler body calls ``warnings.warn``/``warn_explicit``
+* ``F4-import-probe`` — handler satisfies the optional-dependency probe
+                        predicate (``failroute.rules._shared.is_import_probe_handler``)
+* ``F5-suppress-reraise`` — ``with suppress(...)`` nested inside a handler
+                        that re-raises at top level
 * ``other``           — none of the above: 🔴 must be investigated by hand;
                         the script exits non-zero so it cannot be overlooked
 
@@ -57,12 +61,30 @@ def key(row: dict) -> tuple:
     return (row["file"], row["lineno"], row["rule"], row["message"])
 
 
+def parse_cached(path: Path):
+    cache_key = str(path)
+    if cache_key not in parse_cached.cache:
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except SyntaxError:
+            tree = None
+        parents = {}
+        if tree is not None:
+            for n in ast.walk(tree):
+                for c in ast.iter_child_nodes(n):
+                    parents[id(c)] = n
+        parse_cached.cache[cache_key] = (tree, parents)
+    return parse_cached.cache[cache_key]
+
+
+parse_cached.cache = {}
+
+
 def handler_at(file: Path, lineno: int) -> ast.ExceptHandler | None:
     """The ExceptHandler starting at ``lineno``, else None (suppress findings
     have no handler; callers classify those separately)."""
-    try:
-        tree = ast.parse(file.read_text(encoding="utf-8", errors="replace"))
-    except SyntaxError:
+    tree, _ = parse_cached(file)
+    if tree is None:
         return None
     for node in ast.walk(tree):
         if isinstance(node, ast.ExceptHandler) and node.lineno == lineno:
@@ -72,9 +94,8 @@ def handler_at(file: Path, lineno: int) -> ast.ExceptHandler | None:
 
 def suppress_at(file: Path, lineno: int) -> ast.With | None:
     """The With/AsyncWith starting at ``lineno`` whose item is contextlib.suppress."""
-    try:
-        tree = ast.parse(file.read_text(encoding="utf-8", errors="replace"))
-    except SyntaxError:
+    tree, _ = parse_cached(file)
+    if tree is None:
         return None
     for node in ast.walk(tree):
         if (
@@ -119,13 +140,19 @@ def body_warns(handler: ast.ExceptHandler) -> bool:
 
 
 def classify(row: dict) -> str:
+    from failroute.rules._shared import is_import_probe_handler
+    from failroute.rules.silent_suppress import _inside_reraising_handler
+
     source_path = ROOT / row["file"]
     if not source_path.is_file():
         return "other:source-missing"
+    tree, parents = parse_cached(source_path)
     handler = handler_at(source_path, row["lineno"])
     if handler is None:
         # with-suppress findings report at the With node's line, not a handler.
         with_node = suppress_at(source_path, row["lineno"])
+        if with_node is not None and _inside_reraising_handler(with_node, parents):
+            return "F5-suppress-reraise"
         if with_node is not None:
             call = with_node.items[0].context_expr
             names = []
@@ -142,6 +169,14 @@ def classify(row: dict) -> str:
                 # exemption comes from a later member joining the ignore list.
                 return "F3-stopasync" if "StopAsyncIteration" in names else "F1-ignored-tuple"
         return "other:no-handler(suppress?)"
+    # F-④: does the handler's enclosing try adjudicate it an import probe?
+    cur = parents.get(id(handler))
+    while cur is not None:
+        if isinstance(cur, ast.Try) and handler in cur.handlers:
+            if is_import_probe_handler(cur, handler):
+                return "F4-import-probe"
+            break
+        cur = parents.get(id(cur))
     names = member_names(handler.type) or []
     if "StopAsyncIteration" in names and all(n in IGNORED for n in names):
         return "F3-stopasync"
@@ -184,7 +219,7 @@ def main() -> int:
             print(f"  {k[0]}:{k[1]}  {k[2]}  x{n}  {k[3][:70]}")
 
     unexplained = [c for c in by_cause if c.startswith("other")] or (["appeared"] if appeared else [])
-    counts = Counter()
+    counts = Counter({c: 0 for c in ("F1-ignored-tuple", "F2-warnings-warn", "F3-stopasync", "F4-import-probe", "F5-suppress-reraise")})
     for cause, items in by_cause.items():
         counts[cause.split(":")[0]] += sum(n for _, n in items)
     summary = " ".join(f"{c}={counts[c]}" for c in sorted(counts))
