@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-01T12:27:09Z",
+  "generated_at_utc": "2026-09-01T13:53:52Z",
   "findings_dir": "/tmp/i1-scan",
   "tools": [
     "ruff",
@@ -11,25 +11,35 @@
   "failroute_total": 621,
   "union_covered": 250,
   "failroute_only": 371,
+  "union_covered_4tool_recheck": 250,
+  "union_covered_5tool": 250,
   "by_rule": {
     "masked-exception": {
       "total": 3,
       "covered": 3,
+      "covered_4": 3,
+      "covered_5": 3,
       "only": 0
     },
     "no-action": {
       "total": 213,
       "covered": 72,
+      "covered_4": 72,
+      "covered_5": 72,
       "only": 141
     },
     "silent-fallback": {
       "total": 386,
       "covered": 175,
+      "covered_4": 175,
+      "covered_5": 175,
       "only": 211
     },
     "silent-suppress": {
       "total": 19,
       "covered": 0,
+      "covered_4": 0,
+      "covered_5": 0,
       "only": 19
     }
   },
