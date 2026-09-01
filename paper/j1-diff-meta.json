@@ -1,0 +1,366 @@
+{
+ "unionai-oss/pandera#2454": {
+  "title": "fix(decorators): support keyword-only / variadic functions in check_input",
+  "merge_commit_sha": "46b1495bf81ece693d055c25890e0dce6fbedfb3",
+  "merged_at": "2026-08-30T00:58:34Z",
+  "diff_lines": 93,
+  "bytes": 3573
+ },
+ "EvolvingLMMs-Lab/lmms-eval#1472": {
+  "title": "fix(chat-vllm): add is_qwen3_vl flag to route video frames through timestamped encoding",
+  "merge_commit_sha": "84770436f0c3b099efbb56f75c6c0db79bb91739",
+  "merged_at": "2026-08-27T12:34:19Z",
+  "diff_lines": 162,
+  "bytes": 6095
+ },
+ "cvs-health/uqlm#457": {
+  "title": "fix: stop SemanticEntropy.score() from mutating prompts_in_nli config",
+  "merge_commit_sha": "ba79f8e0eb6f44d0421fc791783a5b63f89d7a93",
+  "merged_at": "2026-08-25T01:32:22Z",
+  "diff_lines": 70,
+  "bytes": 4829
+ },
+ "microsoft/PyRIT#2471": {
+  "title": "FIX: honor include_subclasses=False for the registered class itself",
+  "merge_commit_sha": "d503ecf393426a896ee7bd270507d7a3e805bdb8",
+  "merged_at": "2026-08-24T21:20:05Z",
+  "diff_lines": 131,
+  "bytes": 6177
+ },
+ "griptape-ai/griptape#2276": {
+  "title": "fix(drivers-prompt): treat streamed usage deltas as running totals, not increments",
+  "merge_commit_sha": "21edd50ef7f58a1f1d5b4325f5031baf75c1cc2a",
+  "merged_at": "2026-08-24T17:26:47Z",
+  "diff_lines": 108,
+  "bytes": 4876
+ },
+ "EleutherAI/lm-evaluation-harness#4039": {
+  "title": "fix(minerva_math): thousands-separator comma strip fuses bare digit tuples (\"0,1\" -> \"01\")",
+  "merge_commit_sha": "95469434ffdce47621c364938ba3e02584b93b96",
+  "merged_at": "2026-08-28T16:37:27Z",
+  "diff_lines": 128,
+  "bytes": 5148
+ },
+ "EleutherAI/lm-evaluation-harness#4037": {
+  "title": "fix(minerva_math): stop sqrt shorthand normalization from corrupting indexed roots",
+  "merge_commit_sha": "b101fbf1ceed15acd6d759b1c09bb9abf42e04c1",
+  "merged_at": "2026-08-28T17:52:00Z",
+  "diff_lines": 170,
+  "bytes": 8534
+ },
+ "EleutherAI/lm-evaluation-harness#4035": {
+  "title": "fix: make delete_cache a no-op when the cache directory is absent",
+  "merge_commit_sha": "3113a98c26cb528f3084d294ffe37c398a16ac26",
+  "merged_at": "2026-08-24T12:22:53Z",
+  "diff_lines": 66,
+  "bytes": 2117
+ },
+ "microsoft/PyRIT#2467": {
+  "title": "MAINT GCG: make optimization iteration state explicit and typed",
+  "merge_commit_sha": "961462d083c0320ac407fb554cfad211077b2691",
+  "merged_at": "2026-08-25T06:30:42Z",
+  "diff_lines": 865,
+  "bytes": 37361
+ },
+ "letta-ai/letta-code#3977": {
+  "title": "fix(compaction): keep custom prompt in automatic full-summarization fallback",
+  "merge_commit_sha": "0fde5c4fe6e05be97008f6cf2e675f9da01c4f74",
+  "merged_at": "2026-08-24T01:05:08Z",
+  "diff_lines": 193,
+  "bytes": 7121
+ },
+ "rhesis-ai/rhesis#2574": {
+  "title": "fix(backend): serialize concurrent migrations with a Postgres advisory lock",
+  "merge_commit_sha": "5e8a4fa283aefe87acd5b01179fd731e7fc97976",
+  "merged_at": "2026-08-24T14:27:36Z",
+  "diff_lines": 182,
+  "bytes": 7452
+ },
+ "rhesis-ai/rhesis#2573": {
+  "title": "fix(telemetry): include Anthropic cache tokens in total token extraction",
+  "merge_commit_sha": "92c516ffb8da3df7b1459fb0ecdc0cdb3143e77f",
+  "merged_at": "2026-08-24T14:27:48Z",
+  "diff_lines": 113,
+  "bytes": 4670
+ },
+ "msoedov/agentic_security#329": {
+  "title": "fix(executor): compute p95 latency as a real 95th percentile",
+  "merge_commit_sha": "017ba7c16824d790309b6687a6eb5046da56456e",
+  "merged_at": "2026-08-18T15:38:26Z",
+  "diff_lines": 54,
+  "bytes": 2133
+ },
+ "msoedov/agentic_security#328": {
+  "title": "fix(circuit-breaker): reopen on failure during half-open probation",
+  "merge_commit_sha": "de1677980671bbfdc68dd7ad62c79c049861c841",
+  "merged_at": "2026-08-18T15:39:03Z",
+  "diff_lines": 76,
+  "bytes": 2984
+ },
+ "cvs-health/uqlm#451": {
+  "title": "fix(generation): use asyncio.sleep for rate-limit pauses",
+  "merge_commit_sha": "792a6934a35a53449d5554eb37019721cb2a1463",
+  "merged_at": "2026-08-30T00:55:42Z",
+  "diff_lines": 204,
+  "bytes": 10133
+ },
+ "rhesis-ai/rhesis#2501": {
+  "title": "fix(frontend): refresh endpoints grid after save",
+  "merge_commit_sha": "eff891143b0b47c899aa0649017edddd385c203d",
+  "merged_at": "2026-08-17T13:21:58Z",
+  "diff_lines": 131,
+  "bytes": 4945
+ },
+ "rhesis-ai/rhesis#2500": {
+  "title": "fix(backend): enforce test set type matches its tests",
+  "merge_commit_sha": "ec4bf5968cf0dcf8293161b14210dc2510f3a091",
+  "merged_at": "2026-08-21T10:04:21Z",
+  "diff_lines": 636,
+  "bytes": 26048
+ },
+ "UKGovernmentBEIS/inspect_ai#4905": {
+  "title": "Fix empty choices from trailing commas in dataset choice fields",
+  "merge_commit_sha": "0ba5f4a01ba52bc89890f533a7fe41aeb3b0f71e",
+  "merged_at": "2026-08-18T00:25:59Z",
+  "diff_lines": 61,
+  "bytes": 3110
+ },
+ "rhesis-ai/rhesis#2498": {
+  "title": "fix(frontend): make disabled rerun fields legible in dark mode",
+  "merge_commit_sha": "4425c1aa68cf9ff20909cd64a80802e6078a77a9",
+  "merged_at": "2026-08-21T10:16:02Z",
+  "diff_lines": 18,
+  "bytes": 982
+ },
+ "rhesis-ai/rhesis#2497": {
+  "title": "fix(dev): drop unused provider API keys from deployment secrets",
+  "merge_commit_sha": "2336e0c61eee07a2ef74460f1238d6893381cb78",
+  "merged_at": "2026-08-21T10:34:09Z",
+  "diff_lines": 114,
+  "bytes": 4861
+ },
+ "rhesis-ai/rhesis#2495": {
+  "title": "fix(backend): allow sorting tests by prompt content",
+  "merge_commit_sha": "fd051b2fd19d9769f6197fa9f6ef209d13f82f14",
+  "merged_at": "2026-08-15T14:50:30Z",
+  "diff_lines": 72,
+  "bytes": 2909
+ },
+ "Arize-ai/openinference#3565": {
+  "title": "fix(guardrails): restore Guard.from_* constructors on uninstrument",
+  "merge_commit_sha": "d2c6cae70c5772d3fee72a08bd506c4631213187",
+  "merged_at": "2026-08-27T04:36:08Z",
+  "diff_lines": 114,
+  "bytes": 6583
+ },
+ "Arize-ai/openinference#3563": {
+  "title": "fix(portkey): restore prompt completion methods on uninstrument",
+  "merge_commit_sha": "9182abb423dc377a9e7b1ab745c0679e3ef8eb51",
+  "merged_at": "2026-08-16T00:29:05Z",
+  "diff_lines": 106,
+  "bytes": 5600
+ },
+ "Tencent/AI-Infra-Guard#539": {
+  "title": "fix: use commonpath for path containment in file tools",
+  "merge_commit_sha": "ac0384edc9dbea3b226edefcf50613bd8509134f",
+  "merged_at": "2026-08-18T07:58:46Z",
+  "diff_lines": 58,
+  "bytes": 3063
+ },
+ "Unstructured-IO/unstructured#4438": {
+  "title": "fix: fallback character-set detection for file-like objects",
+  "merge_commit_sha": "104b585d4e84ad987b121e86aecf80315e8a12a6",
+  "merged_at": "2026-08-17T20:19:15Z",
+  "diff_lines": 158,
+  "bytes": 7770
+ },
+ "microsoft/PyRIT#2399": {
+  "title": "FIX: preserve content and word boundaries in NatoConverter",
+  "merge_commit_sha": "3b068a4d8b4e096ceb0479d2c7507cd2ef4433a6",
+  "merged_at": "2026-08-14T23:18:01Z",
+  "diff_lines": 223,
+  "bytes": 8830
+ },
+ "UKGovernmentBEIS/inspect_evals#2132": {
+  "title": "fix(hle): compute cerr at attempt level for epochs > 1",
+  "merge_commit_sha": "d49e7da0d726ca125208337ca4c24f401e72c13e",
+  "merged_at": "2026-08-19T13:21:07Z",
+  "diff_lines": 560,
+  "bytes": 19798
+ },
+ "microsoft/PyRIT#2309": {
+  "title": "FIX: preserve unknown characters in BrailleConverter",
+  "merge_commit_sha": "446e47b60d2f2ee754f25764ecdcc8043aadd07f",
+  "merged_at": "2026-08-02T05:11:29Z",
+  "diff_lines": 170,
+  "bytes": 7353
+ },
+ "run-llama/llama_index#22527": {
+  "title": "fix(embeddings): validate non-empty Bedrock embedding payload before AWS call",
+  "merge_commit_sha": "9808e4b6ce31c429ac033a042a9f974ff4b01049",
+  "merged_at": "2026-08-14T15:20:41Z",
+  "diff_lines": 69,
+  "bytes": 3423
+ },
+ "UKGovernmentBEIS/inspect_evals#2055": {
+  "title": "fix(agentdojo): remove nonexistent git dependency from external assets",
+  "merge_commit_sha": "fe9c6a437fc1b269d0386c0b7dc1b68d60606d36",
+  "merged_at": "2026-08-04T06:21:08Z",
+  "diff_lines": 34,
+  "bytes": 948
+ },
+ "truera/trulens#2653": {
+  "title": "fix(feedback): validate structured-JSON scores against the configured scale",
+  "merge_commit_sha": "9f013f23a54a5d9c8aa8d49a470de41a57d99ba8",
+  "merged_at": "2026-08-04T19:38:19Z",
+  "diff_lines": 246,
+  "bytes": 9020
+ },
+ "pydantic/pydantic-ai#6929": {
+  "title": "fix(azure): send `max_tokens` for Mistral models, not `max_completion_tokens`",
+  "merge_commit_sha": "63e20b7b378c2e13fbb4b42e17dcdbd3b624651f",
+  "merged_at": "2026-08-05T15:21:26Z",
+  "diff_lines": 246,
+  "bytes": 11134
+ },
+ "future-agi/future-agi#1862": {
+  "title": "fix(evals): use snake_case eval_template_id in duplicate eval dialog",
+  "merge_commit_sha": "db10cb9dda19ef3b5bff562a7111429ff5c6d14c",
+  "merged_at": "2026-08-12T07:58:39Z",
+  "diff_lines": 144,
+  "bytes": 4538
+ },
+ "Tencent/AI-Infra-Guard#510": {
+  "title": "fix(frontend): prevent checkbox jumping when attack method text is long",
+  "merge_commit_sha": "63a8fc29f6038ccf7fe06fc5d868f83167ebff37",
+  "merged_at": "2026-07-30T02:16:17Z",
+  "diff_lines": 58,
+  "bytes": 5218
+ },
+ "rhesis-ai/rhesis#2280": {
+  "title": "fix(auth): replace permanent Redis init latch with time-based cooldown (closes #2272)",
+  "merge_commit_sha": "202f67dffd25bc792afe4f69ddd2012c91c37737",
+  "merged_at": "2026-08-05T09:21:37Z",
+  "diff_lines": 354,
+  "bytes": 13934
+ },
+ "unionai-oss/pandera#2429": {
+  "title": "fix(pandas): respect Optional pydantic fields as nullable in PydanticModel columns (closes #2406)",
+  "merge_commit_sha": "ab655cf6d3544aa1ef55aea920d073518b0266d4",
+  "merged_at": "2026-08-19T13:08:28Z",
+  "diff_lines": 148,
+  "bytes": 5771
+ },
+ "unionai-oss/pandera#2420": {
+  "title": "fix: handle scalar groupby keys in _format_groupby_input",
+  "merge_commit_sha": "9e268ac8f31066b007bb4e9a2cbb5fcff0156f5c",
+  "merged_at": "2026-08-30T00:55:38Z",
+  "diff_lines": 135,
+  "bytes": 4894
+ },
+ "UKGovernmentBEIS/inspect_ai#4614": {
+  "title": "fix(util): recognize base64 data URIs with media-type params or empty type",
+  "merge_commit_sha": "23df9d3e6246b977d3d6e8a4d030d26f79a89f2d",
+  "merged_at": "2026-07-27T14:56:17Z",
+  "diff_lines": 56,
+  "bytes": 2551
+ },
+ "UKGovernmentBEIS/inspect_ai#4612": {
+  "title": "fix(analysis): coerce string values for bool columns via YAML",
+  "merge_commit_sha": "e8fe8aae71482b370d8f320a53c332a1a7ff3994",
+  "merged_at": "2026-08-03T15:22:26Z",
+  "diff_lines": 44,
+  "bytes": 2225
+ },
+ "UKGovernmentBEIS/inspect_ai#4610": {
+  "title": "fix(analysis): skip all-NA score groups in frontier() to avoid idxmax crash",
+  "merge_commit_sha": "1ea01a9e1b3c94db3cdf93ce5583ffebf86e159f",
+  "merged_at": "2026-07-30T21:55:10Z",
+  "diff_lines": 87,
+  "bytes": 4774
+ },
+ "truera/trulens#2617": {
+  "title": "fix(dashboard): don't split app tag strings into characters in tag filter",
+  "merge_commit_sha": "6c4e284e983e0d32d2184567042827e04f096530",
+  "merged_at": "2026-07-27T17:39:30Z",
+  "diff_lines": 93,
+  "bytes": 3891
+ },
+ "trailofbits/fickling#299": {
+  "title": "Make analysis.Severity hashable (define __hash__ alongside __eq__)",
+  "merge_commit_sha": "9f4764abc830504abac059d287daa692f7cee2a1",
+  "merged_at": "2026-07-27T22:56:16Z",
+  "diff_lines": 14,
+  "bytes": 430
+ },
+ "trailofbits/fickling#298": {
+  "title": "Fix IndexError in PyTorchModelWrapper when force=True on unidentified files",
+  "merge_commit_sha": "3611c815c593be8f8aa524acbe9dc910ec43ddfb",
+  "merged_at": "2026-07-27T20:28:11Z",
+  "diff_lines": 110,
+  "bytes": 4927
+ },
+ "vllm-project/vllm-metal#540": {
+  "title": "[Doc] Document VLLM_METAL_BUILD_FROM_SOURCE in the configuration reference",
+  "merge_commit_sha": "d4afdd6a062f647e1e4f4be2cab99e6377dc94a8",
+  "merged_at": "2026-07-23T12:54:55Z",
+  "diff_lines": 12,
+  "bytes": 1845
+ },
+ "Ishannaik/agent-sweep#145": {
+  "title": "tests: validate SARIF output against vendored OASIS schema (#132)",
+  "merge_commit_sha": "7f8f3b5fe9273d0952ebb82226dfae3996168e44",
+  "merged_at": "2026-07-21T19:48:48Z",
+  "diff_lines": 3521,
+  "bytes": 121416
+ },
+ "dottxt-ai/outlines#1933": {
+  "title": "fix(vllm): _build_client_args mutates caller's extra_body dict across calls",
+  "merge_commit_sha": "675f13951001a38a6ed1c4591d86550d3b5525c6",
+  "merged_at": "2026-07-20T12:37:05Z",
+  "diff_lines": 78,
+  "bytes": 3795
+ },
+ "rhesis-ai/rhesis#2177": {
+  "title": "fix(frontend): preserve evaluation step fields when adding new step",
+  "merge_commit_sha": "2c354297fd66619bc36fed022a376384348e3f40",
+  "merged_at": "2026-07-20T09:33:06Z",
+  "diff_lines": 269,
+  "bytes": 10281
+ },
+ "rhesis-ai/rhesis#2176": {
+  "title": "chore(backend): remove dead code for dimensions and demographics",
+  "merge_commit_sha": "094bfc178d3c17f5dce4bee6a2a961d24d4f58af",
+  "merged_at": "2026-07-26T22:12:25Z",
+  "diff_lines": 2942,
+  "bytes": 115996
+ },
+ "langwatch/langwatch#5739": {
+  "title": "fix(traces): hoist langwatch.labels from resource attrs in trace accumulation",
+  "merge_commit_sha": "ad4a9feee02df02ed9f8f19931d73f17bb943608",
+  "merged_at": "2026-07-12T14:04:27Z",
+  "diff_lines": 118,
+  "bytes": 5906
+ },
+ "langwatch/langwatch#5738": {
+  "title": "fix(model-providers): prefer enabled row over narrower-scope disabled row in collapse (#5575)",
+  "merge_commit_sha": "700e1492a15788415c9adeb033a19f9f6fca99de",
+  "merged_at": "2026-07-12T19:09:53Z",
+  "diff_lines": 270,
+  "bytes": 10164
+ },
+ "rhesis-ai/rhesis#2156": {
+  "title": "fix(projects): close delete confirmation modal after successful deletion",
+  "merge_commit_sha": "f960ee2a48efe6e7cb846df6b23cc1775a94e116",
+  "merged_at": "2026-07-12T21:10:40Z",
+  "diff_lines": 14,
+  "bytes": 673
+ },
+ "NVIDIA/garak#1942": {
+  "title": "UX: Show probe name in detector progress bar",
+  "merge_commit_sha": "85cc357064d03697b424cae49a83ddaf55353f0b",
+  "merged_at": "2026-07-28T15:40:33Z",
+  "diff_lines": 109,
+  "bytes": 4069
+ }
+}
