@@ -1,0 +1,108 @@
+{
+  "generated_at_utc": "2026-09-01T03:21:24Z",
+  "findings_dir": "paper/scan",
+  "tools": [
+    "ruff",
+    "bandit",
+    "pylint",
+    "flake8+bugbear",
+    "semgrep"
+  ],
+  "line_tolerance": 1,
+  "failroute_total": 649,
+  "union_covered": 279,
+  "failroute_only": 370,
+  "by_rule": {
+    "masked-exception": {
+      "total": 3,
+      "covered": 3,
+      "only": 0
+    },
+    "no-action": {
+      "total": 219,
+      "covered": 72,
+      "only": 147
+    },
+    "silent-fallback": {
+      "total": 400,
+      "covered": 179,
+      "only": 221
+    },
+    "silent-suppress": {
+      "total": 27,
+      "covered": 25,
+      "only": 2
+    }
+  },
+  "per_tool_by_rule": {
+    "ruff": {
+      "no-action": 72
+    },
+    "bandit": {
+      "no-action": 63
+    },
+    "pylint": {
+      "masked-exception": 3,
+      "no-action": 67,
+      "silent-fallback": 178
+    },
+    "flake8+bugbear": {
+      "no-action": 3,
+      "silent-fallback": 121
+    },
+    "semgrep": {
+      "silent-suppress": 25,
+      "silent-fallback": 1
+    }
+  },
+  "per_package": [
+    {
+      "name": "garak",
+      "failroute": 16,
+      "covered": 7,
+      "only": 9
+    },
+    {
+      "name": "inspect_ai",
+      "failroute": 324,
+      "covered": 97,
+      "only": 227
+    },
+    {
+      "name": "pydantic_ai_slim",
+      "failroute": 103,
+      "covered": 28,
+      "only": 75
+    },
+    {
+      "name": "uqlm",
+      "failroute": 14,
+      "covered": 5,
+      "only": 9
+    },
+    {
+      "name": "trl",
+      "failroute": 28,
+      "covered": 6,
+      "only": 22
+    },
+    {
+      "name": "smolagents",
+      "failroute": 13,
+      "covered": 2,
+      "only": 11
+    },
+    {
+      "name": "deepteam",
+      "failroute": 140,
+      "covered": 131,
+      "only": 9
+    },
+    {
+      "name": "fickling",
+      "failroute": 11,
+      "covered": 3,
+      "only": 8
+    }
+  ]
+}

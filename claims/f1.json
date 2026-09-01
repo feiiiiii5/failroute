@@ -10,7 +10,7 @@
     "id": "F1.red_replay",
     "stmt": "fail→pass 证据：15 个 F1 回归测试在修复前提交（50275e8，未修 src + 新测试）上有 11 个红",
     "value": "11 failed, 4 passed（09-01 10:54 首次实测；此命令可随时重放）",
-    "cmd": "git worktree remove --force /tmp/fr-red-claim 2>/dev/null; git worktree add /tmp/fr-red-claim 50275e8 >/dev/null 2>&1 && (cd /tmp/fr-red-claim && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" -m pytest tests/test_f1_fixes.py --tb=no -q 2>&1 | /usr/bin/grep -c '^FAILED'); rc=$?; git worktree remove --force /tmp/fr-red-claim >/dev/null 2>&1; exit $rc",
+    "cmd": "git worktree remove --force /tmp/fr-red-claim 2>/dev/null; git worktree add /tmp/fr-red-claim 50275e8 >/dev/null 2>&1 && (cd /tmp/fr-red-claim && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" -m pytest tests/test_f1_fixes.py --tb=no -q 2>&1 | /usr/bin/grep -c '^FAILED'); rc=$?; git worktree remove --force /tmp/fr-red-claim >/dev/null 2>&1; rm -rf /tmp/fr-red-claim; exit $rc",
     "expect": "^11$",
     "slow": true
   },
@@ -25,7 +25,7 @@
     "id": "F1.baseline_repro",
     "stmt": "基线可复现：修复前树（50275e8 + 当前扫描工具）重扫 8 包，与冻结 paper/scan 的 649 条零差异（排除 Finder 重复文件后）",
     "value": "vanished=0 appeared=0",
-    "cmd": "git worktree remove --force /tmp/fr-base-claim 2>/dev/null; git worktree add /tmp/fr-base-claim 50275e8 >/dev/null 2>&1 && ln -s \"/Users/fei/Desktop/申请季/新项目-failroute/paper/corpus\" /tmp/fr-base-claim/paper/corpus && git show HEAD:tools/rescan_corpus.py > /tmp/fr-base-claim/tools/rescan_corpus.py && git show HEAD:tools/delta_findings.py > /tmp/fr-base-claim/tools/delta_findings.py && (cd /tmp/fr-base-claim && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-base-rescan >/dev/null && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/delta_findings.py --base paper/scan --new /tmp/fr-base-rescan | /usr/bin/grep SUMMARY); rc=$?; git worktree remove --force /tmp/fr-base-claim >/dev/null 2>&1; rm -rf /tmp/fr-base-rescan; exit $rc",
+    "cmd": "git worktree remove --force /tmp/fr-base-claim 2>/dev/null; git worktree add /tmp/fr-base-claim 50275e8 >/dev/null 2>&1 && ln -s \"/Users/fei/Desktop/申请季/新项目-failroute/paper/corpus\" /tmp/fr-base-claim/paper/corpus && git show HEAD:tools/rescan_corpus.py > /tmp/fr-base-claim/tools/rescan_corpus.py && git show HEAD:tools/delta_findings.py > /tmp/fr-base-claim/tools/delta_findings.py && (cd /tmp/fr-base-claim && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-base-rescan >/dev/null && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/delta_findings.py --base paper/scan --new /tmp/fr-base-rescan | /usr/bin/grep SUMMARY); rc=$?; git worktree remove --force /tmp/fr-base-claim >/dev/null 2>&1; rm -rf /tmp/fr-base-claim; rm -rf /tmp/fr-base-rescan; exit $rc",
     "expect": "vanished=0 appeared=0",
     "slow": true
   },
@@ -33,7 +33,7 @@
     "id": "F1.corpus_delta",
     "stmt": "语料 delta（8 包 649→639）：重扫 + 逐条归因，全部消失项归因到 F-②/F-③，无新出现项；F-① 语料归零（机制不复现，见报告 §F1）",
     "value": "vanished=10 appeared=0; F2-warnings-warn=4 F3-stopasync=6 F1-ignored-tuple=0",
-    "cmd": "git worktree remove --force /tmp/fr-f1-claim 2>/dev/null; git worktree add /tmp/fr-f1-claim 6eb7973 >/dev/null 2>&1 && ln -s \"/Users/fei/Desktop/申请季/新项目-failroute/paper/corpus\" /tmp/fr-f1-claim/paper/corpus && git show HEAD:tools/rescan_corpus.py > /tmp/fr-f1-claim/tools/rescan_corpus.py && git show HEAD:tools/delta_findings.py > /tmp/fr-f1-claim/tools/delta_findings.py && (cd /tmp/fr-f1-claim && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-f1-rescan >/dev/null && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/delta_findings.py --base paper/scan --new /tmp/fr-f1-rescan | /usr/bin/grep SUMMARY); rc=$?; git worktree remove --force /tmp/fr-f1-claim >/dev/null 2>&1; rm -rf /tmp/fr-f1-rescan; exit $rc",
+    "cmd": "git worktree remove --force /tmp/fr-f1-claim 2>/dev/null; git worktree add /tmp/fr-f1-claim 6eb7973 >/dev/null 2>&1 && ln -s \"/Users/fei/Desktop/申请季/新项目-failroute/paper/corpus\" /tmp/fr-f1-claim/paper/corpus && git show HEAD:tools/rescan_corpus.py > /tmp/fr-f1-claim/tools/rescan_corpus.py && git show HEAD:tools/delta_findings.py > /tmp/fr-f1-claim/tools/delta_findings.py && (cd /tmp/fr-f1-claim && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-f1-rescan >/dev/null && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/delta_findings.py --base paper/scan --new /tmp/fr-f1-rescan | /usr/bin/grep SUMMARY); rc=$?; git worktree remove --force /tmp/fr-f1-claim >/dev/null 2>&1; rm -rf /tmp/fr-f1-claim; rm -rf /tmp/fr-f1-rescan; exit $rc",
     "expect": "SUMMARY vanished=10 appeared=0 F1-ignored-tuple=0 F2-warnings-warn=4 F3-stopasync=6",
     "slow": true
   },
@@ -41,7 +41,7 @@
     "id": "F1.delta_bound",
     "stmt": "delta 上界核对：实测 -10 比主规划者上界 -9 多 1，多出的一条是 suppress(CancelledError, StopAsyncIteration) 的第二参数入忽略表（归因表有逐条坐标）——已停下核对并如实报告，未动忽略表凑数",
     "value": "-10（4×F-② + 6×F-③），上界 -9 的偏差来源见报告 §F1",
-    "cmd": "git worktree remove --force /tmp/fr-f1-bound 2>/dev/null; git worktree add /tmp/fr-f1-bound 6eb7973 >/dev/null 2>&1 && ln -s \"/Users/fei/Desktop/申请季/新项目-failroute/paper/corpus\" /tmp/fr-f1-bound/paper/corpus && git show HEAD:tools/rescan_corpus.py > /tmp/fr-f1-bound/tools/rescan_corpus.py && git show HEAD:tools/delta_findings.py > /tmp/fr-f1-bound/tools/delta_findings.py && (cd /tmp/fr-f1-bound && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-f1-bound-rescan >/dev/null && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/delta_findings.py --base paper/scan --new /tmp/fr-f1-bound-rescan | /usr/bin/grep '_utils.py:420'); rc=$?; git worktree remove --force /tmp/fr-f1-bound >/dev/null 2>&1; rm -rf /tmp/fr-f1-bound-rescan; exit $rc",
+    "cmd": "git worktree remove --force /tmp/fr-f1-bound 2>/dev/null; git worktree add /tmp/fr-f1-bound 6eb7973 >/dev/null 2>&1 && ln -s \"/Users/fei/Desktop/申请季/新项目-failroute/paper/corpus\" /tmp/fr-f1-bound/paper/corpus && git show HEAD:tools/rescan_corpus.py > /tmp/fr-f1-bound/tools/rescan_corpus.py && git show HEAD:tools/delta_findings.py > /tmp/fr-f1-bound/tools/delta_findings.py && (cd /tmp/fr-f1-bound && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-f1-bound-rescan >/dev/null && PYTHONPATH=src \"/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python\" tools/delta_findings.py --base paper/scan --new /tmp/fr-f1-bound-rescan | /usr/bin/grep '_utils.py:420'); rc=$?; git worktree remove --force /tmp/fr-f1-bound >/dev/null 2>&1; rm -rf /tmp/fr-f1-bound; rm -rf /tmp/fr-f1-bound-rescan; exit $rc",
     "expect": "silent-suppress"
   },
   {
