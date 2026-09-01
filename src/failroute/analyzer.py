@@ -14,8 +14,10 @@ should not re-implement:
   lines suppress its findings; the same marker check gates ``suppress``
   statements.
 * **Handler-level ignore list** — swallowing ``KeyboardInterrupt`` /
-  ``SystemExit`` / ``GeneratorExit`` / ``StopIteration`` / ``CancelledError``
-  is idiomatic control flow, not failure routing.
+  ``SystemExit`` / ``GeneratorExit`` / ``StopIteration`` /
+  ``StopAsyncIteration`` / ``CancelledError`` is idiomatic control flow,
+  not failure routing; tuple handlers qualify only when every member is
+  ignored.
 * **Deterministic order** — findings are line-sorted; the stable sort keeps
   per-handler registry order for same-line findings.
 

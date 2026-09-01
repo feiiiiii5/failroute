@@ -20,9 +20,12 @@ IGNORED_EXC_NAMES = {
     "GeneratorExit",
     # Swallowing these is idiomatic control flow, not failure routing:
     # - StopIteration: how iterators terminate (PEP 479 makes generators special).
+    # - StopAsyncIteration: the async twin -- how async iterators terminate
+    #   (PEP 525); absorbing it in drain/copy loops is the documented idiom.
     # - CancelledError: async tasks routinely absorb cancellation in cleanup paths;
     #   flagging every one of them drowns real findings.
     "StopIteration",
+    "StopAsyncIteration",
     "CancelledError",
 }
 
@@ -55,6 +58,13 @@ LOG_SEVERITY_METHODS = {"error", "warning", "warn", "exception", "critical", "fa
 #: Exact logger base names recognised beyond the suffix heuristic in
 #: :func:`is_loggerish_name`.
 LOGGER_BASE_NAMES = {"logger", "logging", "log", "_logger", "_log", "sentry_sdk"}
+#: ``warnings.<method>(...)`` entry points that surface a failure. The stdlib
+#: warning channel is structurally visible (stderr, pytest capture, ``-W error``,
+#: ``logging.captureWarnings``) and cannot be level-filtered below warning,
+#: so it counts as a signal in typed and catch-all handlers alike. Only the
+#: emission entry points qualify -- filter configuration (``simplefilter``...)
+#: records nothing routable.
+WARNINGS_SIGNAL_METHODS = frozenset({"warn", "warn_explicit"})
 
 
 def is_loggerish_name(name: str) -> bool:
@@ -210,8 +220,13 @@ def call_name(func: ast.expr) -> str | None:
 def handler_logs_error(handler: ast.ExceptHandler) -> bool:
     """True when the handler records the failure somewhere routable.
 
-    Two tiers:
+    Three recognised channels:
 
+    - ``warnings.warn(...)`` / ``warnings.warn_explicit(...)``: the stdlib
+      warning channel surfaces the failure regardless of handler type (it is
+      not level-filterable below warning), so it counts in typed and
+      catch-all handlers alike. Deliberately aligned with the contractlens
+      labeller, which treats ``warnings.warn`` as an error signal too.
     - **Catch-all handlers** (bare ``except:`` / ``except Exception:``) must
       log at a severity worth reading (``warning``+) — a ``debug`` line or a
       ``print`` is not a trace that survives production triage.
@@ -229,6 +244,12 @@ def handler_logs_error(handler: ast.ExceptHandler) -> bool:
             func = child.func
             if isinstance(func, ast.Attribute):
                 base = func.value
+                if (
+                    isinstance(base, ast.Name)
+                    and base.id == "warnings"
+                    and func.attr in WARNINGS_SIGNAL_METHODS
+                ):
+                    return True
                 base_is_loggerish = (isinstance(base, ast.Name) and is_loggerish_name(base.id)) or (
                     isinstance(base, ast.Attribute) and is_loggerish_name(base.attr)
                 )
@@ -240,14 +261,39 @@ def handler_logs_error(handler: ast.ExceptHandler) -> bool:
     return False
 
 
+def _handler_exc_member_names(handler: ast.ExceptHandler) -> list[str] | None:
+    """Names of every exception type the handler catches; ``None`` when any
+    member is not a plain name (subscripts, calls...) or the handler is bare.
+
+    Attribute members reduce to their attribute (``asyncio.CancelledError``
+    → ``CancelledError``), matching the historical single-type behaviour.
+    """
+    exc = handler.type
+    if exc is None:
+        return None
+    members = exc.elts if isinstance(exc, ast.Tuple) else [exc]
+    names: list[str] = []
+    for member in members:
+        if isinstance(member, ast.Name):
+            names.append(member.id)
+        elif isinstance(member, ast.Attribute):
+            names.append(member.attr)
+        else:
+            return None
+    return names
+
+
 def is_ignored_handler(node: ast.ExceptHandler) -> bool:
-    if node.type is None:
+    """True when the handler catches only ignore-listed control-flow types.
+
+    Tuple handlers qualify only when *every* member is ignored: a mixed
+    ``except (StopIteration, ValueError)`` can swallow real errors, so it
+    stays reported (conservative: prefer a finding over a miss).
+    """
+    names = _handler_exc_member_names(node)
+    if not names:
         return False
-    if isinstance(node.type, ast.Name) and node.type.id in IGNORED_EXC_NAMES:
-        return True
-    if isinstance(node.type, ast.Attribute) and node.type.attr in IGNORED_EXC_NAMES:
-        return True
-    return False
+    return all(name in IGNORED_EXC_NAMES for name in names)
 
 
 def render_handler(handler: ast.ExceptHandler) -> str:
