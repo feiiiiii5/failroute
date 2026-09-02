@@ -23,11 +23,19 @@
 \usepackage{verbatim}
 \emergencystretch=2em
 
-% [TODO] author block: names, affiliations, contact author, and whether the
-% author is disclosed as the tool's author must be decided by the author, not
-% generated here.
+% Author block filled by the author on 2026-09-02. Name is in Given-Surname
+% order because arXiv, DBLP and Scholar index the final token as the family
+% name. The \thanks footnote carries the conflict-of-interest disclosure the
+% author decided to make: the paper evaluates a detector the author wrote.
 \title{How Often Is a Swallowed Failure a Bug?\\ A Tri-Source Study of Except-Handler Failure-Routing\\ in AI/ML Codebases}
-\author{[TODO: authors and affiliations]}
+\author{Yufeiyang Chen\thanks{%
+  \textbf{Disclosure.} The author of this paper is also the author of
+  \texttt{failroute}, the detector evaluated here, and of the \texttt{semgrep}
+  rule reported in Section~\ref{sec:rq1}. Results unfavourable to the detector
+  are reported alongside the favourable ones; see in particular the recall audit
+  in Section~\ref{sec:rq3}.}\\[2pt]
+  Sun Yat-sen University, Guangzhou, China\\
+  \texttt{fei76161@gmail.com}}
 \date{Draft --- 2026-09-01 (J-batch sync). Not yet submitted to arXiv.}
 
 \begin{document}
