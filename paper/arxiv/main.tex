@@ -801,11 +801,11 @@ pip install '.[test,paper]'        # pytest + matplotlib + ruff/bandit/pylint/fl
     # archive against paper/corpus-lock.json and exits non-zero on mismatch
 PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out bench/rescan-v0.8
     # rescan with the current detector (total 621). Writes to bench/; do NOT
-    # re-export over paper/scan/, which is the frozen v0.7.0 649-finding baseline
+    # re-export over paper/scan/, which is the frozen v0.7.0 baseline
 .venv/bin/python tools/coverage_union.py --findings-dir bench/rescan-f2
     # -> bench/corpus-coverage-union.json ; union 250/621 = 40.3%
-    # (the default --findings-dir paper/scan is the v0.7.0 649 set and yields
-    #  the deprecated 253/649 = 39.0%)
+    # (the default --findings-dir paper/scan is the frozen v0.7.0 finding set;
+    #  its union figure is deprecated -- use bench/rescan-f2 for the number above)
 .venv/bin/python tools/j1_adjudicate.py          # J1 diff-read adjudication (idempotent)
 .venv/bin/python tools/compute_intervals.py      # -> paper/intervals.json
 .venv/bin/python -m pytest                       # 158 tests
