@@ -258,8 +258,8 @@ all eight runs.
 | `tools/coverage_union.py` | **Resolved (H batch, 09-01).** History: the original script hard-coded `.venv/bin/python` as a relative path and died on its own 900 s pylint timeout, so the union figure was NOT re-derived by the earlier pass. The script was fixed (interpreter resolution with env override, pylint timeout 1800 s, parameterised findings dir) and re-run live: **the 253 / 39.0% figure was reproduced on the v0.7.0 finding set (56 s wall)**, and the final v0.8.0 baseline (621 findings) measures **250 / 621 = 40.3%** (49 s). Re-run: `PYTHONPATH=src .venv/bin/python tools/coverage_union.py --findings-dir paper/scan --out /tmp/u4.json`. |
 | `tools/compare_linters_corpus.py` | **Not run.** Same linter cost, and it overwrites `bench/corpus-linter-comparison.json`, which now also carries the merged `linters.semgrep` results. §0.2's warning stands, untested. |
 | semgrep (5-tool union, 279 / 43.0%) | **Resolved (H batch, 09-01).** semgrep 1.175.0 installed and run live via `tools/coverage_union.py --with-semgrep`: **279 / 43.0% reproduced on the v0.7.0 finding set (73 s)**; the v0.8.0 baseline measures **269 / 621 = 43.3%** (63 s). |
-| `tools/make_figures.py` | **Needs an undeclared dependency.** On the clean venv: `ModuleNotFoundError: No module named 'matplotlib'`. After installing matplotlib it produced **fig1, fig2 and fig3** (each `.pdf` + `.png`) — §2.3 and §4 mention only fig1. `matplotlib` is absent from `pyproject.toml`, so the documented clean install cannot build the figures at all. |
-| `tools/fetch_corpus.py` (download path) | **Not re-downloaded.** `--verify` (disk vs lock, no network) ran clean: `8/8 packages verified`. Byte-identical re-download therefore stays unverified, though every input is sha256-locked. |
+| `tools/make_figures.py` | **Needs an undeclared dependency.** On the clean venv: `ModuleNotFoundError: No module named 'matplotlib'`. After installing matplotlib it produced **fig1, fig2 and fig3** (each `.pdf` + `.png`) — §2.3 and §4 mention only fig1. `matplotlib` is absent from `pyproject.toml`, so the documented clean install cannot build the figures at all. 🔴 **L3 RESOLVED (2026-09-02): `matplotlib` is now declared in the `[paper]` extra; a fresh `pip install '.[paper]'` builds all three figures with zero manual installs — see §6.3.** |
+| `tools/fetch_corpus.py` (download path) | **Not re-downloaded.** `--verify` (disk vs lock, no network) ran clean: `8/8 packages verified`. Byte-identical re-download therefore stays unverified, though every input is sha256-locked. 🔴 **L1 RESOLVED (2026-09-02): `corpus-manifest.json` now pins `version`+`sha256` per package; a fresh `/tmp` re-download verified 8/8 byte-identical to the lock, and a wrong pin exits non-zero — see §6.1.** |
 
 ### 5.5 🔴 `tools/draw_sample.py` no longer regenerates `paper/sample.jsonl`
 
@@ -320,3 +320,116 @@ Never run it against the real tree.
 
 Deterministic. The regenerated `paper/intervals.json` differs from the committed one in
 exactly one line — the `generated_at_utc8` stamp. All 41 cells match.
+
+---
+
+## 6. L batch (2026-09-02): the two §5.4 reproducibility defects fixed, dependencies declared
+
+The K-batch clean-environment reproduction (`docs/k-batch-report.md` §K2) surfaced two defects
+that made this artifact's central promise — a reviewer can rebuild the corpus byte-for-byte on
+a clean machine — false, plus a third gap (undeclared dependencies). All three are fixed here,
+each with the command actually run and its output. Nothing below is aspirational; §6.1–§6.3 were
+re-run on 2026-09-02.
+
+### 6.1 L1 — corpus is now version- and sha256-pinned (byte-for-byte rebuild is TRUE)
+
+`paper/corpus-manifest.json` previously had `"version": null` for all eight packages, so
+`fetch_corpus.py` resolved to the *current PyPI latest*. Measured drift on 09-02: `inspect_ai`
+0.3.260→0.3.261, `pydantic_ai_slim` 2.36.0→2.37.0. The other six did not drift only because
+upstream had not published since the freeze — not by design.
+
+Fix: every package now carries an explicit `version` AND `sha256`, copied verbatim from the
+committed `corpus-lock.json`. `fetch_one` already enforced `expected = pinned_sha or
+info['expected_sha256']` and raised `ValueError` on mismatch, so pinning the sha256 makes a
+fresh fetch either byte-identical or a hard non-zero exit.
+
+Fresh fetch into a clean `/tmp` sandbox (09-02 15:41 UTC+8) — all eight resolved at the pinned
+versions and hashed identical to the committed lock:
+
+```
+  garak              0.16.0     MATCH    fresh=71962ecf7c3a09d2 lock=71962ecf7c3a09d2
+  inspect_ai         0.3.260    MATCH    fresh=5f6fbd7bc1fae0a7 lock=5f6fbd7bc1fae0a7
+  pydantic_ai_slim   2.36.0     MATCH    fresh=43b53401099352bb lock=43b53401099352bb
+  ... (uqlm 0.6.5 / trl 1.12.0 / smolagents 1.26.0 / deepteam 1.0.9 / fickling 0.1.12 all MATCH)
+BYTE-FOR-BYTE fresh-fetch vs committed lock: 8/8 match
+```
+
+Negative test (a wrong pin must fail loud, not silently fetch something else): setting
+`inspect_ai` version to 0.3.261 while keeping the 0.3.260 sha256 →
+`FAILED ValueError: inspect_ai: sha256 mismatch (expected 5f6fbd7b… got 58d40586…)`, exit 1.
+
+Also fixed a latent crash: `fetch_corpus.py` wrote `args.dest.relative_to(ROOT)` into the lock,
+which raised `ValueError` when `--dest`/`--manifest` pointed outside the repo (e.g. a `/tmp`
+verification sandbox) — crashing *after* a clean fetch. `_lock_path_field` now falls back to the
+absolute path. §5.4's "byte-identical re-download … stays unverified" is therefore superseded:
+it is now verified (8/8), and every input is genuinely sha256-locked at the manifest layer.
+
+### 6.2 L2 — coverage_union.py no longer fails silently
+
+`tools/coverage_union.py` ran each linter as `PY -m <tool>` and parsed `json.loads(stdout or
+'[]')`. With a linter absent, stdout is empty → the empty set → `union_covered = 0`, i.e. the
+script reported "failroute-only = 100%" and exited 0. That is the exact silent-failure mode this
+paper studies, in the paper's own analysis script.
+
+Fix: a `--version` preflight probes all four linters (a non-zero `--version` unambiguously means
+"unusable", unlike a real scan whose non-zero exit just means "found issues"); it exits non-zero
+naming every missing package. `sh()` now also treats "non-zero exit AND empty stdout" as fatal.
+flake8's preflight additionally requires the flake8-bugbear plugin (else B001/B017 silently match
+nothing).
+
+Clean interpreter with no linters (`FAILROUTE_PY=/usr/bin/python3`, which lacks all four),
+BEFORE vs AFTER the fix:
+
+```
+BEFORE:  union_covered=0   failroute-only=649 (100.0%)   exit 0     <- silent zero
+AFTER :  error: coverage_union.py refuses to run -- missing: ruff / bandit / pylint / flake8
+         exit 1
+```
+
+With the four linters installed the figure is unchanged (the fix only adds loud failure):
+`250/621 = 40.3%`, per-tool ruff 72 / bandit 63 / pylint 245 / flake8+bugbear 124 — reproduced
+both with the repo `.venv` (ruff 0.16.4) and a fresh `.[paper]` venv (ruff 0.16.5).
+
+🔴 Correction to the K-batch record: `paper/scan/*.jsonl` do **not** embed absolute paths. All
+649 lines store repo-relative `paper/corpus/...` (`git grep '/Users/fei' HEAD -- '*.jsonl'`
+returns nothing; unchanged since commit `ae72d5d`). coverage_union resolves them via
+`os.chdir(ROOT)`+`abspath`, so they are portable to any clone once `fetch_corpus.py` has run. The
+only absolute paths in the artifact are the inert `bench_path` provenance fields in
+corpus-manifest/lock and the `bench/*-comparison` files, none of which locates a scanned file.
+
+### 6.3 L3 — the paper toolchain is now declared (`pip install '.[paper]'`)
+
+`matplotlib` (make_figures.py) and the five linters (coverage_union.py) were undeclared, so §5.4's
+clean install could not build the figures and the K-batch reviewer list had six manual installs.
+A new `[project.optional-dependencies].paper` extra pins all six (matplotlib==3.11.1, ruff==0.16.5,
+bandit==1.9.4, pylint==4.0.8, flake8==7.3.0, flake8-bugbear==25.11.29). Kept separate from `[test]`
+so the test install stays lean. Fresh venv, zero manual installs (09-02 15:0x UTC+8):
+
+```
+uv venv --python 3.11 /tmp/l3-venv ; uv pip install '/tmp/l3-clean[paper]'    INSTALL_EXIT 0
+matplotlib 3.11.1 · ruff 0.16.5 · bandit 1.9.4 · pylint 4.0.8 · flake8 7.3.0 (flake8-bugbear 25.11.29)
+make_figures.py                              -> fig1/fig2/fig3 .pdf+.png     MAKEFIG_EXIT 0
+coverage_union.py --findings-dir bench/rescan-f2 -> TOTAL=621 COVERED=250 (40.3%)
+```
+
+### 6.4 Reviewer-from-zero, updated (supersedes §4 and the K-batch list)
+
+```bash
+git clone <repo> && cd <repo> && git checkout fix/v0.8-precision  # ⚠️ not yet merged to main;
+                                                                  # main still yields the v0.7.0 649 figures
+python -m venv .venv && . .venv/bin/activate
+pip install '.[test,paper]'         # tests + matplotlib + 4 linters + bugbear; NO manual installs
+python tools/fetch_corpus.py        # ~150 MB; version+sha256 pinned -> byte-identical to corpus-lock.json
+PYTHONPATH=src python -m pytest                               # 158 passed
+PYTHONPATH=src python tools/rescan_corpus.py --out /tmp/r     # total 621
+PYTHONPATH=src python tools/closure_check.py                  # CLOSURE: CLOSED (8/8)
+python tools/coverage_union.py --findings-dir bench/rescan-f2 --out /tmp/u.json   # 250/621 = 40.3%
+python tools/make_figures.py        # 3 figures (writes paper/figures/)
+```
+
+🔴 Two reproduction-command precisions, corrected here:
+- The **250/621 (v0.8.0)** union comes from `--findings-dir bench/rescan-f2` (621 findings). The
+  default `--findings-dir paper/scan` is the **v0.7.0 649** set and yields the deprecated
+  253/649 = 39.0%. §5.4's re-run line conflated the two; use `bench/rescan-f2` for the paper number.
+- The three §0.2 hand-curated-overwriting scripts (draw_sample, compare_linters_corpus,
+  merged_pr_recall) remain deliberately NOT re-run; §0.2's warnings stand unchanged.

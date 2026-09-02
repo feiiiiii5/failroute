@@ -1,12 +1,13 @@
 {
   "manifest_version": 1,
-  "comment": "Corpus targets for the failroute paper. These 8 packages correspond to the 8 upstream repositories in bench/ruff-comparison.md, whose local git clones were removed on 2026-08-30. Source is PyPI sdist (no git clone). Set \"version\" to pin; null means resolve to the current latest at fetch time and record the exact version in paper/corpus-lock.json. \"github\" is the fallback used only when no sdist exists for the resolved version. \"scan_root\" is the subpath inside the extracted tree that corresponds to the path scanned in bench/ruff-comparison.md.",
+  "comment": "Corpus targets for the failroute paper. These 8 packages correspond to the 8 upstream repositories in bench/ruff-comparison.md, whose local git clones were removed on 2026-08-30. Source is PyPI sdist (no git clone). 🔴 LOCKED (L batch, 2026-09-02): every package now carries an explicit \"version\" AND \"sha256\" copied verbatim from the committed paper/corpus-lock.json (generated 2026-08-30T16:37:51Z), so a clean-machine fetch resolves the exact paper release and fetch_corpus.py verifies each downloaded sdist against \"sha256\", exiting non-zero on mismatch (see fetch_one: expected = pinned_sha or info['expected_sha256']). Do NOT set \"version\" back to null -- null resolves to the current PyPI latest, which drifts (measured 09-02: inspect_ai 0.3.260->0.3.261, pydantic_ai_slim 2.36.0->2.37.0) and breaks the byte-for-byte rebuild ARTIFACT.md promises. \"github\" is the fallback used only when no sdist exists for the pinned version. \"scan_root\" is the subpath inside the extracted tree that corresponds to the path scanned in bench/ruff-comparison.md. \"bench_path\" is inert historical provenance (the removed local clone location) and is never used to locate a file.",
   "packages": [
     {
       "name": "garak",
       "source": "pypi",
       "pypi_name": "garak",
-      "version": null,
+      "version": "0.16.0",
+      "sha256": "71962ecf7c3a09d27f0cee0b9cf26f7ecbceb122264fcfd487ddbf9a72b4a750",
       "scan_root": "garak",
       "bench_path": "/Users/fei/Desktop/申请季/Open source/garak/garak",
       "github": {"repo": "NVIDIA/garak", "ref": null}
@@ -15,7 +16,8 @@
       "name": "inspect_ai",
       "source": "pypi",
       "pypi_name": "inspect_ai",
-      "version": null,
+      "version": "0.3.260",
+      "sha256": "5f6fbd7bc1fae0a770dc04e208daa9275de71f6d6b85b5fb68c162a1c4e0496f",
       "scan_root": "src/inspect_ai",
       "bench_path": "/Users/fei/Desktop/申请季/Open source/inspect_ai-fork/src/inspect_ai",
       "github": {"repo": "UKGovernmentBEIS/inspect_ai", "ref": null}
@@ -24,7 +26,8 @@
       "name": "pydantic_ai_slim",
       "source": "pypi",
       "pypi_name": "pydantic-ai-slim",
-      "version": null,
+      "version": "2.36.0",
+      "sha256": "43b53401099352bbb0d1a1ecbcf8855bb7c3d0c680311ba006c5549ed6d61039",
       "scan_root": ".",
       "bench_path": "/Users/fei/Desktop/申请季/Open source/pydantic-ai/pydantic_ai_slim",
       "github": {"repo": "pydantic/pydantic-ai", "ref": null}
@@ -33,7 +36,8 @@
       "name": "uqlm",
       "source": "pypi",
       "pypi_name": "uqlm",
-      "version": null,
+      "version": "0.6.5",
+      "sha256": "4d2c03bef6b64fa15bd685e0176787a9260827c790fbdb06295b1825cf02b626",
       "scan_root": "uqlm",
       "bench_path": "/Users/fei/Desktop/申请季/Open source/uqlm/uqlm",
       "github": {"repo": "cvs-health/uqlm", "ref": null}
@@ -42,7 +46,8 @@
       "name": "trl",
       "source": "pypi",
       "pypi_name": "trl",
-      "version": null,
+      "version": "1.12.0",
+      "sha256": "494ec6cfd07097bb8116cc7bec299b067dd765d1c19ed3eca2d874a29979f229",
       "scan_root": "trl",
       "bench_path": "/Users/fei/Desktop/申请季/Open source/trl/trl",
       "github": {"repo": "huggingface/trl", "ref": null}
@@ -51,7 +56,8 @@
       "name": "smolagents",
       "source": "pypi",
       "pypi_name": "smolagents",
-      "version": null,
+      "version": "1.26.0",
+      "sha256": "4ec92313265f9cfbcabfc88e192b4bc4505f8475dc5f33dc872062fc567037bd",
       "scan_root": "src/smolagents",
       "bench_path": "/Users/fei/Desktop/申请季/Open source/smolagents/src/smolagents",
       "github": {"repo": "huggingface/smolagents", "ref": null}
@@ -60,7 +66,8 @@
       "name": "deepteam",
       "source": "pypi",
       "pypi_name": "deepteam",
-      "version": null,
+      "version": "1.0.9",
+      "sha256": "d44fb6bc34f02e4ac17cce459bcb9d1590c5589337597b609c4442578336e641",
       "scan_root": "deepteam",
       "bench_path": "/Users/fei/Desktop/申请季/Open source/deepteam-fork/deepteam",
       "github": {"repo": "confident-ai/deepteam", "ref": null}
@@ -69,7 +76,8 @@
       "name": "fickling",
       "source": "pypi",
       "pypi_name": "fickling",
-      "version": null,
+      "version": "0.1.12",
+      "sha256": "83f6ccc948e21edb9ebd92795069536b47f481ce6add62598eac608b31576821",
       "scan_root": "fickling",
       "bench_path": "/Users/fei/Desktop/申请季/Open source/fickling/fickling",
       "github": {"repo": "trailofbits/fickling", "ref": null}

@@ -344,6 +344,23 @@ def verify(lock_path: Path, dest_root: Path) -> int:
 # ------------------------------------------------------------------------- main
 
 
+def _lock_path_field(p: Path) -> str:
+    """Record ``p`` in the lock: repo-relative when under ROOT, else absolute.
+
+    🔴 L1 fix (2026-09-02): ``p.relative_to(ROOT)`` raised ValueError when --dest
+    or --manifest pointed outside the repo (e.g. a /tmp verification sandbox),
+    crashing the lock write *after* every package had already fetched, hashed and
+    extracted cleanly. Both fields are informational (nothing resolves a file
+    through them), so falling back to the absolute path is safe and lets a sandboxed
+    reproduction run -- the exact "clean machine" check ARTIFACT.md promises --
+    finish and emit a comparable lock.
+    """
+    try:
+        return p.relative_to(ROOT).as_posix()
+    except ValueError:
+        return p.as_posix()
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
@@ -411,8 +428,8 @@ def main(argv: list[str] | None = None) -> int:
         "lock_version": 1,
         "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generator": "tools/fetch_corpus.py",
-        "manifest": args.manifest.relative_to(ROOT).as_posix(),
-        "corpus_dir": args.dest.relative_to(ROOT).as_posix(),
+        "manifest": _lock_path_field(args.manifest),
+        "corpus_dir": _lock_path_field(args.dest),
         "python": sys.version.split()[0],
         "totals": {
             "packages": len(merged),

@@ -34,6 +34,22 @@ Issues = "https://github.com/feiiiiii5/failroute/issues"
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
+# 🔴 L3 (2026-09-02): make_figures.py needs matplotlib; coverage_union.py needs the
+# four syntax linters (+ flake8-bugbear for the B001/B017 selects). All six were
+# previously UNDECLARED, so a reviewer following ARTIFACT.md had to hand-install six
+# packages before the paper's own figures/coverage numbers would reproduce. Pinned to
+# the exact versions verified to reproduce the frozen numbers (four-tool union
+# 250/621 = 40.3%: ruff 72 / bandit 63 / pylint 245 / flake8 124; three figures).
+# Kept separate from [test] so the test install stays lean and the paper toolchain is
+# explicit. Reproduce with: pip install '.[test,paper]'.
+paper = [
+    "matplotlib==3.11.1",
+    "ruff==0.16.5",
+    "bandit==1.9.4",
+    "pylint==4.0.8",
+    "flake8==7.3.0",
+    "flake8-bugbear==25.11.29",
+]
 
 [project.scripts]
 failroute = "failroute.cli:main"

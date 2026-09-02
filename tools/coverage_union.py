@@ -42,7 +42,20 @@ RULES = 'tools/semgrep-rules/exception-handling.yaml'
 LOCK = json.load(open('paper/corpus-lock.json', encoding='utf-8'))
 TOL = 1
 
-def sh(c, t=900): return subprocess.run(c, capture_output=True, text=True, timeout=t)
+def sh(c, t=900):
+    r = subprocess.run(c, capture_output=True, text=True, timeout=t)
+    # 🔴 L2 fix (2026-09-02): a linter that FINDS issues exits non-zero *with*
+    # stdout; a linter that failed to run (missing module / crash) exits non-zero
+    # with EMPTY stdout. The old one-liner returned stdout unconditionally and
+    # every caller did json.loads(o or '[]'), so a missing linter silently became
+    # the empty set -> union_covered=0 -> "failroute-only 100%", exit 0. That is
+    # the exact silent-failure mode this paper studies. Treat empty-output-on-error
+    # as fatal. (_preflight_linters below catches the common missing-package case
+    # first, with a better message; this is the defence-in-depth net.)
+    if r.returncode != 0 and not (r.stdout or '').strip():
+        sys.exit('error: a linter run failed with empty stdout (rc=%d): %s\nstderr: %s'
+                 % (r.returncode, ' '.join(str(x) for x in c[:5]), (r.stderr or '').strip()[:400]))
+    return r
 
 def ruff(r):
     o = sh([PY,'-m','ruff','check','--no-cache','--isolated','--select','S110,S112','--output-format','json',r]).stdout
@@ -70,6 +83,42 @@ def flake8(r):
 TOOLS=[('ruff',ruff),('bandit',bandit),('pylint',pylint),('flake8+bugbear',flake8)]
 
 
+# 🔴 L2 (2026-09-02): the four linters run as `PY -m <tool>`. Probe each with
+# --version, which never scans anything -- so a non-zero exit unambiguously means
+# "unusable", unlike a real run whose non-zero exit merely means "found issues".
+# flake8 additionally needs the flake8-bugbear plugin loaded, or the B001/B017
+# selects silently match nothing (a *partial* silent-zero that under-counts), so
+# check its --version banner advertises bugbear.
+LINTER_SPECS = [
+    ('ruff', ['ruff', '--version'], None),
+    ('bandit', ['bandit', '--version'], None),
+    ('pylint', ['pylint', '--version'], None),
+    ('flake8', ['flake8', '--version'], 'bugbear'),
+]
+
+
+def _preflight_linters():
+    """Fail loudly, naming every missing package, if any linter cannot run under PY."""
+    missing = []
+    for name, vargs, requires in LINTER_SPECS:
+        r = subprocess.run([PY, '-m'] + vargs, capture_output=True, text=True)
+        out = (r.stdout or '') + (r.stderr or '')
+        if r.returncode != 0:
+            missing.append(name)
+        elif requires and requires not in out:
+            missing.append('flake8-bugbear')
+    if missing:
+        sys.exit(
+            'error: coverage_union.py refuses to run -- the following required linter '
+            'package(s) are missing or unusable under the resolved interpreter (%s):\n  - %s\n'
+            'Install the pinned set that reproduces the paper numbers with:\n'
+            "  pip install '.[paper]'   (or: pip install ruff==0.16.5 bandit==1.9.4 "
+            'pylint==4.0.8 flake8==7.3.0 flake8-bugbear)\n'
+            'A silent empty result here would falsely report failroute-only = 100%%.'
+            % (PY, '\n  - '.join(missing))
+        )
+
+
 def semgrep(r):
     o = sh([SG,'--metrics=off','--disable-version-check','--no-git-ignore','--json',
             '-f',RULES,r], t=1800).stdout
@@ -93,6 +142,7 @@ if args.with_semgrep:
     TOOLS.append(('semgrep', semgrep))
 if not os.path.isdir(args.findings_dir):
     sys.exit(f'error: findings dir missing: {args.findings_dir}')
+_preflight_linters()
 
 per_tool=defaultdict(Counter); union_by_rule=Counter(); total_by_rule=Counter()
 union4_by_rule=Counter(); union5_by_rule=Counter()
@@ -105,8 +155,16 @@ for p in LOCK['packages']:
     if not os.path.isfile(findings_path):
         sys.exit(f'error: findings file missing for {p["name"]}: {findings_path}')
     for line in open(findings_path, encoding='utf-8'):
-        d=json.loads(line); f=os.path.abspath(d['file'])
-        assert os.path.exists(f), f
+        d=json.loads(line); raw=d['file']
+        # 🔴 L2: the scan jsonl store repo-relative paths (paper/corpus/...), so the
+        # artifact is portable to any clone; resolve against ROOT explicitly rather
+        # than relying on the chdir above. Legacy absolute paths are honoured as-is.
+        # A missing corpus file now fails with instructions instead of a bare assert.
+        f=os.path.abspath(raw if os.path.isabs(raw) else os.path.join(ROOT,raw))
+        if not os.path.exists(f):
+            sys.exit('error: corpus file not found: %s\n  (finding %s in %s). The extracted '
+                     'corpus under paper/corpus/ is not committed to git; run '
+                     '`python tools/fetch_corpus.py` first.' % (f, d.get('id'), findings_path))
         fr.append((f,d['lineno'],d['rule']))
     fr_total+=len(fr)
     for _,_,rl in fr: total_by_rule[rl]+=1
