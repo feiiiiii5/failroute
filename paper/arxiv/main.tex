@@ -510,7 +510,10 @@ which is what bounds the conclusion below.
 
 \begin{table}[htbp]
 \centering\small
-\begin{tabular}{@{}lp{4.6cm}lr@{}}
+% N batch drive-by fix: the former {@{}lp{4.6cm}lr@{}} put the long Value cells
+% in an unwrapping `l` column -> 95pt Overfull \hbox (content past the margin,
+% present since the J batch). p-columns wrap; source strings unchanged.
+\begin{tabular}{@{}p{2.9cm}p{3.1cm}p{4.4cm}r@{}}
 \toprule
 Arm & Measures & Value & Wilson95 \\
 \midrule
@@ -599,7 +602,7 @@ family fixes maps to any of the 478 tracked sites (zero exact file matches;
 the tracked population and the author-reported population are near-disjoint, a
 consequence of the 3/16 recall and of the 8 out-of-corpus fixes). The closest
 available approximation is package-level: in \texttt{uqlm}, 0 of 12 tracked
-family sites were spontaneously fixed through the tracked window (0.0--23.4\%)
+family sites were spontaneously fixed through the tracked window (0.0--24.3\%)
 while 5 of 5 author-reported \texttt{uqlm} family fixes were merged
 (56.6--100.0\%). Same maintainer team --- but different site sets,
 author-selected, and $n$ too small to exclude almost anything. We report it as

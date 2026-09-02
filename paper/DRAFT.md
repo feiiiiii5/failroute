@@ -410,7 +410,7 @@ matches**; the tracked population and the author-reported population are
 near-disjoint, a consequence of the 3/16 recall and of the 8 out-of-corpus
 fixes). The closest available approximation is package-level: in `uqlm`, 0 of
 12 tracked family sites were spontaneously fixed through the tracked window
-(0.0–23.4%) while 5 of 5 author-reported `uqlm` family fixes were merged
+(0.0–24.3%) while 5 of 5 author-reported `uqlm` family fixes were merged
 (56.6–100.0%). Same maintainer team — but different site sets,
 author-selected, and n too small to exclude almost anything. We report it as
 context, not as a test.
@@ -672,8 +672,8 @@ it was also the fastest way to find a bug in the detector itself.
 | n=80 labels 64/12/4; LLM-labelled; 659 frame; 72/80 survive | 冻结表「标注 n=80 / 标注结果」行 · `H3.table_arm1`, `H4.*` |
 | Arm 2 = 13/478 = 2.7% [1.6, 4.6] | 冻结表「臂 2」行 · `H1.arm2_spontaneous` |
 | Arm 3 = 16/43 = 37.2% [24.4, 52.1]; excl-self 16/24 = 66.7% | `J1.recall_superseded`（J1 更新；原 `H1.arm3_acceptance_primary` 13/40 被取代）|
-| Verdict (N batch): **directionally consistent, not established** — sensitivity over unmeasured (k, n); boundary n ≥ 86 ⇔ defect share ≥ 18.0%; rebase 13/72 = 18.1% [10.9, 28.5] overlaps arm 3; matched population empty (0 exact site matches, 16 PRs × 478 sites); uqlm 0/12 [0.0, 23.4] vs 5/5 [56.6, 100.0]; arm-2 numerator uncontaminated (13 FIXED attributions ∩ 16 author PRs = ∅); 27 closed-unmerged not itemised; 8/16 merged outside tracked eight | `N1.*` — 🔴 **取代 `H3.verdict` 的判决口径**（H3 的 disjoint=True 算术仍真、claim 仍绿，但论文不再据此下「supports」结论；H3 stmt 待主规划者标注） |
-| ~93 defects = 621 × 15.0%（跨 frame 外推，已就地标注）; 563,270 → 621 = 907× ≈ 三个数量级; 3.4× 仅指 245/72 co-located 之比 | `N2.text_fixes_landed` · `M4.three_four_orders_unreconstructible`（旧「3.4 orders」措辞已删） |
+| Verdict (N batch): **directionally consistent, not established** — sensitivity over unmeasured (k, n); boundary n ≥ 86 ⇔ defect share ≥ 18.0%; rebase 13/72 = 18.1% [10.9, 28.5] overlaps arm 3; matched population empty (0 exact site matches, 16 PRs × 478 sites); uqlm 0/12 [0.0, 24.3] vs 5/5 [56.6, 100.0]; arm-2 numerator uncontaminated (13 FIXED attributions ∩ 16 author PRs = ∅); 27 closed-unmerged not itemised; 8/16 merged outside tracked eight | `N1.*` — 🔴 **取代 `H3.verdict` 的判决口径**（H3 的 disjoint=True 算术仍真、claim 仍绿，但论文不再据此下「supports」结论；H3 stmt 待主规划者标注） |
+| ~93 defects = 621 × 15.0%（跨 frame 外推，已就地标注）; 563,270 → 621 = 907× ≈ 三个数量级; 3.4× 仅指 245/72 co-located 之比 | `N2.text_fixes_landed` · `M4.three_four_orders_unreconstructible`（旧「3.4 个数量级」措辞系两处 3.4 串味，已删） |
 | Recall 3/14 = 21.4% [7.6, 47.6]; handler ceiling 5/14; non-handler 9/14 = 64.3% | `J1.recall_superseded`（J1 更新；原 `H1.recall_audit` 2/11 被取代）|
 | Ground truth 16 family fixes / 75 merged PRs, all diff-read | `J1.ledger_recompute`, `J1.zero_title_screened`, `J1.three_flips` |
 | Truth coverage of findings by maintainer data 171/621 = 27.5% | `H2.*` (not cited in body; available for reviewers) |
