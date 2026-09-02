@@ -36,7 +36,10 @@
   in Section~\ref{sec:rq3}.}\\[2pt]
   Sun Yat-sen University, Guangzhou, China\\
   \texttt{fei76161@gmail.com}}
-\date{Draft --- 2026-09-01 (J-batch sync). Not yet submitted to arXiv.}
+% M2 (2026-09-02): the former \date{Draft --- 2026-09-01 (J-batch sync). Not yet
+% submitted to arXiv.} printed on the title page, which a submitted PDF must not
+% carry. arXiv stamps submission/announcement dates itself, so the date is empty.
+\date{}
 
 \begin{document}
 \maketitle
@@ -192,11 +195,19 @@ smolagents & 1.26.0 & \texttt{src/smolagents} & 20 & 13{,}355 \\
 uqlm & 0.6.5 & \texttt{uqlm} & 91 & 12{,}605 \\
 fickling & 0.1.12 & \texttt{fickling} & 16 & 5{,}024 \\
 \midrule
-\textbf{Total} & & & \textbf{2{,}354} & \textbf{563{,}270} \\
+\textbf{Total (scanned)} & & & \textbf{2{,}124} & \textbf{524{,}229} \\
 \bottomrule
 \end{tabular}
-\caption{Pinned corpus. Reproducible by anyone with network access and no git
-history: re-running \texttt{tools/fetch\_corpus.py} yields byte-identical inputs.}
+\caption{Pinned corpus. Per-package counts are the files \emph{inside each scan
+root} --- the subtree the detector actually scans --- so the column sums to the
+total shown (2{,}124 \texttt{.py} files / 524{,}229 lines). The eight pinned
+sdists contain \textbf{2{,}354} \texttt{.py} files / \textbf{563{,}270} lines in
+total; the difference is content outside the scan roots (tests, examples,
+vendored code). Reproducible by anyone with network access and no git history:
+re-running \texttt{tools/fetch\_corpus.py} yields byte-identical inputs
+(per-package version and SHA-256 are pinned in
+\texttt{paper/corpus-manifest.json} and verified against
+\texttt{paper/corpus-lock.json}).}
 \end{table}
 
 \subsection{RQ1 --- Prevalence and cross-tool coverage}
@@ -784,20 +795,30 @@ the pinned corpus in \texttt{paper/corpus-lock.json}.
 
 \begin{verbatim}
 cd <repo-root>
+pip install '.[test,paper]'        # pytest + matplotlib + ruff/bandit/pylint/flake8(+bugbear)
 .venv/bin/python tools/fetch_corpus.py           # pinned sdists -> paper/corpus/
-PYTHONPATH=src .venv/bin/python -m failroute \
-    --export-findings paper/scan/<pkg>.jsonl \
-    --repo-name <pkg> paper/corpus/<pkg>/<scan_root>
-# -> bench/corpus-linter-comparison.json
-.venv/bin/python tools/compare_linters_corpus.py
-# -> bench/corpus-coverage-union.json
-.venv/bin/python tools/coverage_union.py
-.venv/bin/python tools/draw_sample.py --n 80 --seed 20260831  # -> paper/sample.jsonl
-.venv/bin/python tools/merged_pr_recall.py       # -> paper/merged-pr-recall.csv
+    # version+sha256 pinned in paper/corpus-manifest.json; fetch verifies each
+    # archive against paper/corpus-lock.json and exits non-zero on mismatch
+PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out bench/rescan-v0.8
+    # rescan with the current detector (total 621). Writes to bench/; do NOT
+    # re-export over paper/scan/, which is the frozen v0.7.0 649-finding baseline
+.venv/bin/python tools/coverage_union.py --findings-dir bench/rescan-f2
+    # -> bench/corpus-coverage-union.json ; union 250/621 = 40.3%
+    # (the default --findings-dir paper/scan is the v0.7.0 649 set and yields
+    #  the deprecated 253/649 = 39.0%)
 .venv/bin/python tools/j1_adjudicate.py          # J1 diff-read adjudication (idempotent)
 .venv/bin/python tools/compute_intervals.py      # -> paper/intervals.json
 .venv/bin/python -m pytest                       # 158 tests
 \end{verbatim}
+
+Three further pipeline commands are deliberately \emph{not} part of the
+reproduction path, because each overwrites a hand-curated artifact without
+regenerating it faithfully: \texttt{draw\_sample.py} (the committed
+\texttt{paper/sample.jsonl} was drawn from the pre-fix 659 frame; re-drawing
+changes which 80 findings the published labels describe),
+\texttt{merged\_pr\_recall.py} (drops the hand-written \texttt{note} column),
+and \texttt{compare\_linters\_corpus.py} (drops the merged semgrep results).
+See \texttt{paper/ARTIFACT.md} \S0.2 and \S5.5--5.6 before running any of them.
 
 Key artifacts, and the thing each one pins down:
 \begin{itemize}[nosep,leftmargin=*]
