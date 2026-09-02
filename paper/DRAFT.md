@@ -344,7 +344,13 @@ what bounds the conclusion below:
 Arm 2 ground truth is a maintainer-behaviour dataset we built over the same
 eight pinned packages: every family site classified as FIXED or SURVIVED by
 reading the package's own history (478 sites, 13 FIXED; none of the 13 FIXED
-attributions coincides with an author PR — spontaneous in the strict sense).
+sites traces to an author report — the 9 PR-attributed fixes match no author
+PR, and the 4 unattributed ones were cleared by package and content check: the
+3 `pydantic-ai-slim` sites sit in a package the author never reported against
+(0 author family PRs there), and the `deepteam` fix
+(`AttackSimulator.generate_remote_attack`, `print(e)` → `raise e`) is unrelated
+in content to the author's prior `deepteam#270` criteria-degradation report —
+spontaneous in the strict sense).
 The 12 arm-1 defects in `deepteam` sit in sites whose history shows **no**
 maintainer action.
 
