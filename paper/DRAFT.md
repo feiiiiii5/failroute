@@ -1,9 +1,13 @@
 # How Often Is a Swallowed Failure a Bug? A Tri-Source Study of Except-Handler Failure-Routing in AI/ML Codebases
 
-**Draft v0.2 — 2026-09-01 (J batch).** All numbers are the v0.8.0 frozen values
+**Draft v0.3 — N batch (overnight 09-02→09-03).** All numbers are the v0.8.0 frozen values
 (工作计划 §1 重冻结表) and are traceable through the mapping table at the end of
 this file (`claims/*.json` in `新项目-contractlens`). The v0.7.0-era draft is
-preserved unchanged as `paper/DRAFT-v0.7.0-frozen.md`.
+preserved unchanged as `paper/DRAFT-v0.7.0-frozen.md`. **N-batch change: the
+§4.3 triangulation verdict is downgraded from 「区间不重叠 → supports 'nobody
+noticed'」 to 「directionally consistent, not established」 — the comparison
+depends on an unmeasured defect composition (sensitivity table in §4.3), and
+no commensurable matched population exists.**
 
 > 🔴 **Author note (not for the paper):** the honesty discipline is unchanged —
 > no fabricated citations, no fabricated numbers, no claimed measurements that
@@ -40,12 +44,16 @@ The paper's central question is methodological: **how do you validate a defect
 detector for defects whose defining property is that nobody notices them?**
 Standard validation — "maintainers fixed it, so it was real; nobody fixed it,
 so it is not" — fails structurally for this family. We triangulate three
-orthogonal truth sources: maintainer **consequence labelling** (15% defect,
-LLM-judged), maintainer **spontaneous behaviour** (13/478 = 2.7% of family
-sites ever fixed), and maintainer **reaction when told** (16/43 = 37.2% of our
-family fix PRs accepted). The intervals are disjoint, which **supports** —
-does not prove — the "nobody noticed" reading over the "false positive"
-reading.
+truth sources that ask orthogonal questions: **consequence labelling** by LLM
+(15% defect), maintainer **spontaneous behaviour** (13/478 = 2.7% of tracked
+family sites ever fixed), and maintainer **reaction when told** (16/43 = 37.2%
+of the author's family fix PRs accepted). The three are directionally
+consistent with the "nobody noticed" reading, but the comparison does not
+prove it and cannot support a verdict: the arms count incommensurable
+populations, the interval disjointness flips within the unmeasured defect
+composition of the tracked sites (§4.3), and no matched-population substitute
+exists. We report this as a quantified impossibility result and name the
+datum that would close it.
 
 Finally, a recall audit against 14 in-scope ground-truth defects finds
 **3 of 14** detected, and shows that **9 of 14 (64.3%)** route the failure
@@ -78,9 +86,11 @@ factual skeleton is below.)*
 3. A labelled stratified sample (n = 80) giving a precision estimate for this
    detector family on real code (§4.2) — a negative result, and one whose
    labelling was done by LLM agents, which we disclose and analyse.
-4. **A tri-source triangulation method for defect families where standard
-   validation fails structurally** (§4.3): consequence labelling, spontaneous
-   maintainer behaviour, and maintainer reaction when told.
+4. **A tri-source triangulation for defect families where standard validation
+   fails structurally — and a quantified impossibility result** (§4.3): its
+   arms count incommensurable populations, the headline interval comparison
+   flips within an unmeasured composition, and no matched-population
+   substitute exists; we specify the datum that would settle the question.
 5. **A recall audit against maintainer-merged fixes** (§4.4) that doubles as a
    construct-validity measurement: 64.3% of ground-truth defects do not route
    through an except-handler at all.
@@ -144,11 +154,16 @@ in `paper/corpus-lock.json`:
 | smolagents | 1.26.0 | `src/smolagents` | 20 | 13,355 |
 | uqlm | 0.6.5 | `uqlm` | 91 | 12,605 |
 | fickling | 0.1.12 | `fickling` | 16 | 5,024 |
-| **Total** | | | **2,354** | **563,270** |
+| **Total (scanned)** | | | **2,124** | **524,229** |
+
+The eight pinned sdists contain **2,354** .py files / **563,270** lines in
+total; the per-package counts above are within each scan root (the subtree
+actually scanned).
 
 *Rationale:* pinned sdists make the artifact reproducible by anyone with
 network access and no git history; a reviewer re-running
-`tools/fetch_corpus.py` gets byte-identical inputs.
+`tools/fetch_corpus.py` gets byte-identical inputs (version + SHA-256 pinned
+in `paper/corpus-manifest.json`, verified against `corpus-lock.json`).
 
 ### 4.1 RQ1 — Prevalence and cross-tool coverage
 
@@ -160,7 +175,7 @@ network access and no git history; a reviewer re-running
 | **failroute** | 0.8.0 | all six | **621** | — |
 | ruff | 0.16.0 | S110, S112 | 76 | 72 |
 | bandit | 1.9.4 | B110, B112 | 67 | 63 |
-| pylint | 4.0.8 | W0702/3/5/6 | 529 | 248 |
+| pylint | 4.0.8 | W0702/3/5/6 | 529 | 245 |
 | flake8+bugbear | 7.3.0 / 25.11.29 | E722, B001, B017 | 268 | 124 |
 | semgrep | 1.175.0 | **rules we wrote** | — | see below |
 
@@ -191,7 +206,7 @@ remain in the tool because the unit corpus exercises them.
 
 1. **`pylint` is a far stronger baseline than `ruff`.** Comparing only against
    `ruff`'s `S110`/`S112` — as our own earlier benchmark did — overstates
-   novelty by roughly 3.4× (72 vs 248 co-located findings). Any paper in this
+   novelty by roughly 3.4× (72 vs 245 co-located findings). Any paper in this
    space that benchmarks against `ruff` alone should be read with that in
    mind.
 2. **`masked-exception` is fully covered.** All 3 findings co-locate with a
@@ -316,8 +331,9 @@ The precision result above invites the obvious rebuttal: *if 85% of findings
 are not defects, the detector is noise*. The equally obvious defence — *the
 defects are real, maintainers just have not noticed them* — is exactly what a
 false-positive-heavy tool would say, and on spontaneous behaviour alone it is
-unfalsifiable. We triangulate three truth sources that measure **orthogonal**
-questions:
+unfalsifiable. We triangulate three truth sources that ask **orthogonal
+questions** — of, as it turns out, **non-commensurable populations**, which is
+what bounds the conclusion below:
 
 | Arm | Measures | Value | Wilson95 |
 |---|---|---|---|
@@ -327,28 +343,92 @@ questions:
 
 Arm 2 ground truth is a maintainer-behaviour dataset we built over the same
 eight pinned packages: every family site classified as FIXED or SURVIVED by
-reading the package's own history (478 sites, 13 FIXED). The 12 arm-1
-defects in `deepteam` sit in sites whose history shows **no** maintainer
-action.
+reading the package's own history (478 sites, 13 FIXED; none of the 13 FIXED
+attributions coincides with an author PR — spontaneous in the strict sense).
+The 12 arm-1 defects in `deepteam` sit in sites whose history shows **no**
+maintainer action.
 
 Arm 3 ground truth is the merged/closed record of fix PRs in this family
 authored by the present author: of 75 merged PRs across these ecosystems,
 **16** are family fixes (every one adjudicated by reading the diff, not the
-title), and of the closed-unmerged family PRs the maintainer-closed subset
-contains **no** case where a maintainer disputed the defect's existence.
-Excluding PRs the author closed himself, acceptance is 16/24 = 66.7%
-[46.7%, 82.0%].
+title; itemised in `paper/merged-pr-recall.csv`), **8 of the 16 are in
+packages outside the tracked eight**, and the **27 closed-unmerged** family
+PRs are counted in the denominator but are **not itemised in any committed
+artifact** — a provenance gap we flag in §6. Of those, the maintainer-closed
+subset (n=8) contains **no** case where a maintainer disputed the defect's
+existence. Excluding PRs the author closed himself, acceptance is 16/24 =
+66.7% [46.7%, 82.0%].
 
-**Verdict.** Arm 3's interval lower bound (24.4%) is above arm 2's interval
-upper bound (4.6%); the intervals are disjoint. The data **support** the
-reading *"nobody noticed"* over the reading *"false positive"*: defects that
-maintainers were never shown were essentially never fixed (2.7%), while the
-self-selected subset that was shown to them was accepted about a third of the
-time. 🔴 We write *support*, not *prove*: arm 3 suffers irreducible selection
-bias (the author chose which defects to report), and the comparison is
-between a prompted, self-selected sample and an unprompted population.
+**Verdict: directionally consistent, not established.** The natural headline
+reading is arithmetic: arm 3's interval lower bound (24.4%) lies above arm 2's
+upper bound (4.6%), the intervals are disjoint, and disjointness is read as
+supporting *"nobody noticed"* over *"false positive"*. The arithmetic is right
+and the reading is not: what the two denominators count is different, and
+neither count is warranted.
 
-**The three limitations, stated with the result:**
+🔴 **The arms are not commensurable.** Arm 2's denominator is all 478 tracked
+family sites; arm 3's is 43 defect candidates pre-screened by the author, of
+whose 16 merged members 8 lie in packages outside the tracked eight. A
+site-level rate and a self-selected-candidate rate answer different questions
+about different populations; no interval comparison between them can support a
+population-level verdict.
+
+🔴 **The disjointness depends on an unmeasured composition.** Whether the
+intervals are disjoint depends on two quantities that were never measured:
+**n**, the number of the 478 tracked sites that are genuine defects, and
+**k ≤ 13**, the number of the 13 spontaneous fixes that landed on defect
+sites:
+
+| k | n | k/n | Wilson95 | Disjoint from arm 3? | Composition reading |
+|---|---|---|---|---|---|
+| 13 | 478 | 2.7% | [1.6, 4.6] | yes | all tracked sites as risk set |
+| 13 | 144 | 9.0% | [5.4, 14.8] | yes | 30% defect share |
+| 13 | 86 | 15.1% | [9.1, 24.2] | yes | **boundary** |
+| 13 | 85 | 15.3% | [9.2, 24.4] | **no** | just below boundary |
+| 13 | 72 | 18.1% | [10.9, 28.5] | **no** | **this paper's own 15% base rate** |
+| 6 | 72 | 8.3% | [3.9, 17.0] | yes | half the fixes were defect fixes |
+| 2 | 72 | 2.8% | [0.8, 9.6] | yes | fixes ∝ defect share (13×0.15) |
+
+Taking all 478 sites as the risk set — which counts the ~85% of findings our
+own labelling calls deliberate contracts as if they were opportunities to fix
+a defect — yields disjointness. But under this paper's own 15% base rate
+(n ≈ 72) with fixes concentrated on defects (k = 13) — arguably the natural
+composition, since maintainers fix bugs rather than contracts — arm 2 becomes
+13/72 = 18.1% [10.9, 28.5], which **overlaps** arm 3 on [24.4, 28.5].
+Disjointness survives only if n ≥ 86, i.e. only if the defect share among
+tracked sites is at least 18.0% — **strictly above this paper's own precision
+estimate**. And the 15% is itself LLM-labelled (Limitation 1): if it cannot be
+trusted, there is equally no independent warrant for the n=478 denominator.
+**Neither corner is selectable on evidence**, and Limitation 2 says n cannot
+be measured from spontaneous behaviour at all — that is precisely the family's
+defining problem.
+
+🔴 **No commensurable substitute exists.** The natural repair — compare only
+sites that are both tracked and PR-reported — is empty: none of the 16 merged
+family fixes maps to any of the 478 tracked sites (**zero exact file
+matches**; the tracked population and the author-reported population are
+near-disjoint, a consequence of the 3/16 recall and of the 8 out-of-corpus
+fixes). The closest available approximation is package-level: in `uqlm`, 0 of
+12 tracked family sites were spontaneously fixed through the tracked window
+(0.0–23.4%) while 5 of 5 author-reported `uqlm` family fixes were merged
+(56.6–100.0%). Same maintainer team — but different site sets,
+author-selected, and n too small to exclude almost anything. We report it as
+context, not as a test.
+
+**What survives.** Three things, each weaker than a verdict. (i) Directly:
+across the 24 maintainer-adjudicated outcomes in the author's PR record (16
+merged, 8 maintainer-closed), no closure disputed the defect's existence —
+evidence against the *strong* false-positive reading, but only for the
+author-selected subset. (ii) Spontaneous repair of tracked family sites is
+rare (2.7%) whatever their composition — but by Limitation 2 that rarity is
+equally consistent with "mostly contracts". (iii) The datum that would settle
+"nobody noticed" against "false positive" — maintainer reaction to a *random*
+sample of findings — **does not exist and cannot be retro-constructed**. The
+triangulation is directionally consistent with the "nobody noticed" reading;
+it **does not prove** it. We state the question as open and record that datum
+as a design requirement for future work.
+
+**The four limitations, stated with the result:**
 1. **Arm 1 is LLM-judged** (two rounds, same model family, 80/80 agreement =
    shared bias, not quality).
 2. **Arm 2's SURVIVED label is only readable as "nobody acted", never as
@@ -356,6 +436,10 @@ between a prompted, self-selected sample and an unprompted population.
    which is precisely why spontaneous behaviour cannot validate the detector.
 3. **Arm 3's selection bias is irreducible**: acceptance applies only to the
    self-selected reports, not to the detector's findings at large.
+4. **The arms are not commensurable**: arm 2 counts tracked sites, arm 3
+   counts author-selected defect candidates, and 8 of the 16 merged candidates
+   lie outside the tracked packages. No interval comparison between them
+   yields a population-level verdict (Verdict, above).
 
 ### 4.4 Recall audit and construct validity *(recall result)*
 
@@ -424,20 +508,28 @@ written by the same person, with the same blind spot, as the detector.
 
 **A detector this imprecise is still useful, but not as an oracle.**
 On our corpus a maintainer following up every finding would read 621 handlers
-to reach ~93 genuine defects (extrapolating the 15% LLM-labelled defect share —
-see §6), of which the vast majority are three copy-paste families in a single
-package. As an *alarm*, that is unusable. As a *search-space reducer* over
-563k lines, it is a different proposition: it narrowed the space by roughly
-3.4 orders of magnitude, and a reading of 80 sampled handlers found a
-systematic fail-open security verdict in a red-teaming tool.
+to reach ~93 genuine defects — a cross-frame extrapolation (the 15%
+LLM-labelled share is measured on the v0.7.0 sample frame; the 621 count is
+v0.8.0), not a measurement; see §6 — of which the vast majority are three
+copy-paste families in a single package. As an *alarm*, that is unusable. As a
+*search-space reducer* over 563k lines, it is a different proposition: it
+narrowed the space by roughly three orders of magnitude (from 563k lines to 621
+findings, a factor of 907), and a reading of 80 sampled handlers found
+a systematic fail-open security verdict in a red-teaming tool.
 
-**The triangulation reframes the negative precision result.** 15% defects is
+**The triangulation reframes the negative precision result — as an
+impossibility result.** 15% defects is
 bad for an alarm and unremarkable for a search tool; the interesting fact is
 that the family's defining property — silence — also disables the usual
-external check on the number. Spontaneous repair was 2.7%; when the same
-defects were surfaced deliberately, acceptance was 37.2%. The difference is
-what "nobody noticed" looks like when measured rather than asserted. 🔴 The
-evidence supports that reading; with a self-selected arm 3 it cannot prove it.
+external check on the number. Spontaneous repair of tracked family sites was
+2.7%; when the author surfaced adjudicated defect candidates, acceptance was
+37.2%. 🔴 These numbers measure different populations and cannot be combined
+into a verdict (§4.3): rebased under this paper's own defect share, the
+intervals overlap. What the triangulation establishes is narrower and, we
+believe, more useful: for this family neither spontaneous behaviour nor
+triangulation around it can validate a detector; the reason is quantifiable
+(an unmeasured two-dimensional composition, §4.3 table); and the missing datum
+is nameable — maintainer reaction to a random sample of findings.
 
 **Yield tracks codebase maturity, not rule design.** The strongest predictor
 of whether a finding is a defect was not which rule fired but *which package
@@ -479,9 +571,18 @@ outcome is what the numbers predict, not an anomaly.
 - 🔴 **Limitation 3 — arm-3 selection bias is irreducible.** The author chose
   which defects to report as PRs; acceptance (16/43) applies only to that
   self-selected set and cannot be extrapolated to the detector's findings.
-  Reporting only merged PRs would have made this worse; the closed-unmerged
-  family PRs are counted in the denominator, and none of the
-  maintainer-closed ones disputed the defect's existence.
+  Reporting only merged PRs would have made this worse; the 27 closed-unmerged
+  family PRs are counted in the denominator, and none of the eight
+  maintainer-closed ones disputed the defect's existence. Two provenance
+  caveats: the closed-unmerged members are **not itemised in any committed
+  artifact** (the 16 merged ones are, in `paper/merged-pr-recall.csv`), and 8
+  of the 16 lie in packages outside the tracked eight — arm 3's population is
+  not arm 2's.
+- 🔴 **Limitation 4 — the triangulation's arms are not commensurable.** Arm 2
+  counts tracked sites; arm 3 counts author-selected defect candidates. The
+  headline interval comparison depends on an unmeasured composition (§4.3) and
+  supports no population-level verdict; we report directional consistency
+  only.
 - **Sample size.** n = 80 of the v0.7.0 frame (659). Per-rule and per-package
   cells are small (`masked-exception` n = 1). Wilson intervals are reported
   throughout instead of bare point estimates.
@@ -495,8 +596,10 @@ outcome is what the numbers predict, not an anomaly.
   inflates the overall defect rate. The seven-package 0/66 figure is the more
   conservative read.
 - **Recall ground truth is authored by the same person.** The 16 merged
-  family fixes were written and submitted by the author; maintainer merge is
-  independent validation of *the defect*, not of its representativeness. The
+  family fixes were written and submitted by the author; a maintainer merge
+  records that the change was acceptable to the project — it is not a
+  maintainer finding that the pre-fix behaviour was a defect, and it says
+  nothing about representativeness. The
   family adjudication of all 75 merged PRs was done by reading diffs (52
   earlier title-only judgements were re-verified from diffs in a dedicated
   pass, with 3 corrections).
@@ -535,14 +638,22 @@ defectiveness: in an LLM-labelled stratified sample, 15% were genuine defects
 and 80% were deliberate contracts, with the defects concentrated entirely in a
 single package.
 
-The methodological contribution is the triangulation: for a defect family
-whose defining property is silence, "did maintainers fix it?" is a broken
-validation instrument — spontaneous repair was 2.7% — while the same defects,
-when surfaced, were accepted 37.2% of the time. The disjoint intervals
-support (not prove) the "nobody noticed" reading. And the recall audit
-supplies the honest boundary: 3 of 14 ground-truth defects detected, and
-64.3% of them route the failure outside any handler — the phenomenon is
-larger than the subfamily we, and every handler-shaped detector, can see.
+The methodological contribution is a quantified impossibility result. For a
+defect family whose defining property is silence, "did maintainers fix it?" is
+a broken validation instrument — spontaneous repair of tracked family sites
+was 2.7% — and the natural workaround fails too: triangulating against
+maintainer reaction when told (37.2% acceptance of author-reported candidates)
+compares incommensurable populations, and the interval disjointness that
+appears to support the "nobody noticed" reading flips to overlap under this
+paper's own defect share, with no matched-population substitute and no
+independent warrant for either denominator. What remains is honest but
+narrower: directionally consistent observations, no maintainer-adjudicated
+dispute of defect existence among 24 outcomes, and an open question whose
+missing datum we name — maintainer reaction to a random sample of findings.
+And the recall audit supplies the honest boundary: 3 of 14 ground-truth
+defects detected, and 64.3% of them route the failure outside any handler —
+the phenomenon is larger than the subfamily we, and every handler-shaped
+detector, can see.
 
 Detectors for this family should be designed, evaluated and *deployed* as
 search-space reducers with an explicit human adjudication step — and the
@@ -561,7 +672,8 @@ it was also the fastest way to find a bug in the detector itself.
 | n=80 labels 64/12/4; LLM-labelled; 659 frame; 72/80 survive | 冻结表「标注 n=80 / 标注结果」行 · `H3.table_arm1`, `H4.*` |
 | Arm 2 = 13/478 = 2.7% [1.6, 4.6] | 冻结表「臂 2」行 · `H1.arm2_spontaneous` |
 | Arm 3 = 16/43 = 37.2% [24.4, 52.1]; excl-self 16/24 = 66.7% | `J1.recall_superseded`（J1 更新；原 `H1.arm3_acceptance_primary` 13/40 被取代）|
-| Verdict: intervals disjoint → supports "nobody noticed" | 冻结表「三角验证判决」行 · `H3.verdict` |
+| Verdict (N batch): **directionally consistent, not established** — sensitivity over unmeasured (k, n); boundary n ≥ 86 ⇔ defect share ≥ 18.0%; rebase 13/72 = 18.1% [10.9, 28.5] overlaps arm 3; matched population empty (0 exact site matches, 16 PRs × 478 sites); uqlm 0/12 [0.0, 23.4] vs 5/5 [56.6, 100.0]; arm-2 numerator uncontaminated (13 FIXED attributions ∩ 16 author PRs = ∅); 27 closed-unmerged not itemised; 8/16 merged outside tracked eight | `N1.*` — 🔴 **取代 `H3.verdict` 的判决口径**（H3 的 disjoint=True 算术仍真、claim 仍绿，但论文不再据此下「supports」结论；H3 stmt 待主规划者标注） |
+| ~93 defects = 621 × 15.0%（跨 frame 外推，已就地标注）; 563,270 → 621 = 907× ≈ 三个数量级; 3.4× 仅指 245/72 co-located 之比 | `N2.text_fixes_landed` · `M4.three_four_orders_unreconstructible`（旧「3.4 orders」措辞已删） |
 | Recall 3/14 = 21.4% [7.6, 47.6]; handler ceiling 5/14; non-handler 9/14 = 64.3% | `J1.recall_superseded`（J1 更新；原 `H1.recall_audit` 2/11 被取代）|
 | Ground truth 16 family fixes / 75 merged PRs, all diff-read | `J1.ledger_recompute`, `J1.zero_title_screened`, `J1.three_flips` |
 | Truth coverage of findings by maintainer data 171/621 = 27.5% | `H2.*` (not cited in body; available for reviewers) |
@@ -573,19 +685,30 @@ it was also the fastest way to find a bug in the detector itself.
 
 ```bash
 cd 新项目-failroute
-.venv/bin/python tools/fetch_corpus.py            # sdists → paper/corpus/ (SHA-256 in corpus-lock.json)
-PYTHONPATH=src .venv/bin/python -m failroute --export-findings paper/scan/<pkg>.jsonl \
-    --repo-name <pkg> paper/corpus/<pkg>/<scan_root>
-.venv/bin/python tools/compare_linters_corpus.py  # → bench/corpus-linter-comparison.json
-.venv/bin/python tools/coverage_union.py          # → bench/corpus-coverage-union.json
-.venv/bin/python tools/draw_sample.py --n 80 --seed 20260831   # → paper/sample.jsonl
-.venv/bin/python tools/merged_pr_recall.py        # → paper/merged-pr-recall.csv
+.venv/bin/python -m pip install '.[test,paper]'   # pytest + matplotlib + ruff/bandit/pylint/flake8(+bugbear)
+.venv/bin/python tools/fetch_corpus.py            # pinned sdists → paper/corpus/
+    # version+sha256 pinned in paper/corpus-manifest.json; fetch verifies each
+    # archive against paper/corpus-lock.json and exits non-zero on mismatch
+PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out bench/rescan-v0.8
+    # rescan with the current detector (total 621). Writes to bench/; do NOT
+    # re-export over paper/scan/, which is the frozen v0.7.0 baseline
+.venv/bin/python tools/coverage_union.py --findings-dir bench/rescan-f2
+    # → bench/corpus-coverage-union.json ; union 250/621 = 40.3%
 .venv/bin/python tools/j1_adjudicate.py           # J1 diff-read adjudication (idempotent)
+.venv/bin/python tools/compute_intervals.py       # → paper/intervals.json
 .venv/bin/python -m pytest                        # 158 tests
 cd ../新项目-contractlens
 python3 tools/h1_stats.py j1                      # recall 3/14, acceptance 16/43 recomputed
 python3 tools/verify_claims.py --slow             # every claim recomputes from raw data
 ```
+
+🔴 Three pipeline commands are deliberately **not** part of the reproduction
+path, because each overwrites a hand-curated artifact without regenerating it
+faithfully: `draw_sample.py` (the committed `paper/sample.jsonl` was drawn
+from the pre-fix 659 frame; re-drawing changes which 80 findings the published
+labels describe), `merged_pr_recall.py` (drops the hand-written `note`
+column), and `compare_linters_corpus.py` (drops the merged semgrep results).
+See ARTIFACT §0.2、§5.5–5.6.
 
 Artifacts: `paper/corpus-lock.json` (inputs) · `paper/sample.jsonl` (sample) ·
 `paper/annotations.csv` (labels + rationale) · `paper/merged-pr-recall.csv`
@@ -600,7 +723,7 @@ Artifacts: `paper/corpus-lock.json` (inputs) · `paper/sample.jsonl` (sample) ·
 | # | Item | Blocking? |
 |---|---|---|
 | 1 | ~~Related work with verifiable DOIs / arXiv IDs~~ **done** (K batch: 23/23 entries re-verified 09-02 against Crossref/DBLP/OpenAlex/proceedings pages; 0 unverifiable, 0 miscited) | no |
-| 2 | Author block and affiliations (personal info — applicant only) | **yes** |
+| 2 | ~~Author block and affiliations~~ **done**（作者本人 2026-09-02 填入 `main.tex`：姓名、Sun Yat-sen University、邮箱，外加 `\thanks` 利益冲突声明脚注；DRAFT 按设计不携任何个人信息） | no |
 | 3 | ~~Figures regenerated for the J1 recall values (fig3 cell 2/11 → 3/14)~~ **done** (K batch, commit `d40a772`) | no |
 | 4 | Merge `fix/v0.8-precision` and publish 0.8.0 before submission (artifact honesty) | **yes** |
 
