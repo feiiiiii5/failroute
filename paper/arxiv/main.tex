@@ -312,7 +312,9 @@ corrections changed the frame: labelling itself exposed the
 \texttt{implicit-fallback} bug whose 10 findings were all false ($659
 \rightarrow 649$), and the v0.8.0 precision fixes removed 28 more ($649
 \rightarrow 621$, Section~\ref{sec:rq4}). Of the 80 sampled coordinates, 72
-survive in the 621 set; the deleted items were all labelled FALSE POSITIVE ---
+survive in the 621 set. Of the 8 deleted items, 4 --- the
+\texttt{implicit-fallback} findings --- were labelled FALSE POSITIVE and 4 ---
+those removed by the precision fixes --- were labelled CONTRACT;
 \emph{zero labelled DEFECT was lost}. The label proportions below therefore hold
 \emph{within the v0.7.0 frame}, and the surviving sample is not random with
 respect to the 621 frame.
@@ -471,10 +473,7 @@ we scope all claims in this paper to the except-handler subfamily accordingly.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/fig3_recall.pdf}
-\caption{Recall by defect family against the merged-fix ground truth.
-%% NOTE (J3): figure still encodes the pre-J1 cell (2/11); regeneration with
-%% the J1 denominator (3/14) is listed in DRAFT.md remaining-work item 3.
-}
+\caption{Recall by defect family against the merged-fix ground truth.}
 \end{figure}
 
 \paragraph{Side observation.} In the pre-fix \texttt{inspect\_ai \#5068} file the
@@ -726,8 +725,9 @@ decision can be justified by code shape rather than by developer fatigue.
 The systems literature supplies the stakes. Sculley et al.\ named the pipeline
 coupling and glue-code debt that makes ML behaviour brittle~\cite{sculley2015};
 Breck et al.\ proposed continuous data validation as the corrective at the data
-boundary~\cite{breck2019}; the ML Test Score encoded ``test the pipeline, not just
-the model'' as a rubric~\cite{breck2017}; Amershi et al.\ and Paleyes et al.\
+boundary~\cite{breck2019}; the ML Test Score encoded a rubric that tests the
+pipeline rather than the model alone~\cite{breck2017}; Amershi et al.\ and
+Paleyes et al.\
 documented that the failures arrive at integration and deployment time, not
 training time~\cite{amershi2019,paleyes2022}; Sambasivan et al.\ traced how a data
 problem cascades through a high-stakes system until it surfaces as an unexplained

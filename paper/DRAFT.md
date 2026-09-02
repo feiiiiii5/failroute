@@ -230,7 +230,8 @@ exposed the `implicit-fallback` bug whose 10 findings were all false
 (659 → 649), and the v0.8.0 precision fixes removed 28 more (649 → 621,
 §4.5). Of the 80 sampled coordinates, **72 survive** in the 621 set; the 4
 deleted `implicit-fallback` items were all labelled FALSE_POSITIVE and the 4
-audit-gate deletions were likewise — **zero labelled DEFECT was lost**. The
+precision-fix deletions were all labelled **CONTRACT** — **zero labelled DEFECT
+was lost**. The
 label proportions below therefore hold **within the v0.7.0 frame**, and the
 resample is not random with respect to the 621 frame.
 
@@ -572,7 +573,7 @@ it was also the fastest way to find a bug in the detector itself.
 
 ```bash
 cd 新项目-failroute
-.venv/bin/python tools/fetch_corpus.py            # pinned sdists → paper/corpus/
+.venv/bin/python tools/fetch_corpus.py            # sdists → paper/corpus/ (SHA-256 in corpus-lock.json)
 PYTHONPATH=src .venv/bin/python -m failroute --export-findings paper/scan/<pkg>.jsonl \
     --repo-name <pkg> paper/corpus/<pkg>/<scan_root>
 .venv/bin/python tools/compare_linters_corpus.py  # → bench/corpus-linter-comparison.json
@@ -598,9 +599,9 @@ Artifacts: `paper/corpus-lock.json` (inputs) · `paper/sample.jsonl` (sample) ·
 
 | # | Item | Blocking? |
 |---|---|---|
-| 1 | Related work with verifiable DOIs / arXiv IDs | **yes** |
+| 1 | ~~Related work with verifiable DOIs / arXiv IDs~~ **done** (K batch: 23/23 entries re-verified 09-02 against Crossref/DBLP/OpenAlex/proceedings pages; 0 unverifiable, 0 miscited) | no |
 | 2 | Author block and affiliations (personal info — applicant only) | **yes** |
-| 3 | Figures regenerated for the J1 recall values (fig3 cell 2/11 → 3/14) | no |
+| 3 | ~~Figures regenerated for the J1 recall values (fig3 cell 2/11 → 3/14)~~ **done** (K batch, commit `d40a772`) | no |
 | 4 | Merge `fix/v0.8-precision` and publish 0.8.0 before submission (artifact honesty) | **yes** |
 
 🔴 **Materials discipline:** until this is on arXiv it is *a draft*, not *a
