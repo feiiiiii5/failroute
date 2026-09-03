@@ -939,7 +939,7 @@ the pinned corpus in \texttt{paper/corpus-lock.json}.
 
 \begin{verbatim}
 cd <repo-root>
-pip install '.[test,paper]'        # pytest + matplotlib + ruff/bandit/pylint/flake8(+bugbear)
+pip install '.[test,paper]'   # pytest + matplotlib + the five linters
 .venv/bin/python tools/fetch_corpus.py           # pinned sdists -> paper/corpus/
     # version+sha256 pinned in paper/corpus-manifest.json; fetch verifies each
     # archive against paper/corpus-lock.json and exits non-zero on mismatch
@@ -950,7 +950,7 @@ PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out bench/rescan-v0.8
     # -> bench/corpus-coverage-union.json ; union 250/621 = 40.3%
     # (the default --findings-dir paper/scan is the frozen v0.7.0 finding set;
     #  its union figure is deprecated -- use bench/rescan-f2 for the number above)
-.venv/bin/python tools/j1_adjudicate.py          # J1 diff-read adjudication (idempotent)
+.venv/bin/python tools/j1_adjudicate.py   # J1 diff-read adjudication
 .venv/bin/python tools/compute_intervals.py      # -> paper/intervals.json
 .venv/bin/python -m pytest                       # 158 tests
 \end{verbatim}
