@@ -65,8 +65,30 @@ are **search-space reducers**, not oracles.
 
 ## 1. Introduction
 
-*(Opening: the SIM105 observation. Draft prose to be written by the author; the
-factual skeleton is below.)*
+Most software failures announce themselves. An exception propagates, a process
+exits, a stack trace reaches a log. The failures this paper studies do none of
+this. A handler catches a timeout from a model API and returns `0.0`, and the
+caller cannot distinguish that from a model that genuinely scored zero. A decode
+error is caught and an empty string returned, and the code downstream sees a
+document with no content rather than one that failed to load. Execution
+continues, the caller receives a value of the expected type, and a wrong answer
+proceeds in the shape of a right one. We call this **failure-routing**: the
+handler does not merely swallow the failure, it routes it into the success path.
+This paper studies the subfamily a syntactic tool can see — failures routed
+inside an `except` handler.
+
+The consequence is that the usual evidence of a defect is missing by
+construction. A crash produces a bug report; a plausible wrong number rarely
+produces one. Nobody files the issue, nobody writes the regression test, and the
+standard warrant for a static-analysis finding — that a maintainer read it and
+fixed it — is least available exactly where the pattern is most dangerous.
+Detecting these handlers is the easy half of the problem. Establishing that what
+we detected are defects is the hard half, and it is the half we do not fully
+solve.
+
+This work began with a narrower observation. A widely used Python linter
+recommends a refactoring that moves the pattern out of the view of every linter
+we tested, including the one that recommends it.
 
 - `ruff`'s `SIM105` rule recommends rewriting `try/except/pass` into
   `contextlib.suppress(...)`. The two forms are semantically identical.
