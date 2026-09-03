@@ -359,11 +359,23 @@ authored by the present author: of 75 merged PRs across these ecosystems,
 **16** are family fixes (every one adjudicated by reading the diff, not the
 title; itemised in `paper/merged-pr-recall.csv`), **8 of the 16 are in
 packages outside the tracked eight**, and the **27 closed-unmerged** family
-PRs are counted in the denominator but are **not itemised in any committed
-artifact** — a provenance gap we flag in §6. Of those, the maintainer-closed
-subset (n=8) contains **no** case where a maintainer disputed the defect's
-existence. Excluding PRs the author closed himself, acceptance is 16/24 =
-66.7% [46.7%, 82.0%].
+PRs are counted in the denominator and itemised, with per-PR closure reasons,
+in `paper/h1_arm3_classification.csv` (copied byte-identically from the
+unreleased companion repository, commit `7b33700`, so the composition is
+third-party checkable). Composition of the 27: **19 self-closed** by the
+author; **1 bot-closed** (`pydantic-ai#7209` — not a maintainer action); **3
+closed without reaching the merits** (two AI-assistance-policy closures of the
+same `hypothesis` diff #4837/#4839; one duplicate, `garak#1938`); **2
+substantively accepted** (`giskard-oss#2614` — maintainer landed equivalent PR
+#2623; `uqlm#427` — process-closed, substance partially re-landed via merged
+#462); and 🔴 **2 adverse on the merits** (`uqlm#452` — maintainer questioned
+the reachability of the failure, never resolved: the closest thing in the
+record to a dispute of the defect's existence; `vllm-metal#541` — declined as
+speculative hardening, documented gaps only). Excluding the 19 self-closures,
+acceptance is 16/24 = 66.7% [46.7%, 82.0%] at PR level; duplicate-defect
+counting flagged: #427's substance is also the merged #462, #4839 resubmits
+#4837's diff, #1938 duplicates #1937/#1884 — the 43 PRs overcount distinct
+defects by at least three.
 
 **Verdict: directionally consistent, not established.** The natural headline
 reading is arithmetic: arm 3's interval lower bound (24.4%) lies above arm 2's
@@ -416,16 +428,28 @@ matches**; the tracked population and the author-reported population are
 near-disjoint, a consequence of the 3/16 recall and of the 8 out-of-corpus
 fixes). The closest available approximation is package-level: in `uqlm`, 0 of
 12 tracked family sites were spontaneously fixed through the tracked window
-(0.0–24.3%) while 5 of 5 author-reported `uqlm` family fixes were merged
+(0.0–24.2%) while 5 of 5 author-reported `uqlm` family fixes were merged
 (56.6–100.0%). Same maintainer team — but different site sets,
 author-selected, and n too small to exclude almost anything. We report it as
 context, not as a test.
 
 **What survives.** Three things, each weaker than a verdict. (i) Directly:
-across the 24 maintainer-adjudicated outcomes in the author's PR record (16
-merged, 8 maintainer-closed), no closure disputed the defect's existence —
-evidence against the *strong* false-positive reading, but only for the
-author-selected subset. (ii) Spontaneous repair of tracked family sites is
+the itemised closure record (`paper/h1_arm3_classification.csv`) shows
+maintainer engagement with surfaced family defects was mostly, but not
+uniformly, favourable. Of the 24 non-self-closed outcomes (16 merged, 7
+maintainer-closed, 1 bot-closed), the 16 merges and two closures accepted the
+substance (`giskard-oss#2614` — maintainer landed an equivalent fix;
+`uqlm#427` — process-closed, substance partially re-landed via merged #462),
+three never reached the merits (two AI-assistance-policy closures of the same
+`hypothesis` diff, one duplicate), and 🔴 **two were adverse on the merits**:
+`uqlm#452` (maintainer questioned the reachability of the failure; never
+resolved — the closest thing in the record to a dispute of the defect's
+existence) and `vllm-metal#541` (declined as speculative hardening rather
+than a documented gap). The direct evidence against the *strong*
+false-positive reading is therefore real but mixed: favourable in 18 of the
+24 outcomes at PR level, adverse on the merits in 2, non-merits or
+non-maintainer in 4 — and all of it on an author-selected subset.
+(ii) Spontaneous repair of tracked family sites is
 rare (2.7%) whatever their composition — but by Limitation 2 that rarity is
 equally consistent with "mostly contracts". (iii) The datum that would settle
 "nobody noticed" against "false positive" — maintainer reaction to a *random*
@@ -578,12 +602,14 @@ outcome is what the numbers predict, not an anomaly.
   which defects to report as PRs; acceptance (16/43) applies only to that
   self-selected set and cannot be extrapolated to the detector's findings.
   Reporting only merged PRs would have made this worse; the 27 closed-unmerged
-  family PRs are counted in the denominator, and none of the eight
-  maintainer-closed ones disputed the defect's existence. Two provenance
-  caveats: the closed-unmerged members are **not itemised in any committed
-  artifact** (the 16 merged ones are, in `paper/merged-pr-recall.csv`), and 8
-  of the 16 lie in packages outside the tracked eight — arm 3's population is
-  not arm 2's.
+  family PRs are counted in the denominator and are itemised, with closure
+  reasons, in `paper/h1_arm3_classification.csv` (copied from the unreleased
+  companion repository so the composition is checkable). Three counting
+  caveats: one of the 8 non-self-closures was a **bot** action, not a
+  maintainer judgement; two of the 27 duplicate other submissions and one more
+  shares its defect substance with a counted merge, so the 43 PRs overcount
+  distinct defects; and 8 of the 16 merged fixes lie in packages outside the
+  tracked eight — arm 3's population is not arm 2's.
 - 🔴 **Limitation 4 — the triangulation's arms are not commensurable.** Arm 2
   counts tracked sites; arm 3 counts author-selected defect candidates. The
   headline interval comparison depends on an unmeasured composition (§4.3) and
@@ -653,8 +679,10 @@ compares incommensurable populations, and the interval disjointness that
 appears to support the "nobody noticed" reading flips to overlap under this
 paper's own defect share, with no matched-population substitute and no
 independent warrant for either denominator. What remains is honest but
-narrower: directionally consistent observations, no maintainer-adjudicated
-dispute of defect existence among 24 outcomes, and an open question whose
+narrower: directionally consistent observations, a closure record in which
+maintainer adjudication of surfaced family defects was favourable in 18 of 24
+outcomes but adverse on the merits in two (an unresolved reachability
+challenge and a scope decline), and an open question whose
 missing datum we name — maintainer reaction to a random sample of findings.
 And the recall audit supplies the honest boundary: 3 of 14 ground-truth
 defects detected, and 64.3% of them route the failure outside any handler —
@@ -678,7 +706,7 @@ it was also the fastest way to find a bug in the detector itself.
 | n=80 labels 64/12/4; LLM-labelled; 659 frame; 72/80 survive | 冻结表「标注 n=80 / 标注结果」行 · `H3.table_arm1`, `H4.*` |
 | Arm 2 = 13/478 = 2.7% [1.6, 4.6] | 冻结表「臂 2」行 · `H1.arm2_spontaneous` |
 | Arm 3 = 16/43 = 37.2% [24.4, 52.1]; excl-self 16/24 = 66.7% | `J1.recall_superseded`（J1 更新；原 `H1.arm3_acceptance_primary` 13/40 被取代）|
-| Verdict (N batch): **directionally consistent, not established** — sensitivity over unmeasured (k, n); boundary n ≥ 86 ⇔ defect share ≥ 18.0%; rebase 13/72 = 18.1% [10.9, 28.5] overlaps arm 3; matched population empty (0 exact site matches, 16 PRs × 478 sites); uqlm 0/12 [0.0, 24.3] vs 5/5 [56.6, 100.0]; arm-2 numerator uncontaminated (13 FIXED attributions ∩ 16 author PRs = ∅); 27 closed-unmerged not itemised; 8/16 merged outside tracked eight | `N1.*` — 🔴 **取代 `H3.verdict` 的判决口径**（H3 的 disjoint=True 算术仍真、claim 仍绿，但论文不再据此下「supports」结论；H3 stmt 待主规划者标注） |
+| Verdict (N batch): **directionally consistent, not established** — sensitivity over unmeasured (k, n); boundary n ≥ 86 ⇔ defect share ≥ 18.0%（精确 17.99%）; rebase 13/72 = 18.1% [10.9, 28.5] overlaps arm 3; matched population empty (0 exact site matches, 16 PRs × 478 sites); uqlm 0/12 [0.0, 24.2] vs 5/5 [56.6, 100.0]; arm-2 numerator uncontaminated (13 FIXED attributions ∩ 16 author PRs = ∅); 8/16 merged outside tracked eight。**O 批更正**：27 closed-unmerged 实存逐条台账 `paper/h1_arm3_classification.csv`（N 批「not itemised」为假陈述），存留证据重述为 18/24 有利 + **2 是非层面不利**（uqlm#452 可达性质疑未解决 · vllm-metal#541 推测性加固被拒）+ 1 bot + 3 非是非 | `N1.*`（canonical 工具重算）· `O1.*` — 🔴 **取代 `H3.verdict` 的判决口径**（H3 算术仍真、claim 仍绿，论文不再据此下「supports」结论；冻结表判决行已由主规划者 09-03 标注取代） |
 | ~93 defects = 621 × 15.0%（跨 frame 外推，已就地标注）; 563,270 → 621 = 907× ≈ 三个数量级; 3.4× 仅指 245/72 co-located 之比 | `N2.text_fixes_landed` · `M4.three_four_orders_unreconstructible`（旧「3.4 个数量级」措辞系两处 3.4 串味，已删） |
 | Recall 3/14 = 21.4% [7.6, 47.6]; handler ceiling 5/14; non-handler 9/14 = 64.3% | `J1.recall_superseded`（J1 更新；原 `H1.recall_audit` 2/11 被取代）|
 | Ground truth 16 family fixes / 75 merged PRs, all diff-read | `J1.ledger_recompute`, `J1.zero_title_screened`, `J1.three_flips` |
@@ -718,7 +746,10 @@ See ARTIFACT §0.2、§5.5–5.6.
 
 Artifacts: `paper/corpus-lock.json` (inputs) · `paper/sample.jsonl` (sample) ·
 `paper/annotations.csv` (labels + rationale) · `paper/merged-pr-recall.csv`
-(recall ledger, all rows diff-read) · `paper/j1-trulens2653-prefix.py`
+(recall ledger, all rows diff-read) · `paper/h1_arm3_classification.csv`
+(arm-3 closed-PR ledger, 160 diff-read rows / 27 family, copied
+byte-identically from the companion repository) ·
+`paper/j1-trulens2653-prefix.py`
 (pre-fix evidence for the trulens#2653 detection) ·
 `bench/corpus-coverage-union-5tool.json` (coverage).
 

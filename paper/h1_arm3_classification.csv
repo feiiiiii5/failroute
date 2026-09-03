@@ -1,0 +1,161 @@
+repo,pr,state,family,close_reason,note
+Giskard-AI/giskard-oss,2614,closed-unmerged,yes,closed-by-maintainer,"config params silently dropped by pydantic extra=ignore; fix adds warning. Closed: maintainer landed own PR #2623 covering it (concern accepted, fix superseded)"
+HypothesisWorks/hypothesis,4837,closed-unmerged,yes,closed-by-maintainer,freeze() errors silently swallowed so tests passed (masked exception). Closed: repo AI-assistance policy link only
+HypothesisWorks/hypothesis,4839,closed-unmerged,yes,closed-by-maintainer,duplicate resubmission of 4837 (same diff). Closed: AI-assistance policy link only
+cvs-health/uqlm,427,closed-unmerged,yes,closed-by-maintainer,exception swallowed -> silently short/misaligned response list. Closed: maintainer asked for minimal split PRs; substance partially re-landed via merged #462
+cvs-health/uqlm,452,closed-unmerged,yes,closed-by-maintainer,empty candidates -> np.mean([]) NaN leaks into aggregated scores. Closed: maintainer questioned reachability; unresolved
+confident-ai/deepeval,2970,closed-unmerged,yes,self-closed,synthesis cost silently dropped (falsy check) -> wrong totals. Closed by applicant (superseded during restructuring)
+confident-ai/deepeval,2988,closed-unmerged,yes,self-closed,unspecified encoding -> silent mojibake delivered as valid text. Closed by applicant (superseded)
+confident-ai/deepeval,2989,closed-unmerged,yes,self-closed,same encoding fix as 2988. Closed by applicant (duplicate of own PR)
+feiiiiii5/dep-scan,1,closed-unmerged,yes,self-closed,"missing BOM path silently ignored -> fresh doc generated as if input existed. Closed by applicant (own repo, restructured)"
+run-llama/llama_index,22496,closed-unmerged,yes,self-closed,broad except Exception: pass swallowed task exceptions; fallback raised misleading 'nested async' error. Closed by applicant (superseded)
+run-llama/llama_index,22526,closed-unmerged,yes,self-closed,carries the same swallow fix + tests as 22496. Closed by applicant (duplicate of own PR)
+vllm-project/vllm-metal,541,closed-unmerged,yes,closed-by-maintainer,unknown MLX device silently fell back to CPU. Closed: maintainer declined speculative hardening (wanted documented gaps only)
+NVIDIA/garak,2105,closed-unmerged,yes,self-closed,"eval-model error returned (False,0.0) verdict polluting ASR; fix returns None. Closed by applicant (superseded)"
+NVIDIA/garak,2041,closed-unmerged,yes,self-closed,outputs_for silently returned no outputs for translated attempts. Closed by applicant (superseded)
+NVIDIA/garak,1937,closed-unmerged,yes,self-closed,unsupported normalize value silently misbehaved; fix raises ValueError. Closed by applicant (superseded)
+NVIDIA/garak,1938,closed-unmerged,yes,closed-by-maintainer,duplicate of 1937. Closed: duplicate of existing PR #1884
+microsoft/PyRIT,2462,closed-unmerged,yes,self-closed,python part: technique factories silently dropped -> now warned (TS part: network error treated as auth-disabled). Closed by applicant (superseded)
+rhesis-ai/rhesis,2499,closed-unmerged,yes,self-closed,invalid test sets silently built/persisted; fix raises ValidationError. Closed by applicant (superseded)
+unionai-oss/pandera,2432,closed-unmerged,yes,self-closed,validation_depth comparisons silently False -> invalid config accepted; fix raises/coerces. Closed by applicant (superseded)
+guardrails-ai/guardrails,1604,closed-unmerged,yes,self-closed,empty-string values silently skipped from validation/coercion. Closed by applicant (superseded)
+guardrails-ai/guardrails,1627,closed-unmerged,yes,self-closed,string 'false' silently coerced to True (wrong polarity). Closed by applicant (superseded)
+guardrails-ai/guardrails,1639,closed-unmerged,yes,self-closed,validator fix results silently discarded instead of composed. Closed by applicant (superseded)
+bentoml/BentoML,5694,closed-unmerged,yes,self-closed,task failure never persisted as FAILED status (task looked not-failed). Closed by applicant (superseded)
+pydantic/pydantic-ai,7209,closed-unmerged,yes,closed-by-bot,"truncated gzip download silently delivered as complete. Closed: bot auto-close, issue already assigned (#7159)"
+pandas-dev/pandas,66405,closed-unmerged,yes,self-closed,silent int64 overflow in assert_almost_equal tolerance arithmetic. Closed by applicant (superseded)
+Ishannaik/agent-sweep,212,closed-unmerged,yes,self-closed,tab/period-joined phrases silently skipped before tokenizing -> missed detections. Closed by applicant (own repo)
+BerriAI/litellm,37020,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+IBM/mcp-context-forge,6366,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+IBM/mcp-context-forge,6367,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+IBM/mcp-context-forge,6369,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+NVIDIA/garak,2072,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+NVIDIA/garak,2073,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+TanStack/ai,961,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+UKGovernmentBEIS/inspect_ai,4521,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+bentoml/BentoML,5693,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+browser-use/browser-use,5306,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+confident-ai/deepeval,2969,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+confident-ai/deepteam,261,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+dottxt-ai/outlines,2009,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+dottxt-ai/outlines,2018,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+future-agi/future-agi,2145,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+guardrails-ai/guardrails,1626,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+huggingface/smolagents,2588,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+huggingface/smolagents,2635,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+huggingface/smolagents,2636,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+huggingface/smolagents,2639,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+langchain-ai/langchain,39913,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+langchain-ai/langchain,39914,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+langfuse/langfuse,16448,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+langwatch/langwatch,5906,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+langwatch/langwatch,7030,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+letta-ai/letta-code,3856,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+letta-ai/letta-code,3857,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+letta-ai/letta-code,3860,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+letta-ai/letta-code,3861,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+letta-ai/letta-code,3862,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+letta-ai/letta-code,3975,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+letta-ai/letta-code,3976,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+linkedin/Liger-Kernel,1307,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+microsoft/agent-governance-toolkit,3736,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+open-webui/open-webui,28619,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+open-webui/open-webui,28620,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+openai/openai-agents-python,4473,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+pandas-dev/pandas,66383,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+run-llama/llama_index,22700,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+vibrantlabsai/ragas,2889,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code (docs/config/UI/types/tests)
+BerriAI/litellm,33653,closed-unmerged,no,not-family,"error-path logging payload improvement (surfacing, not routing)"
+BerriAI/litellm,37024,closed-unmerged,no,not-family,process-reaping ECHILD edge handling
+EleutherAI/lm-evaluation-harness,3939,closed-unmerged,no,not-family,crash fix (AttributeError)
+567-labs/instructor,2457,closed-unmerged,no,not-family,cache-key staleness state bug; no failure event routed
+567-labs/instructor,2469,closed-unmerged,no,not-family,nested config mutation leak; no failure event
+567-labs/instructor,2533,closed-unmerged,no,not-family,message-merge data corruption; no swallowed failure
+567-labs/instructor,2534,closed-unmerged,no,not-family,missing tool-result conversion; not failure routing
+bentoml/BentoML,5695,closed-unmerged,no,not-family,loud error path
+bentoml/BentoML,5699,closed-unmerged,no,not-family,connection error raised correctly
+bentoml/BentoML,5700,closed-unmerged,no,not-family,loud raises
+bentoml/BentoML,5701,closed-unmerged,no,not-family,multipart URL correctness
+confident-ai/deepeval,2971,closed-unmerged,no,not-family,parse-error robustness; loud raise preserved
+confident-ai/deepeval,2974,closed-unmerged,no,not-family,py3.9 TypeError crash fix
+confident-ai/deepteam,253,closed-unmerged,no,not-family,TypeError crash guard
+confident-ai/deepteam,254,closed-unmerged,no,not-family,clear error message
+cvs-health/uqlm,421,closed-unmerged,no,not-family,TypeError crash fix
+cvs-health/uqlm,423,closed-unmerged,no,not-family,typo logic bug; no failure event
+dottxt-ai/outlines,2007,closed-unmerged,no,not-family,hashability addition
+dottxt-ai/outlines,2008,closed-unmerged,no,not-family,capability probe
+dottxt-ai/outlines,2010,closed-unmerged,no,not-family,cache flag thread-safety
+future-agi/future-agi,1508,closed-unmerged,no,not-family,JSX UI (language scope)
+future-agi/future-agi,1515,closed-unmerged,no,not-family,JSX UI (language scope)
+future-agi/future-agi,1675,closed-unmerged,no,not-family,JSX UI (language scope)
+future-agi/future-agi,2144,closed-unmerged,no,not-family,Go (language scope)
+future-agi/future-agi,2146,closed-unmerged,no,not-family,JSX error toast (language scope)
+future-agi/future-agi,2152,closed-unmerged,no,not-family,string-compare whitespace bug
+guardrails-ai/guardrails,1628,closed-unmerged,no,not-family,SQL DELETE scoping; insufficient evidence of routing
+guardrails-ai/guardrails,1640,closed-unmerged,no,not-family,loud JSONDecodeError fix
+huggingface/diffusers,14334,closed-unmerged,no,not-family,loud RuntimeError
+huggingface/smolagents,2638,closed-unmerged,no,not-family,validation message improvement
+langchain-ai/langchain,39124,closed-unmerged,no,not-family,loud validation raise
+langchain-ai/langchain,39125,closed-unmerged,no,not-family,same as 39124
+langchain-ai/langchain,39135,closed-unmerged,no,not-family,same as 39124
+langfuse/langfuse,16456,closed-unmerged,no,not-family,TypeScript (language scope)
+langwatch/langwatch,5925,closed-unmerged,no,not-family,TS/TSX UI (language scope)
+langwatch/langwatch,5935,closed-unmerged,no,not-family,TS/TSX UI (language scope)
+langwatch/langwatch,7416,closed-unmerged,no,not-family,Go (language scope)
+langwatch/langwatch,7423,closed-unmerged,no,not-family,Go (language scope)
+letta-ai/letta-code,3863,closed-unmerged,no,not-family,TypeScript (language scope)
+letta-ai/letta-code,3864,closed-unmerged,no,not-family,TypeScript (language scope)
+letta-ai/letta-code,3980,closed-unmerged,no,not-family,TypeScript (language scope)
+microsoft/PyRIT,2469,closed-unmerged,no,not-family,TSX UI (language scope)
+microsoft/node-pty,953,closed-unmerged,no,not-family,TypeScript (language scope)
+mlc-ai/xgrammar,796,closed-unmerged,no,not-family,C++ (language scope)
+mlc-ai/xgrammar,797,closed-unmerged,no,not-family,C++ (language scope)
+mlc-ai/xgrammar,839,closed-unmerged,no,not-family,C++ (language scope)
+mlc-ai/xgrammar,841,closed-unmerged,no,not-family,C++ (language scope)
+mlflow/mlflow,24737,closed-unmerged,no,not-family,error surfacing (MlflowException)
+mlflow/mlflow,24756,closed-unmerged,no,not-family,same as 24737
+ogx-ai/ogx,6430,closed-unmerged,no,not-family,signature normalization; no routed failure
+open-compass/opencompass,2526,closed-unmerged,no,not-family,crash->warning fallback
+open-telemetry/opentelemetry-python,5445,closed-unmerged,no,not-family,ignore-scope fix around loud crash
+open-webui/open-webui,27732,closed-unmerged,no,not-family,crash->permissive form
+open-webui/open-webui,27735,closed-unmerged,no,not-family,same as 27732
+openai/openai-agents-python,4465,closed-unmerged,no,not-family,error collection then raise
+pandas-dev/pandas,66404,closed-unmerged,no,not-family,NaN merge-key logic bug; no failure event
+promptfoo/promptfoo,10413,closed-unmerged,no,not-family,TypeScript error surfacing (language scope)
+pytorch/pytorch,190877,closed-unmerged,no,not-family,docs warning
+pytorch/pytorch,191326,closed-unmerged,no,not-family,cleaner UnpicklingError (loud->loud)
+rhesis-ai/rhesis,2195,closed-unmerged,no,not-family,optional-import probe (contract)
+rhesis-ai/rhesis,2496,closed-unmerged,no,not-family,CI lint check
+run-llama/llama_index,22494,closed-unmerged,no,not-family,missing-description fallback; no failure event
+trailofbits/fickling,297,closed-unmerged,no,not-family,detector heuristic edge case
+unionai-oss/pandera,2423,closed-unmerged,no,not-family,crash fix (argnames)
+unionai-oss/pandera,2430,closed-unmerged,no,not-family,crash fix (IndexError)
+vibrantlabsai/ragas,2899,closed-unmerged,no,not-family,top_k=0 edge correctness
+NVIDIA-NeMo/Guardrails,2271,closed-unmerged,no,not-family,adds intentional fail-closed contract
+NVIDIA-NeMo/Guardrails,2324,closed-unmerged,no,not-family,compat probe
+NVIDIA-NeMo/Guardrails,2325,closed-unmerged,no,not-family,loud fail-fast
+NVIDIA/garak,1936,closed-unmerged,no,not-family,probe content addition
+NVIDIA/garak,2027,closed-unmerged,no,not-family,crash->handled (loud before)
+NVIDIA/garak,2046,closed-unmerged,no,not-family,warn+skip malformed (loud before)
+NVIDIA/garak,2070,closed-unmerged,no,not-family,error message + backoff (surfacing)
+Open-Source-Legal/OpenContracts,2165,closed-unmerged,no,not-family,mypy baseline
+Open-Source-Legal/OpenContracts,2166,closed-unmerged,no,not-family,test shim removal
+PrefectHQ/fastmcp,4876,closed-unmerged,no,not-family,CLI codegen handling
+PrefectHQ/fastmcp,4878,closed-unmerged,no,not-family,loud ValueError
+TanStack/ai,958,closed-unmerged,no,not-family,TypeScript (language scope)
+TanStack/ai,959,closed-unmerged,no,not-family,TypeScript (language scope)
+TanStack/ai,960,closed-unmerged,no,not-family,TypeScript (language scope)
+UKGovernmentBEIS/inspect_ai,4996,closed-unmerged,no,not-family,adds intentional warning-degradation contract
+UKGovernmentBEIS/inspect_evals,2087,closed-unmerged,no,not-family,shared-constant hardening
+UKGovernmentBEIS/inspect_evals,2133,closed-unmerged,no,not-family,URL normalization
+agno-agi/agno,9710,closed-unmerged,no,not-family,silent noncompliance; no failure event (functional bug)
+agno-agi/agno,9711,closed-unmerged,no,not-family,silent noncompliance; no failure event (functional bug)
+astral-sh/ruff,26969,closed-unmerged,no,not-family,Rust (language scope)
+astral-sh/uv,20529,closed-unmerged,no,not-family,Rust (language scope)
+microsoft/agent-governance-toolkit,3738,closed-unmerged,no,not-family,docs
+NVIDIA/garak,2071,closed-unmerged,no,not-family,crash (IndexError) -> warned+handled empty output; loud before
+bentoml/BentoML,5691,closed-unmerged,no,not-family,loud NotImplementedError raises
+confident-ai/deepteam,262,closed-unmerged,yes,self-closed,pre-fix failure during generation was silently ignored when ignore_errors=True (no error recorded on the test case); fix records it. Closed by applicant (superseded)
+langwatch/langwatch,7031,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code
+wandb/weave,7677,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code
+wandb/weave,7755,closed-unmerged,no,no-error-handling-signal,diff touches no error-handling code

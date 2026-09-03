@@ -533,11 +533,15 @@ unattributed ones were cleared by package and content check). Arm 3 ground
 truth is the merged/closed record
 of family fix PRs authored by the present author: the 16 merged members are
 itemised in \texttt{paper/merged-pr-recall.csv} --- 8 of them in packages
-outside the tracked eight --- and the 27 closed-unmerged members are counted
-in the denominator but not itemised in a committed artifact (a provenance gap
-flagged in Section~\ref{sec:threats}). None of the eight maintainer-closed
-cases disputed the defect's existence. Excluding PRs the author closed
-himself, acceptance is 16/24 $=$ 66.7\% (46.7--82.0).}
+outside the tracked eight --- and the 27 closed-unmerged members are itemised,
+with per-PR closure reasons, in \texttt{paper/h1\_arm3\_classification.csv}
+(copied into this artifact set from the unreleased companion repository so the
+composition is third-party checkable): 19 self-closed, 1 bot-closed, 3 closed
+without reaching the merits, 2 substantively accepted, and 2 adverse on the
+merits (Section~\ref{sec:tri}). Excluding the 19 self-closures, acceptance is
+16/24 $=$ 66.7\% (46.7--82.0) at PR level --- one closure (\texttt{uqlm}\#427)
+shares its defect substance with a counted merge (\#462) and two more duplicate
+other submissions, so the 43 PRs overcount distinct defects.}
 \end{table}
 
 \paragraph{Verdict: directionally consistent, not established.}
@@ -604,17 +608,30 @@ family fixes maps to any of the 478 tracked sites (zero exact file matches;
 the tracked population and the author-reported population are near-disjoint, a
 consequence of the 3/16 recall and of the 8 out-of-corpus fixes). The closest
 available approximation is package-level: in \texttt{uqlm}, 0 of 12 tracked
-family sites were spontaneously fixed through the tracked window (0.0--24.3\%)
+family sites were spontaneously fixed through the tracked window (0.0--24.2\%)
 while 5 of 5 author-reported \texttt{uqlm} family fixes were merged
 (56.6--100.0\%). Same maintainer team --- but different site sets,
 author-selected, and $n$ too small to exclude almost anything. We report it as
 context, not as a test.
 
 \emph{What survives.} Three things, each weaker than a verdict.
-(i)~Directly: across the 24 maintainer-adjudicated outcomes in the author's PR
-record (16 merged, 8 maintainer-closed), no closure disputed the defect's
-existence --- evidence against the \emph{strong} false-positive reading, but
-only for the author-selected subset. (ii)~Spontaneous repair of tracked family
+(i)~Directly: the itemised closure record
+(\texttt{paper/h1\_arm3\_classification.csv}) shows maintainer engagement with
+surfaced family defects was mostly, but not uniformly, favourable. Of the 24
+non-self-closed outcomes (16 merged, 7 maintainer-closed, 1 bot-closed), the
+16 merges and two closures accepted the substance --- in
+\texttt{giskard-oss}\#2614 the maintainer landed an equivalent fix;
+\texttt{uqlm}\#427 was process-closed with its substance partially re-landed
+via merged \#462 --- three never reached the merits (two AI-assistance-policy
+closures of the same \texttt{hypothesis} diff, one duplicate), and
+\textbf{two were adverse on the merits}: in \texttt{uqlm}\#452 the maintainer
+questioned the reachability of the failure and the question was never resolved
+--- the closest thing in the record to a dispute of the defect's existence ---
+and \texttt{vllm-metal}\#541 was declined as speculative hardening rather than
+a documented gap. The direct evidence against the \emph{strong}
+false-positive reading is therefore real but mixed: favourable in 18 of the 24
+outcomes at PR level, adverse on the merits in 2, non-merits or non-maintainer
+in 4 --- and all of it on an author-selected subset. (ii)~Spontaneous repair of tracked family
 sites is rare (2.7\%) whatever their composition --- but by Limitation 2 that
 rarity is equally consistent with ``mostly contracts''. (iii)~The datum that
 would settle ``nobody noticed'' against ``false positive'' --- maintainer
@@ -760,12 +777,14 @@ measured here, that outcome is what the numbers predict, not an anomaly.
   chose which defects to report as PRs; acceptance (16/43) applies only to that
   self-selected set and cannot be extrapolated to the detector's findings.
   Reporting only merged PRs would have made this worse; the 27 closed-unmerged
-  family PRs are counted in the denominator, and none of the eight
-  maintainer-closed ones disputed the defect's existence. Two provenance
-  caveats: the closed-unmerged members are not itemised in a committed artifact
-  (the 16 merged ones are, in \texttt{paper/merged-pr-recall.csv}), and 8 of
-  the 16 lie in packages outside the tracked eight --- arm 3's population is
-  not arm 2's.
+  family PRs are counted in the denominator and are itemised, with closure
+  reasons, in \texttt{paper/h1\_arm3\_classification.csv} (copied from the
+  unreleased companion repository so the composition is checkable). Three
+  counting caveats: one of the 8 non-self-closures was a \emph{bot} action,
+  not a maintainer judgement; two of the 27 duplicate other submissions and
+  one more shares its defect substance with a counted merge, so the 43 PRs
+  overcount distinct defects; and 8 of the 16 merged fixes lie in packages
+  outside the tracked eight --- arm 3's population is not arm 2's.
 \item \textbf{Limitation 4 --- the triangulation's arms are not
   commensurable.} Arm 2 counts tracked sites; arm 3 counts author-selected
   defect candidates. The headline interval comparison depends on an unmeasured
@@ -896,8 +915,10 @@ candidates) compares incommensurable populations, and the interval
 disjointness that appears to support the ``nobody noticed'' reading flips to
 overlap under this paper's own defect share, with no matched-population
 substitute and no independent warrant for either denominator. What remains is
-honest but narrower: directionally consistent observations, no
-maintainer-adjudicated dispute of defect existence among 24 outcomes, and an
+honest but narrower: directionally consistent observations, a closure record
+in which maintainer adjudication of surfaced family defects was favourable in
+18 of 24 outcomes but adverse on the merits in two (an unresolved reachability
+challenge and a scope decline), and an
 open question whose missing datum we name --- maintainer reaction to a random
 sample of findings. And the recall audit supplies the honest
 boundary: 3 of 14 ground-truth defects detected, and 64.3\% of them route the
@@ -956,6 +977,9 @@ diff-read).
 \item \texttt{bench/corpus-coverage-union-5tool.json} --- cross-tool coverage
 including the self-written semgrep rule.
 \item \texttt{paper/intervals.json} --- Wilson intervals.
+\item \texttt{paper/h1\_arm3\_classification.csv} --- the arm-3 closed-PR
+  ledger (160 diff-read rows; 27 family), copied byte-identically from the
+  companion repository.
 \end{itemize}
 
 \paragraph{Two things a reproducer must know.}
