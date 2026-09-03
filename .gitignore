@@ -25,3 +25,7 @@ paper/arxiv/main.aux
 paper/arxiv/main.log
 paper/arxiv/main.blg
 paper/arxiv/main.tar.gz
+
+# 内部批次报告：本地保留，不进公开仓（2026-09-03 用户裁定）
+docs/*-batch-report.md
+docs/l5-submission-checklist.md
