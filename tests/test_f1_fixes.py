@@ -22,7 +22,6 @@ from __future__ import annotations
 from failroute.analyzer import scan_source
 from failroute.rules._shared import IGNORED_EXC_NAMES, is_ignored_handler
 
-
 # ---------------------------------------------------------------------------
 # F-① tuple-typed handlers honour the ignore list
 # ---------------------------------------------------------------------------

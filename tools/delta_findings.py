@@ -78,7 +78,11 @@ def parse_cached(path: Path):
     if cache_key not in parse_cached.cache:
         try:
             tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
-        except SyntaxError:
+        except SyntaxError:  # failroute: ignore
+            # Contract, not failure routing: a file that does not parse has no
+            # AST, and None is the documented value for that. Every caller
+            # checks `tree is None` explicitly before use (see below and in
+            # attribute_delta), so the failure is represented, not hidden.
             tree = None
         parents = {}
         if tree is not None:

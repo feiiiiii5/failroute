@@ -125,7 +125,9 @@ def function_spans(root: Path) -> dict[str, list[tuple[str, int, int]]]:
         rel = path.relative_to(ROOT)
         entries: list[tuple[str, int, int]] = []
 
-        def walk(body, prefix):
+        # `entries` is bound as a default so the closure captures this
+        # iteration's list rather than the loop variable (ruff B023).
+        def walk(body, prefix, entries=entries):
             for node in body:
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     qn = f"{prefix}{node.name}" if not prefix else f"{prefix}.{node.name}"

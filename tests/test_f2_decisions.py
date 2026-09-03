@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from failroute.analyzer import scan_source
 
-
 # ---------------------------------------------------------------------------
 # F-④ optional-dependency probes are contracts
 # ---------------------------------------------------------------------------
