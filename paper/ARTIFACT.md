@@ -415,8 +415,9 @@ coverage_union.py --findings-dir bench/rescan-f2 -> TOTAL=621 COVERED=250 (40.3%
 ### 6.4 Reviewer-from-zero, updated (supersedes §4 and the K-batch list)
 
 ```bash
-git clone <repo> && cd <repo> && git checkout fix/v0.8-precision  # ⚠️ not yet merged to main;
-                                                                  # main still yields the v0.7.0 649 figures
+git clone https://github.com/feiiiiii5/failroute && cd failroute && git checkout v0.8.0
+# v0.8.0 is a public tag on main (merged 2026-09-03); PyPI 0.8.0 published 2026-09-03T08:06Z.
+# The earlier warning that main still yielded the v0.7.0 649 figures no longer applies.
 python -m venv .venv && . .venv/bin/activate
 pip install '.[test,paper]'         # tests + matplotlib + 4 linters + bugbear; NO manual installs
 python tools/fetch_corpus.py        # ~150 MB; version+sha256 pinned -> byte-identical to corpus-lock.json
