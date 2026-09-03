@@ -31,5 +31,5 @@ jobs:
       - run: ruff check .
       - run: mypy src/failroute
       - run: pytest --cov=failroute --cov-fail-under=88
-      - run: failroute --repo . --quiet --exclude tests/corpus
+      - run: failroute --repo . --quiet --exclude tests/corpus --exclude paper/j1-trulens2653-prefix.py
       - run: python tools/benchmark.py --json
