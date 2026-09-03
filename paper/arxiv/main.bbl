@@ -1,151 +1,199 @@
-\begin{thebibliography}{10}
+\begin{thebibliography}{23}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem{amershi2019}
+\bibitem[Amershi et~al.(2019)Amershi, Begel, Bird, DeLine, Gall, Kamar,
+  Nagappan, Nushi, and Zimmermann]{amershi2019}
 Saleema Amershi, Andrew Begel, Christian Bird, Robert DeLine, Harald Gall, Ece
   Kamar, Nachiappan Nagappan, Besmira Nushi, and Thomas Zimmermann.
 \newblock Software engineering for machine learning: A case study.
-\newblock In {\em 2019 IEEE/ACM 41st International Conference on Software
+\newblock In \emph{2019 IEEE/ACM 41st International Conference on Software
   Engineering: Software Engineering in Practice (ICSE-SEIP)}, pages 291--300,
   2019.
+\newblock \doi{10.1109/ICSE-SEIP.2019.00042}.
 
-\bibitem{ayewah2010}
+\bibitem[Ayewah and Pugh(2010)]{ayewah2010}
 Nathaniel Ayewah and William Pugh.
 \newblock The google findbugs fixit.
-\newblock In {\em Proceedings of the 19th international symposium on Software
+\newblock In \emph{Proceedings of the 19th international symposium on Software
   testing and analysis}, pages 241--252, 2010.
+\newblock \doi{10.1145/1831708.1831738}.
 
-\bibitem{depadua2017prevalence}
-Guilherme Bicalho De~Padua and Weiyi Shang.
+\bibitem[{Bicalho de P\'{a}dua} and Shang(2017{\natexlab{a}})]{depadua2017flow}
+Guilherme {Bicalho de P\'{a}dua} and Weiyi Shang.
+\newblock Revisiting exception handling practices with exception flow analysis.
+\newblock In \emph{2017 IEEE 17th International Working Conference on Source
+  Code Analysis and Manipulation (SCAM)}, pages 11--20, 2017{\natexlab{a}}.
+\newblock \doi{10.1109/SCAM.2017.16}.
+
+\bibitem[{Bicalho de P\'{a}dua} and
+  Shang(2017{\natexlab{b}})]{depadua2017prevalence}
+Guilherme {Bicalho de P\'{a}dua} and Weiyi Shang.
 \newblock Studying the prevalence of exception handling anti-patterns.
-\newblock In {\em 2017 IEEE/ACM 25th International Conference on Program
-  Comprehension (ICPC)}, pages 328--331, 2017.
+\newblock In \emph{2017 IEEE/ACM 25th International Conference on Program
+  Comprehension (ICPC)}, pages 328--331, 2017{\natexlab{b}}.
+\newblock \doi{10.1109/ICPC.2017.1}.
 
-\bibitem{breck2017}
+\bibitem[Breck et~al.(2017)Breck, Cai, Nielsen, Salib, and Sculley]{breck2017}
 Eric Breck, Shanqing Cai, Eric Nielsen, Michael Salib, and D.~Sculley.
 \newblock The ml test score: A rubric for ml production readiness and technical
   debt reduction.
-\newblock In {\em 2017 IEEE International Conference on Big Data (Big Data)},
+\newblock In \emph{2017 IEEE International Conference on Big Data (Big Data)},
   pages 1123--1132, 2017.
+\newblock \doi{10.1109/BigData.2017.8258038}.
 
-\bibitem{cabral2007}
+\bibitem[Cabral and Marques(2007)]{cabral2007}
 Bruno Cabral and Paulo Marques.
 \newblock Exception handling: A field study in java and .net.
-\newblock In {\em Lecture Notes in Computer Science}, pages 151--175, 2007.
+\newblock In \emph{ECOOP 2007 --- Object-Oriented Programming}, Lecture Notes
+  in Computer Science, pages 151--175. Springer Berlin Heidelberg, Berlin,
+  Heidelberg, 2007.
+\newblock \doi{10.1007/978-3-540-73589-2_8}.
 
-\bibitem{crisan2025}
+\bibitem[Crisan and McNutt(2025)]{crisan2025}
 Anamaria Crisan and Andrew~M McNutt.
 \newblock Linting is people! exploring the potential of human computation as a
   sociotechnical linter of data visualizations.
-\newblock In {\em Proceedings of the Extended Abstracts of the CHI Conference
+\newblock In \emph{Proceedings of the Extended Abstracts of the CHI Conference
   on Human Factors in Computing Systems}, pages 1--10, 2025.
+\newblock \doi{10.1145/3706599.3716230}.
 
-\bibitem{depadua2017flow}
-Guilherme~B. De~Padua and Weiyi Shang.
-\newblock Revisiting exception handling practices with exception flow analysis.
-\newblock In {\em 2017 IEEE 17th International Working Conference on Source
-  Code Analysis and Manipulation (SCAM)}, pages 11--20, 2017.
-
-\bibitem{dixit2023}
+\bibitem[Dixit(2023)]{dixit2023}
 Harish Dixit.
 \newblock Keytone: Silent data corruptions at scale.
-\newblock In {\em 2023 IEEE 29th International Symposium on On-Line Testing and
-  Robust System Design (IOLTS)}, pages 1--2, 2023.
+\newblock In \emph{2023 IEEE 29th International Symposium on On-Line Testing
+  and Robust System Design (IOLTS)}, pages 1--2, 2023.
+\newblock \doi{10.1109/IOLTS59296.2023.10224872}.
+\newblock Keynote abstract.
 
-\bibitem{do2022}
+\bibitem[Do et~al.(2022)Do, Wright, and Ali]{do2022}
 Lisa Nguyen~Quang Do, James~R. Wright, and Karim Ali.
 \newblock Why do software developers use static analysis tools? a user-centered
   study of developer needs and motivations.
-\newblock {\em IEEE Transactions on Software Engineering}, 48:835--847, 2022.
+\newblock \emph{IEEE Transactions on Software Engineering}, 48:\penalty0
+  835--847, 2022.
+\newblock \doi{10.1109/TSE.2020.3004525}.
 
-\bibitem{guo2023}
+\bibitem[Guo et~al.(2023)Guo, Tan, Liu, Liu, Lai, Yang, Li, Chen, Dong, and
+  Zhou]{guo2023}
 Zhaoqiang Guo, Tingting Tan, Shiran Liu, Xutong Liu, Wei Lai, Yibiao Yang,
   Yanhui Li, Lin Chen, Wei Dong, and Yuming Zhou.
 \newblock Mitigating false positive static analysis warnings: Progress,
   challenges, and opportunities.
-\newblock {\em IEEE Transactions on Software Engineering}, 49:5154--5188, 2023.
+\newblock \emph{IEEE Transactions on Software Engineering}, 49:\penalty0
+  5154--5188, 2023.
+\newblock \doi{10.1109/TSE.2023.3329667}.
 
-\bibitem{hu2025suppressed}
+\bibitem[Hu et~al.(2025)Hu, Wang, Rubin, and Pradel]{hu2025suppressed}
 Huimin Hu, Yingying Wang, Julia Rubin, and Michael Pradel.
 \newblock An empirical study of suppressed static analysis warnings.
-\newblock {\em Proceedings of the ACM on Software Engineering}, 2:290--311,
-  2025.
+\newblock \emph{Proceedings of the ACM on Software Engineering}, 2:\penalty0
+  290--311, 2025.
+\newblock \doi{10.1145/3715729}.
 
-\bibitem{johnson2013}
+\bibitem[Johnson et~al.(2013)Johnson, Song, Murphy-Hill, and
+  Bowdidge]{johnson2013}
 Brittany Johnson, Yoonki Song, Emerson Murphy-Hill, and Robert Bowdidge.
 \newblock Why don't software developers use static analysis tools to find bugs?
-\newblock In {\em 2013 35th International Conference on Software Engineering
+\newblock In \emph{2013 35th International Conference on Software Engineering
   (ICSE)}, pages 672--681, 2013.
+\newblock \doi{10.1109/ICSE.2013.6606613}.
 
-\bibitem{paleyes2022}
+\bibitem[Paleyes et~al.(2022)Paleyes, Urma, and Lawrence]{paleyes2022}
 Andrei Paleyes, Raoul-Gabriel Urma, and Neil~D. Lawrence.
 \newblock Challenges in deploying machine learning: A survey of case studies.
-\newblock {\em ACM Computing Surveys}, 55:1--29, 2022.
+\newblock \emph{ACM Computing Surveys}, 55:\penalty0 1--29, 2022.
+\newblock \doi{10.1145/3533378}.
 
-\bibitem{breck2019}
+\bibitem[Polyzotis et~al.(2019)Polyzotis, Zinkevich, Roy, Breck, and
+  Whang]{polyzotis2019}
 Neoklis Polyzotis, Martin Zinkevich, Sudip Roy, Eric Breck, and Steven Whang.
 \newblock Data validation for machine learning.
-\newblock In {\em Proceedings of the Machine Learning and Systems Conference
+\newblock In \emph{Proceedings of the Machine Learning and Systems Conference
   (MLSys) 2019}, 2019.
+\newblock URL
+  \url{https://proceedings.mlsys.org/paper_files/paper/2019/hash/928f1160e52192e3e0017fb63ab65391-Abstract.html}.
 
-\bibitem{querel2018}
+\bibitem[Querel and Rigby(2018)]{querel2018}
 Louis-Philippe Querel and Peter~C. Rigby.
 \newblock Warningsguru: integrating statistical bug models with static analysis
   to provide timely and specific bug warnings.
-\newblock In {\em Proceedings of the 2018 26th ACM Joint Meeting on European
+\newblock In \emph{Proceedings of the 2018 26th ACM Joint Meeting on European
   Software Engineering Conference and Symposium on the Foundations of Software
   Engineering}, pages 892--895, 2018.
+\newblock \doi{10.1145/3236024.3264599}.
 
-\bibitem{ruthruff2008}
+\bibitem[Ruthruff et~al.(2008)Ruthruff, Penix, Morgenthaler, Elbaum, and
+  Rothermel]{ruthruff2008}
 Joseph~R. Ruthruff, John Penix, J.~David Morgenthaler, Sebastian Elbaum, and
   Gregg Rothermel.
 \newblock Predicting accurate and actionable static analysis warnings.
-\newblock In {\em Proceedings of the 30th international conference on Software
+\newblock In \emph{Proceedings of the 30th international conference on Software
   engineering}, pages 341--350, 2008.
+\newblock \doi{10.1145/1368088.1368135}.
 
-\bibitem{sadowski2018}
-Caitlin Sadowski, Edward Aftandilian, Alex Eagle, Liam Miller-Cushon, and Ciera
-  Jaspan.
-\newblock Lessons from building static analysis tools at google.
-\newblock {\em Communications of the ACM}, 61:58--66, 2018.
-
-\bibitem{sadowski2015}
+\bibitem[Sadowski et~al.(2015)Sadowski, Van~Gogh, Jaspan, Soderberg, and
+  Winter]{sadowski2015}
 Caitlin Sadowski, Jeffrey Van~Gogh, Ciera Jaspan, Emma Soderberg, and Collin
   Winter.
 \newblock Tricorder: Building a program analysis ecosystem.
-\newblock In {\em 2015 IEEE/ACM 37th IEEE International Conference on Software
+\newblock In \emph{2015 IEEE/ACM 37th IEEE International Conference on Software
   Engineering}, pages 598--608, 2015.
+\newblock \doi{10.1109/ICSE.2015.76}.
 
-\bibitem{sambasivan2021}
+\bibitem[Sadowski et~al.(2018)Sadowski, Aftandilian, Eagle, Miller-Cushon, and
+  Jaspan]{sadowski2018}
+Caitlin Sadowski, Edward Aftandilian, Alex Eagle, Liam Miller-Cushon, and Ciera
+  Jaspan.
+\newblock Lessons from building static analysis tools at google.
+\newblock \emph{Communications of the ACM}, 61:\penalty0 58--66, 2018.
+\newblock \doi{10.1145/3188720}.
+
+\bibitem[Sambasivan et~al.(2021)Sambasivan, Kapania, Highfill, Akrong,
+  Paritosh, and Aroyo]{sambasivan2021}
 Nithya Sambasivan, Shivani Kapania, Hannah Highfill, Diana Akrong, Praveen
   Paritosh, and Lora~M Aroyo.
 \newblock ``everyone wants to do the model work, not the data work'': Data
   cascades in high-stakes ai.
-\newblock In {\em Proceedings of the 2021 CHI Conference on Human Factors in
+\newblock In \emph{Proceedings of the 2021 CHI Conference on Human Factors in
   Computing Systems}, pages 1--15, 2021.
+\newblock \doi{10.1145/3411764.3445518}.
 
-\bibitem{sawadpong2012}
+\bibitem[Sawadpong et~al.(2012)Sawadpong, Allen, and Williams]{sawadpong2012}
 Puntitra Sawadpong, Edward~B. Allen, and Byron~J. Williams.
 \newblock Exception handling defects: An empirical study.
-\newblock In {\em 2012 IEEE 14th International Symposium on High-Assurance
+\newblock In \emph{2012 IEEE 14th International Symposium on High-Assurance
   Systems Engineering}, pages 90--97, 2012.
+\newblock \doi{10.1109/HASE.2012.24}.
 
-\bibitem{sculley2015}
+\bibitem[Sculley et~al.(2015)Sculley, Holt, Golovin, Davydov, Phillips, Ebner,
+  Chaudhary, Young, Crespo, and Dennison]{sculley2015}
 D.~Sculley, Gary Holt, Daniel Golovin, Eugene Davydov, Todd Phillips, Dietmar
   Ebner, Vinay Chaudhary, Michael Young, Jean-Fran\c{c}ois Crespo, and Dan
   Dennison.
 \newblock Hidden technical debt in machine learning systems.
-\newblock In {\em Advances in Neural Information Processing Systems 28 (NeurIPS
-  2015)}, 2015.
+\newblock In \emph{Advances in Neural Information Processing Systems 28
+  (NeurIPS 2015)}, 2015.
+\newblock URL
+  \url{https://proceedings.neurips.cc/paper_files/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html}.
 
-\bibitem{yedida2023}
+\bibitem[Yedida et~al.(2023)Yedida, Kang, Tu, Yang, Lo, and
+  Menzies]{yedida2023}
 Rahul Yedida, Hong~Jin Kang, Huy Tu, Xueqi Yang, David Lo, and Tim Menzies.
 \newblock How to find actionable static analysis warnings: A case study with
   findbugs.
-\newblock {\em IEEE Transactions on Software Engineering}, 49:2856--2872, 2023.
+\newblock \emph{IEEE Transactions on Software Engineering}, 49:\penalty0
+  2856--2872, 2023.
+\newblock \doi{10.1109/TSE.2023.3234206}.
 
-\bibitem{zhang2022}
+\bibitem[Zhang et~al.(2022)Zhang, Harman, Ma, and Liu]{zhang2022}
 Jie~M. Zhang, Mark Harman, Lei Ma, and Yang Liu.
 \newblock Machine learning testing: Survey, landscapes and horizons.
-\newblock {\em IEEE Transactions on Software Engineering}, 48:1--36, 2022.
+\newblock \emph{IEEE Transactions on Software Engineering}, 48:\penalty0 1--36,
+  2022.
+\newblock \doi{10.1109/TSE.2019.2962027}.
 
 \end{thebibliography}

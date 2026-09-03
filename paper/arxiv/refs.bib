@@ -1,38 +1,54 @@
 % refs.bib for the failroute arXiv submission.
-% Generated 2026-08-31 by outsourcing task P1 from api.crossref.org/works/<DOI> responses
-% (each DOI re-resolved on 08-31; see 07-决策与待办/委外任务结果.md section P1).
-% Two entries (sculley2015, breck2019) have no DOI: NeurIPS and MLSys proceedings do not
-% register DOIs, so they carry an official `url` instead. That is a deliberate deviation
-% from the task spec wording "doi or eprint".
-% NOTE (P7, 08-31): for cabral2007 the Crossref record of DOI 10.1007/978-3-540-73589-2_8 returns
-% date-parts [[None]] (no year), so the original entry carried year={None}. year=2007 is taken from
-% the same record's container-title "ECOOP 2007 - Object-Oriented Programming". Verify before submission.
+%
+% Every entry was built from the Crossref record of its DOI
+% (api.crossref.org/works/<DOI>). The two entries without a DOI carry the
+% official proceedings URL instead, because NeurIPS and MLSys proceedings are not
+% DOI-registered; those two pages were fetched 2026-08-31. The cabral2007 and
+% dixit2023 records were re-checked against Crossref on 2026-09-03.
+%
+% cabral2007: the Crossref record for 10.1007/978-3-540-73589-2_8 returns empty
+% `issued` date-parts, so the year is not in that field; year=2007 is taken from
+% the same record's container-title. The booktitle below is that
+% container-title, "ECOOP 2007 - Object-Oriented Programming", rather than the
+% series name ("Lecture Notes in Computer Science") Crossref also returns.
+%
+% dixit2023: the title is reproduced exactly as registered ("Keytone", not
+% "Keynote"); the item is a two-page keynote abstract, hence the note field.
+%
+% polyzotis2019: author order follows the official MLSys proceedings page. DBLP
+% lists the same paper under the venue "SysML" with a different order.
+%
+% The de Padua surname is brace-bound so that BibTeX cannot split the particle
+% off, and so that both entries render the same author identically.
 
 @inproceedings{depadua2017prevalence,
-  author    = {Bicalho De Padua, Guilherme and Shang, Weiyi},
+  author    = {{Bicalho de P\'{a}dua}, Guilherme and Shang, Weiyi},
   title     = {Studying the Prevalence of Exception Handling Anti-Patterns},
   booktitle="2017 IEEE/ACM 25th International Conference on Program Comprehension (ICPC)",
   year      = {2017},
   doi       = {10.1109/ICPC.2017.1},
-  pages     = {328-331}
+  pages     = {328--331}
 }
 
 @inproceedings{depadua2017flow,
-  author    = {De Padua, Guilherme B. and Shang, Weiyi},
+  author    = {{Bicalho de P\'{a}dua}, Guilherme and Shang, Weiyi},
   title     = {Revisiting Exception Handling Practices with Exception Flow Analysis},
   booktitle="2017 IEEE 17th International Working Conference on Source Code Analysis and Manipulation (SCAM)",
   year      = {2017},
   doi       = {10.1109/SCAM.2017.16},
-  pages     = {11-20}
+  pages     = {11--20}
 }
 
-@inproceedings{cabral2007,
+@incollection{cabral2007,
   author    = {Cabral, Bruno and Marques, Paulo},
   title     = {Exception Handling: A Field Study in Java and .NET},
-  booktitle="Lecture Notes in Computer Science",
+  booktitle = {ECOOP 2007 --- Object-Oriented Programming},
+  series    = {Lecture Notes in Computer Science},
+  publisher = {Springer Berlin Heidelberg},
+  address   = {Berlin, Heidelberg},
   year      = {2007},
   doi       = {10.1007/978-3-540-73589-2_8},
-  pages     = {151-175}
+  pages     = {151--175}
 }
 
 @inproceedings{sawadpong2012,
@@ -41,7 +57,7 @@
   booktitle="2012 IEEE 14th International Symposium on High-Assurance Systems Engineering",
   year      = {2012},
   doi       = {10.1109/HASE.2012.24},
-  pages     = {90-97}
+  pages     = {90--97}
 }
 
 @inproceedings{johnson2013,
@@ -50,7 +66,7 @@
   booktitle="2013 35th International Conference on Software Engineering (ICSE)",
   year      = {2013},
   doi       = {10.1109/ICSE.2013.6606613},
-  pages     = {672-681}
+  pages     = {672--681}
 }
 
 @inproceedings{sadowski2015,
@@ -59,7 +75,7 @@
   booktitle="2015 IEEE/ACM 37th IEEE International Conference on Software Engineering",
   year      = {2015},
   doi       = {10.1109/ICSE.2015.76},
-  pages     = {598-608}
+  pages     = {598--608}
 }
 
 @inproceedings{ayewah2010,
@@ -68,7 +84,7 @@
   booktitle="Proceedings of the 19th international symposium on Software testing and analysis",
   year      = {2010},
   doi       = {10.1145/1831708.1831738},
-  pages     = {241-252}
+  pages     = {241--252}
 }
 
 @article{do2022,
@@ -78,7 +94,7 @@
   year      = {2022},
   doi       = {10.1109/TSE.2020.3004525},
   volume    = {48},
-  pages     = {835-847}
+  pages     = {835--847}
 }
 
 @inproceedings{ruthruff2008,
@@ -87,7 +103,7 @@
   booktitle="Proceedings of the 30th international conference on Software engineering",
   year      = {2008},
   doi       = {10.1145/1368088.1368135},
-  pages     = {341-350}
+  pages     = {341--350}
 }
 
 @inproceedings{sambasivan2021,
@@ -96,7 +112,7 @@
   booktitle="Proceedings of the 2021 CHI Conference on Human Factors in Computing Systems",
   year      = {2021},
   doi       = {10.1145/3411764.3445518},
-  pages     = {1-15}
+  pages     = {1--15}
 }
 
 @inproceedings{amershi2019,
@@ -105,7 +121,7 @@
   booktitle="2019 IEEE/ACM 41st International Conference on Software Engineering: Software Engineering in Practice (ICSE-SEIP)",
   year      = {2019},
   doi       = {10.1109/ICSE-SEIP.2019.00042},
-  pages     = {291-300}
+  pages     = {291--300}
 }
 
 @article{paleyes2022,
@@ -115,7 +131,7 @@
   year      = {2022},
   doi       = {10.1145/3533378},
   volume    = {55},
-  pages     = {1-29}
+  pages     = {1--29}
 }
 
 @inproceedings{breck2017,
@@ -124,7 +140,7 @@
   booktitle="2017 IEEE International Conference on Big Data (Big Data)",
   year      = {2017},
   doi       = {10.1109/BigData.2017.8258038},
-  pages     = {1123-1132}
+  pages     = {1123--1132}
 }
 
 @article{zhang2022,
@@ -134,7 +150,7 @@
   year      = {2022},
   doi       = {10.1109/TSE.2019.2962027},
   volume    = {48},
-  pages     = {1-36}
+  pages     = {1--36}
 }
 
 @inproceedings{dixit2023,
@@ -143,7 +159,8 @@
   booktitle="2023 IEEE 29th International Symposium on On-Line Testing and Robust System Design (IOLTS)",
   year      = {2023},
   doi       = {10.1109/IOLTS59296.2023.10224872},
-  pages     = {1-2}
+  pages     = {1--2},
+  note      = {Keynote abstract}
 }
 
 @article{sadowski2018,
@@ -153,7 +170,7 @@
   year      = {2018},
   doi       = {10.1145/3188720},
   volume    = {61},
-  pages     = {58-66}
+  pages     = {58--66}
 }
 
 @article{hu2025suppressed,
@@ -163,7 +180,7 @@
   year      = {2025},
   doi       = {10.1145/3715729},
   volume    = {2},
-  pages     = {290-311}
+  pages     = {290--311}
 }
 
 @article{yedida2023,
@@ -173,7 +190,7 @@
   year      = {2023},
   doi       = {10.1109/TSE.2023.3234206},
   volume    = {49},
-  pages     = {2856-2872}
+  pages     = {2856--2872}
 }
 
 @article{guo2023,
@@ -183,7 +200,7 @@
   year      = {2023},
   doi       = {10.1109/TSE.2023.3329667},
   volume    = {49},
-  pages     = {5154-5188}
+  pages     = {5154--5188}
 }
 
 @inproceedings{querel2018,
@@ -192,7 +209,7 @@
   booktitle="Proceedings of the 2018 26th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Software Engineering",
   year      = {2018},
   doi       = {10.1145/3236024.3264599},
-  pages     = {892-895}
+  pages     = {892--895}
 }
 
 @inproceedings{crisan2025,
@@ -201,10 +218,12 @@
   booktitle="Proceedings of the Extended Abstracts of the CHI Conference on Human Factors in Computing Systems",
   year      = {2025},
   doi       = {10.1145/3706599.3716230},
-  pages     = {1-10}
+  pages     = {1--10}
 }
 
-% No DOI: NeurIPS proceedings are not DOI-registered. Author list and venue taken from the official proceedings page fetched 2026-08-31.
+% No DOI: NeurIPS proceedings are not DOI-registered, so the official
+% proceedings URL is given instead. Author list and venue are those of that page
+% (fetched 2026-08-31).
 @inproceedings{sculley2015,
   author    = {D. Sculley and Gary Holt and Daniel Golovin and Eugene Davydov and Todd Phillips and Dietmar Ebner and Vinay Chaudhary and Michael Young and Jean-Fran\c{c}ois Crespo and Dan Dennison},
   title     = {Hidden Technical Debt in Machine Learning Systems},
@@ -213,8 +232,10 @@
   url       = {https://proceedings.neurips.cc/paper_files/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html}
 }
 
-% No DOI. Author order follows the official MLSys proceedings page (DBLP lists the same paper under venue "SysML" with a different order). Fetched 2026-08-31.
-@inproceedings{breck2019,
+% No DOI: MLSys proceedings are not DOI-registered, so the official proceedings
+% URL is given instead. Author order follows that page (fetched 2026-08-31);
+% see the header note.
+@inproceedings{polyzotis2019,
   author    = {Neoklis Polyzotis and Martin Zinkevich and Sudip Roy and Eric Breck and Steven Whang},
   title     = {Data Validation for Machine Learning},
   booktitle = {Proceedings of the Machine Learning and Systems Conference (MLSys) 2019},

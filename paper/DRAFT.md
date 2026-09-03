@@ -1,3 +1,17 @@
+> 🔴 **2026-09-03 起本文件已被 `paper/arxiv/main.tex` 取代，不再是论文真源。**
+>
+> 投稿源码 = **`paper/arxiv/main.tex`**（+ `refs.bib` / `figures/` / `main.bbl`）。
+> 本文件是历史阅读镜像，保留用于批次间溯源，**不要据它引用任何数字或措辞**。
+>
+> **已知漂移**（09-03 投稿级审计只改 `main.tex`，本文件按授权范围未同步）：
+> RQ1–RQ4 研究问题列表 · 检测器判定过程（静默集/logger 启发式/作用域规则/三道豁免闸）·
+> RQ1 匹配协议（`TOL = 1`）· 统计口径注记（Wilson vs 精确 Clopper–Pearson）·
+> 仓库与 PyPI 的 URL · uqlm 0/12 的双方法并列（Wilson 24.2 / 精确单侧 22.1）·
+> PR 的 owner 前缀 · Polyzotis/Dixit 的作者更正 · 复现命令（已钉到 tag `v0.8.0`）·
+> 摘要（已压到 1904 字符以适配 arXiv 表单）。
+>
+> 🔴 **要读论文请读 `paper/arxiv/main.pdf`（17 页）。**
+
 # How Often Is a Swallowed Failure a Bug? A Tri-Source Study of Except-Handler Failure-Routing in AI/ML Codebases
 
 **Draft v0.3 — N batch (overnight 09-02→09-03).** All numbers are the v0.8.0 frozen values
