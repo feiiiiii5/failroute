@@ -1,5 +1,5 @@
 {
-  "generated_at_utc8": "2026-09-03 12:23:51",
+  "generated_at_utc8": "2026-09-04 12:50:13",
   "method": "Wilson score interval, z=1.959963985 (two-sided 95%); zero-numerator cells also given the exact one-sided Clopper-Pearson upper bound 1-alpha**(1/n)",
   "recall_csv_columns": [
     "repo",
@@ -15,9 +15,111 @@
   ],
   "sensitivity_boundary": {
     "arm3_lower_pct_exact": 24.3763,
+    "arm3_upper_pct_exact": 52.1402,
     "boundary_n_at_k13": 86,
     "boundary_defect_share_pct": 17.99,
-    "corner_upper_at_boundary_pct": 24.1636
+    "corner_upper_at_boundary_pct": 24.1636,
+    "corner_upper_below_boundary_pct": 24.4282
+  },
+  "s_batch": {
+    "arm2_population": {
+      "tracked_sites_total": 2128,
+      "labels": {
+        "FIXED": 13,
+        "SURVIVED": 465,
+        "TOO_YOUNG": 924,
+        "VANISHED": 681,
+        "MUTATED": 45
+      },
+      "binary_labelled": 478,
+      "fixed": 13,
+      "discarded": 1650,
+      "discarded_pct": 77.54,
+      "binary_pct_of_tracked": 22.46,
+      "carries_failroute_rule": 185,
+      "carries_failroute_rule_pct": 38.7,
+      "deepteam_share_of_binary_pct": 59.41,
+      "deepteam_share_of_findings_pct": 22.54,
+      "deepteam_sites_under_metrics_or_vulnerabilities": 269,
+      "survived_days_span_min": 193.2,
+      "survived_versions_min": 4,
+      "fixed_pr_attributed": 9,
+      "arm3_duplicate_rows": 3,
+      "arm3_distinct_defects": 40
+    },
+    "risk_sets": {
+      "fixed_survived": {
+        "N": 478,
+        "deepteam": 284
+      },
+      "plus_mutated": {
+        "N": 523,
+        "deepteam": 284
+      },
+      "plus_vanished": {
+        "N": 1204,
+        "deepteam": 470
+      },
+      "all_tracked": {
+        "N": 2128,
+        "deepteam": 621
+      }
+    },
+    "weighted_defect_share": {
+      "frame": 649,
+      "frame_strata": 19,
+      "sample_items": 80,
+      "sample_items_in_frame_strata": 76,
+      "deepteam_items_in_frame": 13,
+      "sampling_fraction_min_pct": 8.9,
+      "sampling_fraction_max_pct": 50.0,
+      "unweighted_pct": 15.0,
+      "weighted_by_stratum_pct": 20.03,
+      "weighted_by_stratum_numerator": 130.0,
+      "weighted_by_package_pct": 19.91,
+      "weighted_by_package_numerator": 129.23,
+      "deepteam_labelled": "12/14",
+      "deepteam_wilson_pct": [
+        60.06,
+        95.99
+      ]
+    },
+    "extrapolated_defects": {
+      "deepteam_findings": 140,
+      "point": 120.0,
+      "low": 84.1,
+      "high": 134.4,
+      "other_seven_point": 0,
+      "naive_global_at_15pct": 93.1
+    },
+    "denominator_factors": {
+      "sdist_lines": 563270,
+      "scanned_lines": 524229,
+      "sdist_py_files": 2354,
+      "scanned_py_files": 2124,
+      "findings": 621,
+      "factor_scanned": 844.17,
+      "orders_scanned": 2.9264,
+      "factor_sdist": 907.04,
+      "orders_sdist": 2.9576
+    },
+    "baseline_symmetry": {
+      "ruff_narrow_select": "S110,S112",
+      "ruff_narrow_colocated": 72,
+      "ruff_symmetric_select": "S110,S112,BLE001",
+      "ruff_symmetric_colocated": 127,
+      "pylint_colocated": 245,
+      "union4_narrow": 250,
+      "union4_symmetric": 255,
+      "union5_narrow": 269,
+      "union5_symmetric": 274,
+      "only4_narrow": 371,
+      "only4_symmetric": 366,
+      "only5_narrow": 352,
+      "only5_symmetric": 347,
+      "ratio_pylint_over_ruff_narrow": 3.4028,
+      "ratio_pylint_over_ruff_symmetric": 1.9291
+    }
   },
   "cells": [
     {
@@ -30,6 +132,8 @@
       "wilson95_high": 0.2441,
       "wilson95_low_pct": 8.8,
       "wilson95_high_pct": 24.4,
+      "wilson95_low_pct2": 8.79,
+      "wilson95_high_pct2": 24.41,
       "width_pct": 15.6,
       "one_sided95_upper_pct": null,
       "note": "main RQ2 estimate"
@@ -44,6 +148,8 @@
       "wilson95_high": 0.873,
       "wilson95_low_pct": 70.0,
       "wilson95_high_pct": 87.3,
+      "wilson95_low_pct2": 69.95,
+      "wilson95_high_pct2": 87.3,
       "width_pct": 17.3,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -58,6 +164,8 @@
       "wilson95_high": 0.1216,
       "wilson95_low_pct": 2.0,
       "wilson95_high_pct": 12.2,
+      "wilson95_low_pct2": 1.96,
+      "wilson95_high_pct2": 12.16,
       "width_pct": 10.2,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -72,6 +180,8 @@
       "wilson95_high": 0.3809,
       "wilson95_low_pct": 14.6,
       "wilson95_high_pct": 38.1,
+      "wilson95_low_pct2": 14.6,
+      "wilson95_high_pct2": 38.09,
       "width_pct": 23.5,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -86,6 +196,8 @@
       "wilson95_high": 0.1431,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 14.3,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 14.31,
       "width_pct": 14.3,
       "one_sided95_upper_pct": 12.2,
       "note": ""
@@ -100,6 +212,8 @@
       "wilson95_high": 0.4899,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 49.0,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 48.99,
       "width_pct": 49.0,
       "one_sided95_upper_pct": 52.7,
       "note": ""
@@ -114,6 +228,8 @@
       "wilson95_high": 0.5615,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 56.1,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 56.15,
       "width_pct": 56.1,
       "one_sided95_upper_pct": 63.2,
       "note": ""
@@ -128,6 +244,8 @@
       "wilson95_high": 0.7935,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 79.3,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 79.35,
       "width_pct": 79.3,
       "one_sided95_upper_pct": 95.0,
       "note": ""
@@ -142,6 +260,8 @@
       "wilson95_high": 0.0857,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 8.6,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 8.57,
       "width_pct": 8.6,
       "one_sided95_upper_pct": 7.0,
       "note": ""
@@ -156,6 +276,8 @@
       "wilson95_high": 0.9599,
       "wilson95_low_pct": 60.1,
       "wilson95_high_pct": 96.0,
+      "wilson95_low_pct2": 60.06,
+      "wilson95_high_pct2": 95.99,
       "width_pct": 35.9,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -170,6 +292,8 @@
       "wilson95_high": 0.2588,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 25.9,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 25.88,
       "width_pct": 25.9,
       "one_sided95_upper_pct": 23.8,
       "note": ""
@@ -184,6 +308,8 @@
       "wilson95_high": 0.4899,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 49.0,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 48.99,
       "width_pct": 49.0,
       "one_sided95_upper_pct": 52.7,
       "note": ""
@@ -198,6 +324,8 @@
       "wilson95_high": 0.5615,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 56.1,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 56.15,
       "width_pct": 56.1,
       "one_sided95_upper_pct": 63.2,
       "note": ""
@@ -212,6 +340,8 @@
       "wilson95_high": 0.5615,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 56.1,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 56.15,
       "width_pct": 56.1,
       "one_sided95_upper_pct": 63.2,
       "note": ""
@@ -226,6 +356,8 @@
       "wilson95_high": 0.6576,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 65.8,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 65.76,
       "width_pct": 65.8,
       "one_sided95_upper_pct": 77.6,
       "note": ""
@@ -240,6 +372,8 @@
       "wilson95_high": 0.6576,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 65.8,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 65.76,
       "width_pct": 65.8,
       "one_sided95_upper_pct": 77.6,
       "note": ""
@@ -254,6 +388,8 @@
       "wilson95_high": 0.055,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 5.5,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 5.5,
       "width_pct": 5.5,
       "one_sided95_upper_pct": 4.4,
       "note": "the conservative read argued in the discussion"
@@ -268,6 +404,8 @@
       "wilson95_high": 0.2441,
       "wilson95_low_pct": 8.8,
       "wilson95_high_pct": 24.4,
+      "wilson95_low_pct2": 8.79,
+      "wilson95_high_pct2": 24.41,
       "width_pct": 15.6,
       "one_sided95_upper_pct": null,
       "note": "main RQ2 estimate"
@@ -282,6 +420,8 @@
       "wilson95_high": 0.873,
       "wilson95_low_pct": 70.0,
       "wilson95_high_pct": 87.3,
+      "wilson95_low_pct2": 69.95,
+      "wilson95_high_pct2": 87.3,
       "width_pct": 17.3,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -296,6 +436,8 @@
       "wilson95_high": 0.1216,
       "wilson95_low_pct": 2.0,
       "wilson95_high_pct": 12.2,
+      "wilson95_low_pct2": 1.96,
+      "wilson95_high_pct2": 12.16,
       "width_pct": 10.2,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -310,6 +452,8 @@
       "wilson95_high": 0.3809,
       "wilson95_low_pct": 14.6,
       "wilson95_high_pct": 38.1,
+      "wilson95_low_pct2": 14.6,
+      "wilson95_high_pct2": 38.09,
       "width_pct": 23.5,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -324,6 +468,8 @@
       "wilson95_high": 0.1431,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 14.3,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 14.31,
       "width_pct": 14.3,
       "one_sided95_upper_pct": 12.2,
       "note": ""
@@ -338,6 +484,8 @@
       "wilson95_high": 0.4899,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 49.0,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 48.99,
       "width_pct": 49.0,
       "one_sided95_upper_pct": 52.7,
       "note": ""
@@ -352,6 +500,8 @@
       "wilson95_high": 0.5615,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 56.1,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 56.15,
       "width_pct": 56.1,
       "one_sided95_upper_pct": 63.2,
       "note": ""
@@ -366,6 +516,8 @@
       "wilson95_high": 0.7935,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 79.3,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 79.35,
       "width_pct": 79.3,
       "one_sided95_upper_pct": 95.0,
       "note": ""
@@ -380,6 +532,8 @@
       "wilson95_high": 0.0857,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 8.6,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 8.57,
       "width_pct": 8.6,
       "one_sided95_upper_pct": 7.0,
       "note": ""
@@ -394,6 +548,8 @@
       "wilson95_high": 0.9599,
       "wilson95_low_pct": 60.1,
       "wilson95_high_pct": 96.0,
+      "wilson95_low_pct2": 60.06,
+      "wilson95_high_pct2": 95.99,
       "width_pct": 35.9,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -408,6 +564,8 @@
       "wilson95_high": 0.2588,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 25.9,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 25.88,
       "width_pct": 25.9,
       "one_sided95_upper_pct": 23.8,
       "note": ""
@@ -422,6 +580,8 @@
       "wilson95_high": 0.4899,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 49.0,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 48.99,
       "width_pct": 49.0,
       "one_sided95_upper_pct": 52.7,
       "note": ""
@@ -436,6 +596,8 @@
       "wilson95_high": 0.5615,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 56.1,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 56.15,
       "width_pct": 56.1,
       "one_sided95_upper_pct": 63.2,
       "note": ""
@@ -450,6 +612,8 @@
       "wilson95_high": 0.5615,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 56.1,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 56.15,
       "width_pct": 56.1,
       "one_sided95_upper_pct": 63.2,
       "note": ""
@@ -464,6 +628,8 @@
       "wilson95_high": 0.6576,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 65.8,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 65.76,
       "width_pct": 65.8,
       "one_sided95_upper_pct": 77.6,
       "note": ""
@@ -478,6 +644,8 @@
       "wilson95_high": 0.6576,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 65.8,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 65.76,
       "width_pct": 65.8,
       "one_sided95_upper_pct": 77.6,
       "note": ""
@@ -492,6 +660,8 @@
       "wilson95_high": 0.055,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 5.5,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 5.5,
       "width_pct": 5.5,
       "one_sided95_upper_pct": 4.4,
       "note": "the conservative read argued in the discussion"
@@ -506,6 +676,8 @@
       "wilson95_high": 0.4416,
       "wilson95_low_pct": 36.5,
       "wilson95_high_pct": 44.2,
+      "wilson95_low_pct2": 36.47,
+      "wilson95_high_pct2": 44.16,
       "width_pct": 7.7,
       "one_sided95_upper_pct": null,
       "note": "source: bench/corpus-coverage-union.json"
@@ -520,6 +692,8 @@
       "wilson95_high": 0.5032,
       "wilson95_low_pct": 40.4,
       "wilson95_high_pct": 50.3,
+      "wilson95_low_pct2": 40.44,
+      "wilson95_high_pct2": 50.32,
       "width_pct": 9.9,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -534,6 +708,8 @@
       "wilson95_high": 0.4039,
       "wilson95_low_pct": 27.8,
       "wilson95_high_pct": 40.4,
+      "wilson95_low_pct2": 27.79,
+      "wilson95_high_pct2": 40.39,
       "width_pct": 12.6,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -548,6 +724,8 @@
       "wilson95_high": 0.1682,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 16.8,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 16.82,
       "width_pct": 16.8,
       "one_sided95_upper_pct": 14.6,
       "note": ""
@@ -562,6 +740,8 @@
       "wilson95_high": 1.0,
       "wilson95_low_pct": 43.9,
       "wilson95_high_pct": 100.0,
+      "wilson95_low_pct2": 43.85,
+      "wilson95_high_pct2": 100.0,
       "width_pct": 56.1,
       "one_sided95_upper_pct": null,
       "note": ""
@@ -576,6 +756,8 @@
       "wilson95_high": 0.4301,
       "wilson95_low_pct": 6.6,
       "wilson95_high_pct": 43.0,
+      "wilson95_low_pct2": 6.59,
+      "wilson95_high_pct2": 43.01,
       "width_pct": 36.4,
       "one_sided95_upper_pct": null,
       "note": "re-counted from paper/merged-pr-recall.csv (belongs_to_family == yes)"
@@ -590,6 +772,8 @@
       "wilson95_high": 0.4759,
       "wilson95_low_pct": 7.6,
       "wilson95_high_pct": 47.6,
+      "wilson95_low_pct2": 7.57,
+      "wilson95_high_pct2": 47.59,
       "width_pct": 40.0,
       "one_sided95_upper_pct": null,
       "note": "detected in (yes,no); n/a rows excluded as out of language/rule scope"
@@ -604,9 +788,11 @@
       "wilson95_high": 0.046,
       "wilson95_low_pct": 1.6,
       "wilson95_high_pct": 4.6,
+      "wilson95_low_pct2": 1.6,
+      "wilson95_high_pct2": 4.6,
       "width_pct": 3.0,
       "one_sided95_upper_pct": null,
-      "note": "companion-repo dataset.jsonl over the 8 pinned packages"
+      "note": "paper/arm2-tracked-sites.csv, labels FIXED|SURVIVED over the 8 pinned packages"
     },
     {
       "group": "triangulation",
@@ -618,6 +804,8 @@
       "wilson95_high": 0.2425,
       "wilson95_low_pct": 0.0,
       "wilson95_high_pct": 24.2,
+      "wilson95_low_pct2": 0.0,
+      "wilson95_high_pct2": 24.25,
       "width_pct": 24.2,
       "one_sided95_upper_pct": 22.1,
       "note": "package-level matched approximation (context, not a test)"
@@ -632,6 +820,8 @@
       "wilson95_high": 0.5214,
       "wilson95_low_pct": 24.4,
       "wilson95_high_pct": 52.1,
+      "wilson95_low_pct2": 24.38,
+      "wilson95_high_pct2": 52.14,
       "width_pct": 27.8,
       "one_sided95_upper_pct": null,
       "note": "denominator = 16 merged + 27 closed-unmerged"
@@ -646,9 +836,27 @@
       "wilson95_high": 0.8203,
       "wilson95_low_pct": 46.7,
       "wilson95_high_pct": 82.0,
+      "wilson95_low_pct2": 46.71,
+      "wilson95_high_pct2": 82.03,
       "width_pct": 35.3,
       "one_sided95_upper_pct": null,
       "note": "the 16/24 figure quoted in the paper"
+    },
+    {
+      "group": "triangulation",
+      "label": "arm 3 on a distinct-defect denominator",
+      "numerator": 16,
+      "denominator": 40,
+      "point": 0.4,
+      "wilson95_low": 0.2635,
+      "wilson95_high": 0.554,
+      "wilson95_low_pct": 26.3,
+      "wilson95_high_pct": 55.4,
+      "wilson95_low_pct2": 26.35,
+      "wilson95_high_pct2": 55.4,
+      "width_pct": 29.1,
+      "one_sided95_upper_pct": null,
+      "note": "3 of the 27 closed-unmerged family rows are marked duplicate-of, or substance-shared with, a counted row"
     },
     {
       "group": "triangulation",
@@ -660,6 +868,8 @@
       "wilson95_high": 1.0,
       "wilson95_low_pct": 56.6,
       "wilson95_high_pct": 100.0,
+      "wilson95_low_pct2": 56.55,
+      "wilson95_high_pct2": 100.0,
       "width_pct": 43.4,
       "one_sided95_upper_pct": null,
       "note": "package-level matched approximation (context, not a test)"
@@ -674,9 +884,11 @@
       "wilson95_high": 0.046,
       "wilson95_low_pct": 1.6,
       "wilson95_high_pct": 4.6,
+      "wilson95_low_pct2": 1.6,
+      "wilson95_high_pct2": 4.6,
       "width_pct": 3.0,
       "one_sided95_upper_pct": null,
-      "note": "hypothetical composition; see sec:tri tab:sens"
+      "note": "N-batch single-axis corners; superseded in the paper by the rebase* groups"
     },
     {
       "group": "sensitivity",
@@ -688,9 +900,11 @@
       "wilson95_high": 0.1483,
       "wilson95_low_pct": 5.4,
       "wilson95_high_pct": 14.8,
+      "wilson95_low_pct2": 5.35,
+      "wilson95_high_pct2": 14.83,
       "width_pct": 9.5,
       "one_sided95_upper_pct": null,
-      "note": "hypothetical composition; see sec:tri tab:sens"
+      "note": "N-batch single-axis corners; superseded in the paper by the rebase* groups"
     },
     {
       "group": "sensitivity",
@@ -702,9 +916,11 @@
       "wilson95_high": 0.2416,
       "wilson95_low_pct": 9.1,
       "wilson95_high_pct": 24.2,
+      "wilson95_low_pct2": 9.05,
+      "wilson95_high_pct2": 24.16,
       "width_pct": 15.1,
       "one_sided95_upper_pct": null,
-      "note": "hypothetical composition; see sec:tri tab:sens"
+      "note": "N-batch single-axis corners; superseded in the paper by the rebase* groups"
     },
     {
       "group": "sensitivity",
@@ -716,9 +932,11 @@
       "wilson95_high": 0.2443,
       "wilson95_low_pct": 9.2,
       "wilson95_high_pct": 24.4,
+      "wilson95_low_pct2": 9.16,
+      "wilson95_high_pct2": 24.43,
       "width_pct": 15.3,
       "one_sided95_upper_pct": null,
-      "note": "hypothetical composition; see sec:tri tab:sens"
+      "note": "N-batch single-axis corners; superseded in the paper by the rebase* groups"
     },
     {
       "group": "sensitivity",
@@ -730,9 +948,11 @@
       "wilson95_high": 0.2848,
       "wilson95_low_pct": 10.9,
       "wilson95_high_pct": 28.5,
+      "wilson95_low_pct2": 10.87,
+      "wilson95_high_pct2": 28.48,
       "width_pct": 17.6,
       "one_sided95_upper_pct": null,
-      "note": "hypothetical composition; see sec:tri tab:sens"
+      "note": "N-batch single-axis corners; superseded in the paper by the rebase* groups"
     },
     {
       "group": "sensitivity",
@@ -744,9 +964,11 @@
       "wilson95_high": 0.1701,
       "wilson95_low_pct": 3.9,
       "wilson95_high_pct": 17.0,
+      "wilson95_low_pct2": 3.88,
+      "wilson95_high_pct2": 17.01,
       "width_pct": 13.1,
       "one_sided95_upper_pct": null,
-      "note": "hypothetical composition; see sec:tri tab:sens"
+      "note": "N-batch single-axis corners; superseded in the paper by the rebase* groups"
     },
     {
       "group": "sensitivity",
@@ -758,9 +980,299 @@
       "wilson95_high": 0.0957,
       "wilson95_low_pct": 0.8,
       "wilson95_high_pct": 9.6,
+      "wilson95_low_pct2": 0.77,
+      "wilson95_high_pct2": 9.57,
       "width_pct": 8.8,
       "one_sided95_upper_pct": null,
-      "note": "hypothetical composition; see sec:tri tab:sens"
+      "note": "N-batch single-axis corners; superseded in the paper by the rebase* groups"
+    },
+    {
+      "group": "rebase478",
+      "label": "risk set fixed_survived x unweighted 12/80 (deprecated as an estimator)",
+      "numerator": 13,
+      "denominator": 72,
+      "point": 0.1806,
+      "wilson95_low": 0.1087,
+      "wilson95_high": 0.2848,
+      "wilson95_low_pct": 10.9,
+      "wilson95_high_pct": 28.5,
+      "wilson95_low_pct2": 10.87,
+      "wilson95_high_pct2": 28.48,
+      "width_pct": 17.6,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase478",
+      "label": "risk set fixed_survived x design-weighted by rule x package stratum",
+      "numerator": 13,
+      "denominator": 96,
+      "point": 0.1354,
+      "wilson95_low": 0.0809,
+      "wilson95_high": 0.218,
+      "wilson95_low_pct": 8.1,
+      "wilson95_high_pct": 21.8,
+      "wilson95_low_pct2": 8.09,
+      "wilson95_high_pct2": 21.8,
+      "width_pct": 13.7,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase478",
+      "label": "risk set fixed_survived x design-weighted by package, frame-restricted",
+      "numerator": 13,
+      "denominator": 95,
+      "point": 0.1368,
+      "wilson95_low": 0.0817,
+      "wilson95_high": 0.2202,
+      "wilson95_low_pct": 8.2,
+      "wilson95_high_pct": 22.0,
+      "wilson95_low_pct2": 8.17,
+      "wilson95_high_pct2": 22.02,
+      "width_pct": 13.8,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase478",
+      "label": "risk set fixed_survived x package composition (deepteam-specific rate)",
+      "numerator": 13,
+      "denominator": 243,
+      "point": 0.0535,
+      "wilson95_low": 0.0315,
+      "wilson95_high": 0.0894,
+      "wilson95_low_pct": 3.2,
+      "wilson95_high_pct": 8.9,
+      "wilson95_low_pct2": 3.15,
+      "wilson95_high_pct2": 8.94,
+      "width_pct": 5.8,
+      "one_sided95_upper_pct": null,
+      "note": "284 deepteam sites x labelled rate 12/14"
+    },
+    {
+      "group": "rebase523",
+      "label": "risk set plus_mutated x unweighted 12/80 (deprecated as an estimator)",
+      "numerator": 13,
+      "denominator": 78,
+      "point": 0.1667,
+      "wilson95_low": 0.1001,
+      "wilson95_high": 0.2646,
+      "wilson95_low_pct": 10.0,
+      "wilson95_high_pct": 26.5,
+      "wilson95_low_pct2": 10.01,
+      "wilson95_high_pct2": 26.46,
+      "width_pct": 16.4,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase523",
+      "label": "risk set plus_mutated x design-weighted by rule x package stratum",
+      "numerator": 13,
+      "denominator": 105,
+      "point": 0.1238,
+      "wilson95_low": 0.0738,
+      "wilson95_high": 0.2004,
+      "wilson95_low_pct": 7.4,
+      "wilson95_high_pct": 20.0,
+      "wilson95_low_pct2": 7.38,
+      "wilson95_high_pct2": 20.04,
+      "width_pct": 12.7,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase523",
+      "label": "risk set plus_mutated x design-weighted by package, frame-restricted",
+      "numerator": 13,
+      "denominator": 104,
+      "point": 0.125,
+      "wilson95_low": 0.0745,
+      "wilson95_high": 0.2022,
+      "wilson95_low_pct": 7.5,
+      "wilson95_high_pct": 20.2,
+      "wilson95_low_pct2": 7.45,
+      "wilson95_high_pct2": 20.22,
+      "width_pct": 12.8,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase523",
+      "label": "risk set plus_mutated x package composition (deepteam-specific rate)",
+      "numerator": 13,
+      "denominator": 243,
+      "point": 0.0535,
+      "wilson95_low": 0.0315,
+      "wilson95_high": 0.0894,
+      "wilson95_low_pct": 3.2,
+      "wilson95_high_pct": 8.9,
+      "wilson95_low_pct2": 3.15,
+      "wilson95_high_pct2": 8.94,
+      "width_pct": 5.8,
+      "one_sided95_upper_pct": null,
+      "note": "284 deepteam sites x labelled rate 12/14"
+    },
+    {
+      "group": "rebase1204",
+      "label": "risk set plus_vanished x unweighted 12/80 (deprecated as an estimator)",
+      "numerator": 13,
+      "denominator": 181,
+      "point": 0.0718,
+      "wilson95_low": 0.0425,
+      "wilson95_high": 0.119,
+      "wilson95_low_pct": 4.2,
+      "wilson95_high_pct": 11.9,
+      "wilson95_low_pct2": 4.25,
+      "wilson95_high_pct2": 11.9,
+      "width_pct": 7.7,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase1204",
+      "label": "risk set plus_vanished x design-weighted by rule x package stratum",
+      "numerator": 13,
+      "denominator": 241,
+      "point": 0.0539,
+      "wilson95_low": 0.0318,
+      "wilson95_high": 0.0901,
+      "wilson95_low_pct": 3.2,
+      "wilson95_high_pct": 9.0,
+      "wilson95_low_pct2": 3.18,
+      "wilson95_high_pct2": 9.01,
+      "width_pct": 5.8,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase1204",
+      "label": "risk set plus_vanished x design-weighted by package, frame-restricted",
+      "numerator": 13,
+      "denominator": 240,
+      "point": 0.0542,
+      "wilson95_low": 0.0319,
+      "wilson95_high": 0.0905,
+      "wilson95_low_pct": 3.2,
+      "wilson95_high_pct": 9.0,
+      "wilson95_low_pct2": 3.19,
+      "wilson95_high_pct2": 9.05,
+      "width_pct": 5.9,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase1204",
+      "label": "risk set plus_vanished x package composition (deepteam-specific rate)",
+      "numerator": 13,
+      "denominator": 403,
+      "point": 0.0323,
+      "wilson95_low": 0.0189,
+      "wilson95_high": 0.0544,
+      "wilson95_low_pct": 1.9,
+      "wilson95_high_pct": 5.4,
+      "wilson95_low_pct2": 1.89,
+      "wilson95_high_pct2": 5.44,
+      "width_pct": 3.5,
+      "one_sided95_upper_pct": null,
+      "note": "470 deepteam sites x labelled rate 12/14"
+    },
+    {
+      "group": "rebase2128",
+      "label": "risk set all_tracked x unweighted 12/80 (deprecated as an estimator)",
+      "numerator": 13,
+      "denominator": 319,
+      "point": 0.0408,
+      "wilson95_low": 0.024,
+      "wilson95_high": 0.0685,
+      "wilson95_low_pct": 2.4,
+      "wilson95_high_pct": 6.8,
+      "wilson95_low_pct2": 2.4,
+      "wilson95_high_pct2": 6.85,
+      "width_pct": 4.4,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase2128",
+      "label": "risk set all_tracked x design-weighted by rule x package stratum",
+      "numerator": 13,
+      "denominator": 426,
+      "point": 0.0305,
+      "wilson95_low": 0.0179,
+      "wilson95_high": 0.0515,
+      "wilson95_low_pct": 1.8,
+      "wilson95_high_pct": 5.2,
+      "wilson95_low_pct2": 1.79,
+      "wilson95_high_pct2": 5.15,
+      "width_pct": 3.4,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase2128",
+      "label": "risk set all_tracked x design-weighted by package, frame-restricted",
+      "numerator": 13,
+      "denominator": 424,
+      "point": 0.0307,
+      "wilson95_low": 0.018,
+      "wilson95_high": 0.0517,
+      "wilson95_low_pct": 1.8,
+      "wilson95_high_pct": 5.2,
+      "wilson95_low_pct2": 1.8,
+      "wilson95_high_pct2": 5.17,
+      "width_pct": 3.4,
+      "one_sided95_upper_pct": null,
+      "note": "S-batch 2-D sensitivity; see sec:tri tab:sens"
+    },
+    {
+      "group": "rebase2128",
+      "label": "risk set all_tracked x package composition (deepteam-specific rate)",
+      "numerator": 13,
+      "denominator": 532,
+      "point": 0.0244,
+      "wilson95_low": 0.0143,
+      "wilson95_high": 0.0414,
+      "wilson95_low_pct": 1.4,
+      "wilson95_high_pct": 4.1,
+      "wilson95_low_pct2": 1.43,
+      "wilson95_high_pct2": 4.14,
+      "width_pct": 2.7,
+      "one_sided95_upper_pct": null,
+      "note": "621 deepteam sites x labelled rate 12/14"
+    },
+    {
+      "group": "rebase478",
+      "label": "risk set fixed_survived x composition FLOOR (deepteam at its Wilson lower bound)",
+      "numerator": 13,
+      "denominator": 171,
+      "point": 0.076,
+      "wilson95_low": 0.045,
+      "wilson95_high": 0.1257,
+      "wilson95_low_pct": 4.5,
+      "wilson95_high_pct": 12.6,
+      "wilson95_low_pct2": 4.5,
+      "wilson95_high_pct2": 12.57,
+      "width_pct": 8.1,
+      "one_sided95_upper_pct": null,
+      "note": "most conservative composition cell; every other package taken as zero defects"
+    },
+    {
+      "group": "rebase1204",
+      "label": "REVERSE corner: every VANISHED site counted as maintainer action",
+      "numerator": 694,
+      "denominator": 1204,
+      "point": 0.5764,
+      "wilson95_low": 0.5483,
+      "wilson95_high": 0.604,
+      "wilson95_low_pct": 54.8,
+      "wilson95_high_pct": 60.4,
+      "wilson95_low_pct2": 54.83,
+      "wilson95_high_pct2": 60.4,
+      "width_pct": 5.6,
+      "one_sided95_upper_pct": null,
+      "note": "not supportable; arm 2 would exceed arm 3"
     }
   ]
 }
