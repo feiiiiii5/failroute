@@ -239,7 +239,7 @@ def figure3(cells):
                  scope_c['denominator']),
              fontsize=6.8, va='bottom', ha='left')
     fig.tight_layout()
-    save(fig, 'fig3_recall')
+    save(fig, 'fig3_recall_by_family')
 
 
 def main():

@@ -5,7 +5,8 @@
 %% the accompanying repository: the interval ledger, the recall ledger, the two
 %% label sets, the arm-3 closure ledger, and the scan exports under bench/. All
 %% are itemised, with the command that regenerates each, in the section
-%% "Reproduction and artefacts". Nothing is estimated.
+%% "Reproduction and artefacts". Where a figure is extrapolated or an interval
+%% is read as a superpopulation statement, the text says so at that point.
 %%
 %% Build (TeX Live): pdflatex main && bibtex main && pdflatex main && pdflatex main
 %% Build (single binary, used for the submitted PDF):
@@ -87,7 +88,8 @@ syntactic linters (250/621 $=$ 40.3\%), which covers 0 of the 19
 \texttt{contextlib.suppress} findings.
 
 A stratified sample ($n=80$) was labelled twice, both rounds by LLM agents, not
-humans; they agreed on all 80 --- shared bias, not quality. Twelve (15.0\%; 20.0\%
+humans; they agreed on all 80, which reflects shared bias, not annotation
+quality. Twelve (15.0\%; 20.0\%
 weighted by the sampling design) are genuine defects, 64 (80.0\%) deliberate
 contracts and 4 (5.0\%) false positives from a detector bug the labelling exposed;
 all 12 defects sit in one package.
@@ -130,8 +132,8 @@ we detected are defects is the hard half, and it is the half we do not fully
 solve.
 
 This work began with a narrower observation. A widely used Python linter
-recommends a refactoring that moves the pattern out of the view of every linter
-we tested, including the one that recommends it.
+recommends a refactoring that moves the pattern outside the detection scope of
+every linter we tested, including the one that recommends it.
 
 \paragraph{The \texttt{SIM105} observation.}
 \begin{itemize}[nosep,leftmargin=*]
@@ -147,8 +149,9 @@ we tested, including the one that recommends it.
   set, adds no rule that reports it (Section~\ref{sec:rq1}). A \texttt{semgrep}
   rule \emph{we wrote} covers 18 of the 19; citing it requires stating the rule is
   ours.
-\item A widely adopted refactoring therefore moves an entire defect shape out of
-  the tools' field of view while leaving its runtime consequences unchanged.
+\item A widely adopted refactoring therefore moves an entire defect shape
+  outside the detection scope of the tools while leaving its runtime
+  consequences unchanged.
 \end{itemize}
 
 \paragraph{Research questions.}
@@ -326,7 +329,13 @@ clones), each recorded with URL, SHA-256, upload time and extracted tree hash in
 \texttt{paper/corpus-lock.json}. Table~\ref{tab:corpus} lists them. Together the
 eight sdists hold 2{,}354 \texttt{.py} files and 563{,}270 lines; the scan roots the
 detector actually reads hold 2{,}124 files and 524{,}229 lines, and every prevalence
-figure in this paper is a ratio over the latter.
+figure in this paper is a ratio over the latter. Fetching is pinned rather than
+merely scripted: \texttt{tools/fetch\_corpus.py} resolves each package to the
+version recorded in \texttt{paper/corpus-manifest.json}, checks the downloaded
+archive's SHA-256 against the same manifest, and exits non-zero on mismatch, so a
+re-fetch either reproduces these inputs or fails loudly. A fresh fetch into a
+clean directory on 2026-09-02 reproduced all eight archives byte-identically (8/8
+SHA-256 matches against \texttt{corpus-lock.json}).
 
 \begin{table}[htbp]
 \centering\small
@@ -335,13 +344,7 @@ root} --- the subtree the detector actually scans --- so the column sums to the
 total shown (2{,}124 \texttt{.py} files / 524{,}229 lines). The eight pinned
 sdists contain \textbf{2{,}354} \texttt{.py} files / \textbf{563{,}270} lines in
 total; the difference is content outside the scan roots (tests, examples,
-vendored code). Fetching is pinned rather than merely scripted:
-\texttt{tools/fetch\_corpus.py} resolves each package to the version recorded in
-\texttt{paper/corpus-manifest.json}, checks the downloaded archive's SHA-256
-against the same manifest, and exits non-zero on mismatch, so a re-fetch either
-reproduces these inputs or fails loudly. A fresh fetch into a clean directory on
-2026-09-02 reproduced all eight archives byte-identically (8/8 SHA-256 matches
-against \texttt{corpus-lock.json}).}
+vendored code).}
 \label{tab:corpus}
 \begin{tabular}{@{}lllrr@{}}
 \toprule
@@ -450,7 +453,7 @@ Only a rule we wrote reaches them (18/19).}
 \label{tab:coverage}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
-Rule & Total & Covered by 4 & Covered by 5 & \texttt{failroute}-only (vs 4) \\
+Rule & Total & Covered by 4 & Covered by 5 & \texttt{failroute}-only vs 4-tool union \\
 \midrule
 \texttt{silent-fallback} & 386 & 175 & 176 & 211 \\
 \texttt{no-action} & 213 & 72 & 72 & 141 \\
@@ -699,15 +702,15 @@ classification can be checked against the public record.
 \centering\footnotesize
 \caption{Classification of the 16 family fixes
 (\texttt{paper/merged-pr-recall.csv}, all rows diff-read). ``Handler-shape gap''
-means design-reachable: a shape the detector could be extended to express, not
-one it misses by construction.}
+means design-reachable: a shape outside the current six that could be expressed
+without changing the handler-level design.}
 \label{tab:recall}
 \begin{tabular}{@{}rlp{9.9cm}@{}}
 \toprule
 Class & $n$ & Cases \\
 \midrule
-Out of scope for recall & 2 & one TypeScript change (language scope); one
-pre-fix crash with no family shape \\
+Out of scope for recall & 2 & one TypeScript-side change (language scope); one
+TypeScript-side pre-fix crash exhibiting no family shape \\
 \textbf{Detected} & \textbf{3} &
 \texttt{cvs-health/uqlm\#450},
 \texttt{Ishannaik/agent-sweep\#197},
@@ -716,10 +719,10 @@ Handler-shape gap & 2 &
 \texttt{UKGovernmentBEIS/inspect\_ai\#5068} (post-handler state
 mutation), \texttt{\#4906} (\texttt{tenacity} RetryError masking) --- both
 adjudicated as candidate patterns, not shipped \\
-\textbf{Non-handler routing} & \textbf{9} & NaN reaching aggregates, silent list
-filtering, branch-level \texttt{Score(0.0)}, implicit-\texttt{None} contract
-violations, silent character stripping, silent symbol dropping, laundered
-verdicts \\
+\textbf{Non-handler routing} & \textbf{9} & NaN values reaching aggregates,
+silently filtered lists, branch-level \texttt{Score(0.0)} returns,
+implicit-\texttt{None} contract violations, silently stripped characters,
+silently dropped symbols, laundered verdicts \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -738,7 +741,7 @@ we scope all claims in this paper to the except-handler subfamily accordingly.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figures/fig3_recall.pdf}
+\includegraphics[width=\textwidth]{figures/fig3_recall_by_family.pdf}
 \caption{Recall by defect family against the merged-fix ground truth.}
 \label{fig:recall}
 \end{figure}
@@ -764,33 +767,10 @@ three, with the ground truth each one rests on.
 \centering\small
 % The Value column has to be a wrapping p-column: an unwrapping `l` column puts
 % the long cells past the right margin.
-\caption{The three truth sources. Arm 2 ground truth is a maintainer-behaviour
-dataset over the same eight pinned packages, published as
-\texttt{paper/arm2-tracked-sites.csv}. The pipeline behind it tracked 2{,}128
-\texttt{try} sites across ten releases of each package and labelled 478 of them
-FIXED/SURVIVED, discarding 1{,}650 (77.5\%) as too young (924), vanished (681) or
-mutated (45); none of the 13 FIXED sites traces to an author report --- the 9
-PR-attributed fixes match no author PR, and the 4 unattributed ones were cleared
-by package and content check. Two properties of that population bound what arm 2
-can be compared against. Its tracking criterion (a handler carrying no raise, log
-or warn signal) is weaker than the six rules of Section~\ref{sec:detector}, so
-only 185 of the 478 rows (38.7\%) carry a \texttt{failroute} rule at the release
-where they were first observed. And its package mix is 59.4\% \texttt{deepteam},
-against 22.5\% of the 621 findings. Arm 3 ground truth
-is the merged/closed record of family fix PRs authored by the present author: the
-16 merged members are itemised in \texttt{paper/merged-pr-recall.csv} --- 8 of
-them in packages outside the tracked eight --- and the 27 closed-unmerged members
-are itemised, with per-PR closure reasons, in
-\texttt{paper/h1\_arm3\_classification.csv} (copied into this artefact set from
-the unreleased companion repository so the composition is third-party checkable):
-19 self-closed, 1 bot-closed, 3 closed without reaching the merits, 2
-substantively accepted, and 2 adverse on the merits. Excluding the 19
-self-closures, acceptance is 16/24 $=$ 66.7\% (46.7--82.0) at PR level --- one
-closure (\texttt{cvs-health/uqlm}\#427) shares its defect substance with a
-counted merge (\#462) and two more are duplicates of other submissions, so the 43
-PRs overcount distinct defects (40 distinct; see Limitation 3).}
+\caption{The three truth sources and the ground truth each rests on; the
+datasets behind arms 2 and 3 are described in the text below the table.}
 \label{tab:arms}
-\begin{tabular}{@{}p{2.9cm}p{3.1cm}p{4.4cm}r@{}}
+\begin{tabular}{@{}p{3.1cm}p{3.3cm}p{5.9cm}r@{}}
 \toprule
 Arm & Measures & Value & Wilson 95\% CI \\
 \midrule
@@ -804,8 +784,40 @@ prompting?'' & 13/478 $=$ 2.7\% of family sites ever fixed & 1.6--4.6 \\
 \end{tabular}
 \end{table}
 
+\paragraph{Ground truth behind arms 2 and 3.}
+Arm 2's ground truth is a maintainer-behaviour dataset over the same eight
+pinned packages, published as \texttt{paper/arm2-tracked-sites.csv}. The
+pipeline behind it tracked 2{,}128 \texttt{try} sites across ten releases of
+each package and labelled 478 of them FIXED/SURVIVED, discarding 1{,}650
+(77.5\%) as too young (924), vanished (681) or mutated (45); none of the 13
+FIXED sites traces to an author report --- the 9 PR-attributed fixes match no
+author PR, and the 4 unattributed ones were cleared by package and content
+check. Two properties of that population bound what arm 2 can be compared
+against. Its tracking criterion (a handler carrying no raise, log or warn
+signal) is weaker than the six rules of Section~\ref{sec:detector}, so only
+185 of the 478 rows (38.7\%) carry a \texttt{failroute} rule at the release
+where they were first observed. And its package mix is 59.4\% \texttt{deepteam},
+against 22.5\% of the 621 findings. Arm 3's ground truth is the merged/closed
+record of family fix PRs authored by the present author: the 16 merged members
+are itemised in \texttt{paper/merged-pr-recall.csv} --- 8 of them in packages
+outside the tracked eight --- and the 27 closed-unmerged members are itemised,
+with per-PR closure reasons, in \texttt{paper/h1\_arm3\_classification.csv}
+(copied into this artefact set from the unreleased companion repository so the
+composition is third-party checkable): 19 self-closed, 1 bot-closed, 3 closed
+without reaching the merits, 2 substantively accepted, and 2 adverse on the
+merits. Excluding the 19 self-closures, acceptance is 16/24 $=$ 66.7\%
+(46.7--82.0) at PR level --- one closure (\texttt{cvs-health/uqlm}\#427) shares
+its defect substance with a counted merge (\#462) and two more are duplicates of
+other submissions, so the 43 PRs overcount distinct defects (40 distinct; see
+Limitation 3).
+
 \paragraph{Verdict: directionally consistent, not established.}
-The natural headline reading is arithmetic: arm 3's interval lower bound
+The phrase ``directionally consistent'' is used in one operational sense
+throughout: no arm exhibits what the strong false-positive reading requires ---
+all contracts and maintainer rejection on the merits --- and the two arms that
+quantify maintainer behaviour line up the same way, spontaneous repair near zero
+and acceptance when told at 37.2\%. With that fixed, the natural headline
+reading is arithmetic: arm 3's interval lower bound
 (24.4\%) lies above arm 2's upper bound (4.6\%), the intervals are disjoint,
 and disjointness is read as supporting ``nobody noticed'' over ``false
 positive''. The arithmetic is right and the reading is not: what the two
@@ -1008,21 +1020,24 @@ We implemented a recursive exhaustiveness analysis
 \texttt{try/except/finally} and \texttt{match}, added six regression tests derived
 from the four real shapes (each failing before the fix), and re-ran the corpus.
 
-\textbf{\texttt{implicit-fallback} findings on 563k lines: 10 $\rightarrow$ 0.
+\textbf{\texttt{implicit-fallback} findings on the 524{,}229 lines the detector
+actually reads: 10 $\rightarrow$ 0.
 Total findings: 659 $\rightarrow$ 649 (v0.7.0).} The v0.8.0 precision release
 removed 28 more findings through four audited fixes (tuple-typed handlers,
 \texttt{warnings.warn} recognised as a signal, \texttt{StopAsyncIteration}
 added to the ignore list, conservative optional-dependency probe):
 \textbf{649 $\rightarrow$ 621}, with every deletion traceable to a labelled
 category or a mechanical criterion --- no labelled DEFECT was removed. The test
-suite grew over the same period, from 124 to 130 and then to \textbf{158}.
+suite grew over the same period, from 124 to 130 (the six regression tests of
+this subsection) and then to \textbf{158} (twenty-eight more with the v0.8.0
+precision release).
 
 Two things follow. First, the rule's entire real-world yield was false. Second,
-and this is the transferable point: \textbf{a stratified labelling pass is not
-only an evaluation instrument; it is the most efficient defect-finding method we
-applied to our own detector.} The unit corpus (68 samples, precision $=$ recall
-$= 1.0$) never exposed this bug, because the corpus was written by the same
-person, with the same blind spot, as the detector.
+\textbf{a stratified labelling pass is not only an evaluation instrument but the
+only method we applied that exposed a defect in our own detector.} The unit
+corpus (68 samples, precision $=$ recall $= 1.0$) never exposed this bug, because
+the corpus was written by the same person, with the same blind spot, as the
+detector.
 
 \section{Discussion}
 
@@ -1064,7 +1079,7 @@ author-selected pull requests --- so there is no population whose rate all three
 estimate. That is a limit of the data and not a theorem about the family, which is
 why we call it \emph{non-identifiability} rather than impossibility: the paper can
 name the observation that would identify it. What the triangulation establishes is
-narrower and, we believe, more useful: for this family neither spontaneous
+narrower: for this family neither spontaneous
 behaviour nor triangulation around it can validate a detector; the reason is
 quantifiable (a two-dimensional sensitivity,
 Table~\ref{tab:sens}); and the missing datum is nameable --- maintainer
@@ -1201,15 +1216,16 @@ al.~\cite{sawadpong2012} characterised exception-handling \emph{defects}; and de
 P\'adua and Shang quantified the prevalence of named exception-handling
 anti-patterns over a large corpus~\cite{depadua2017prevalence} and revisited
 developer practice through exception-flow analysis~\cite{depadua2017flow}. That
-line of work asks \emph{whether} anti-patterns occur and \emph{how often}. Our
-closest neighbour is it: we inherit the premise that handling shape is measurable,
-and change the question. On a corpus of Python AI/ML packages, the same syntactic
+line of work asks \emph{whether} anti-patterns occur and \emph{how often}, and it
+is our closest neighbour: we inherit its premise that handling shape is
+measurable, and change the question. On a corpus of Python AI/ML packages, the
+same syntactic
 shapes that read as anti-patterns are predominantly \emph{intended contracts} ---
 in our stratified sample of 80 sites, 80.0\% carried a contract reading and 5.0\%
 were outright false positives, with the defect share concentrated almost entirely
-in one package. Reporting a prevalence number without that breakdown leaves a
-reader unable to turn it into a triage instruction, which is the gap the present
-measurement addresses.
+in one package. A prevalence number without a per-site defect/contract breakdown
+does not by itself support a triage decision; supplying that breakdown is what
+the present measurement adds.
 
 \paragraph{Why generic rules get muted.}
 A second body of work explains the reception of such numbers. Developers report
@@ -1308,25 +1324,31 @@ the pinned corpus in \texttt{paper/corpus-lock.json}. All paths below are
 relative to the root of the public repository
 \url{https://github.com/feiiiiii5/failroute} (MIT licence); the detector itself is
 released as \texttt{failroute} on PyPI,
-\url{https://pypi.org/project/failroute/}. The version studied is 0.8.0, and the
-immutable tag \texttt{v0.8.0} pins the detector, the test suite and the corpus lock
-to which every prevalence and coverage number refers. Two things postdate that tag
-and live on the default branch: the arm-2 artefact
-\texttt{paper/arm2-tracked-sites.csv}, and the \texttt{rebase*} cells of
-\texttt{tools/compute\_intervals.py}. A reproducer who checks out \texttt{v0.8.0}
-regenerates the 621 findings, the 158 tests and the 250/621 union, but not the
-triangulation cells of Table~\ref{tab:sens}: at that tag the tool reads arm 2 from
-an unreleased companion repository, whereas the current tool reads it from the
-published CSV, so those cells need the default branch.
+\url{https://pypi.org/project/failroute/}. The version studied is 0.8.0 (PyPI),
+and the immutable tag \texttt{v0.8.0} pins the detector release. The artefact
+set the tables are computed from, however --- the arm-2 dataset
+\texttt{paper/arm2-tracked-sites.csv}, the \texttt{rebase*} cells of
+\texttt{tools/compute\_intervals.py}, and the symmetric-baseline variant of
+\texttt{coverage\_union.py} --- postdates that tag, so the reproduction below
+checks out a pinned commit instead: \texttt{d14e020}, the first commit that
+contains the complete set. A reproducer who checks out \texttt{v0.8.0} still
+regenerates the 621 findings, the 158 tests and the 250/621 union (all three
+re-verified on 2026-09-04), but \texttt{compute\_intervals.py} at that tag exits
+0 while silently writing a 41-cell ledger that contains no triangulation group
+at all, and the symmetric-baseline command below fails there with an
+unrecognised-argument error --- so the tag alone under-reproduces this paper
+without warning.
 
 \begin{verbatim}
 git clone https://github.com/feiiiiii5/failroute && cd failroute
-git checkout v0.8.0                 # the version every number here refers to
+git checkout d14e020                # pinned commit: every artefact the tables use
 python -m venv .venv && . .venv/bin/activate
 pip install '.[test,paper]'   # pytest + matplotlib + 4 linters + bugbear
 python tools/fetch_corpus.py         # pinned sdists -> paper/corpus/
     # version+sha256 pinned in paper/corpus-manifest.json; fetch verifies each
     # archive against paper/corpus-lock.json and exits non-zero on mismatch
+    # (it rewrites only the lock's generated_at_utc timestamp; the eight
+    # archive digests are what must match)
 PYTHONPATH=src python -m pytest                   # 158 tests
 PYTHONPATH=src python tools/rescan_corpus.py --out bench/rescan-paper
     # rescan with the current detector (total 621). Writes to bench/; do NOT
@@ -1398,7 +1420,7 @@ issue and pull-request records, every one cited by its public number, and the tw
 datasets derived from them are committed to the public repository and itemised in
 the list above, so that the classification can be audited row by row. The study
 analyses publicly recorded artefacts of professional work on public repositories,
-and no non-public data about identifiable individuals. The author's conflict of
+and uses no non-public data about identifiable individuals. The author's conflict of
 interest --- writing both the detector under evaluation and one of the five
 baselines --- is disclosed on the title page, and the results unfavourable to the
 tool are reported alongside the favourable ones.

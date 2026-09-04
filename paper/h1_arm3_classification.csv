@@ -1,5 +1,5 @@
 repo,pr,state,family,close_reason,note
-Giskard-AI/giskard-oss,2614,closed-unmerged,yes,closed-by-maintainer,"config params silently dropped by pydantic extra=ignore; fix adds warning. Closed: maintainer landed own PR #2623 covering it (concern accepted, fix superseded)"
+Giskard-AI/giskard-oss,2614,closed-unmerged,yes,closed-by-maintainer,"config params silently dropped by pydantic extra=ignore; fix adds warning. Closed unmerged; concern accepted upstream: #2623 (a third party, also closed unmerged) and this change landed as #2647, merged 2026-08-03, described in its own body as a formatted follow-up of #2623"
 HypothesisWorks/hypothesis,4837,closed-unmerged,yes,closed-by-maintainer,freeze() errors silently swallowed so tests passed (masked exception). Closed: repo AI-assistance policy link only
 HypothesisWorks/hypothesis,4839,closed-unmerged,yes,closed-by-maintainer,duplicate resubmission of 4837 (same diff). Closed: AI-assistance policy link only
 cvs-health/uqlm,427,closed-unmerged,yes,closed-by-maintainer,exception swallowed -> silently short/misaligned response list. Closed: maintainer asked for minimal split PRs; substance partially re-landed via merged #462
