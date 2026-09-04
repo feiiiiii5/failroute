@@ -41,6 +41,12 @@ SG = os.environ.get('SEMGREP', '/tmp/sgvenv/bin/semgrep')
 RULES = 'tools/semgrep-rules/exception-handling.yaml'
 LOCK = json.load(open('paper/corpus-lock.json', encoding='utf-8'))
 TOL = 1
+# S batch (baseline fairness, review item M4): the rule set ruff is invoked with is
+# a parameter, not a literal, so the symmetric variant can be measured with the
+# *same* co-location implementation (TOL, file resolution, union logic) instead of
+# a second one. The default is unchanged, so every existing caller and every
+# committed artifact reproduces byte-for-byte apart from generated_at_utc.
+RUFF_SELECT = 'S110,S112'
 
 def sh(c, t=900):
     r = subprocess.run(c, capture_output=True, text=True, timeout=t)
@@ -58,7 +64,7 @@ def sh(c, t=900):
     return r
 
 def ruff(r):
-    o = sh([PY,'-m','ruff','check','--no-cache','--isolated','--select','S110,S112','--output-format','json',r]).stdout
+    o = sh([PY,'-m','ruff','check','--no-cache','--isolated','--select',RUFF_SELECT,'--output-format','json',r]).stdout
     return [(os.path.abspath(d['filename']), d['location']['row']) for d in json.loads(o or '[]')]
 def bandit(r):
     o = sh([PY,'-m','bandit','-r',r,'-f','json','-t','B110,B112','-q']).stdout
@@ -133,7 +139,12 @@ parser.add_argument('--out', default='bench/corpus-coverage-union.json',
                     help='where to write the union summary JSON')
 parser.add_argument('--with-semgrep', action='store_true',
                     help='add the hand-written semgrep rules as a 5th tool')
+parser.add_argument('--ruff-select', default='S110,S112',
+                    help="rule set ruff is invoked with (default: the paper's S110,S112). "
+                         "S batch: pass 'S110,S112,BLE001' to give ruff its broad-except "
+                         "rule, symmetric to the pylint W0703 the other baselines already get.")
 args = parser.parse_args()
+RUFF_SELECT = args.ruff_select
 if args.with_semgrep:
     if not os.path.exists(SG):
         sys.exit(f'error: semgrep binary missing: {SG} (set SEMGREP)')
@@ -198,7 +209,7 @@ for n,_ in TOOLS:
     print(f"  {n:<16} 合计 {tot:<5} " + " ".join(f"{k}={v}" for k,v in per_tool[n].most_common()))
 
 json.dump({'generated_at_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),
- 'findings_dir':args.findings_dir,'tools':[n for n,_ in TOOLS],
+ 'findings_dir':args.findings_dir,'tools':[n for n,_ in TOOLS],'ruff_select':RUFF_SELECT,
  'line_tolerance':TOL,'failroute_total':fr_total,'union_covered':covered_total,
  'failroute_only':fr_total-covered_total,
  'union_covered_4tool_recheck':covered_total_4,
