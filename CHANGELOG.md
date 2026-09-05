@@ -157,10 +157,19 @@ crosstab, not this table.
 
 ### Known red, by design
 
-- `tools/closure_check.py` reports `git_clean FAIL` while this work is
-  uncommitted, and it is meant to: the `covered_by` fix is deliberately not
-  committed until the paper's numbers are final, so a field known to have been
-  wrong is never the tip of a branch.
+- `tools/closure_check.py` reports `git_clean FAIL` — but **no longer for the
+  reason originally written here.** That reason was that the `covered_by` fix
+  was deliberately held uncommitted until the paper's numbers were final, so a
+  field known to have been wrong was never the tip of a branch; the V4 seal
+  commit discharged it. The check still fails, for a much smaller one:
+  `paper/arxiv/main.out`, a hyperref build intermediate, is untracked and is
+  not in `.gitignore`, which already covers its three siblings `main.aux`,
+  `main.log` and `main.blg`. Measured 2026-09-05 after the seal: **7 checks
+  PASS, `git_clean` FAIL, "1 uncommitted path(s)"** — and that path is
+  `main.out`. Adding one line to `.gitignore` closes it. The V4 batch did not,
+  because `.gitignore` was not among the paths it was authorised to touch.
+  🔴 Note for `paper/ARTIFACT.md` §6.4, which tells a reviewer to expect
+  `CLOSURE: CLOSED (8/8)`: as of this commit the honest output is `1 FAIL`.
 - One bench case disagrees with a human label and is left disagreeing:
   `pydantic_ai/models/fallback.py:478`, `with suppress(Exception):` inside a
   telemetry method declared `-> None`, labelled CONTRACT. The label rests on
@@ -180,9 +189,16 @@ being the detector rather than the tooling. Both are closed:
   one severity level apart. That is strictly stronger than the original, since
   it fails both if the exemption comes back and if the downgrade is removed.
 - `F1.no_regression` pinned a test count that moved 158 → 185 in V1 and
-  185 → 221 in V3 when the mapping tests landed. Re-frozen at each step, with
-  the substance unchanged: zero failures, and a count that is pinned exactly
-  rather than bounded below (`--deselect` one test and it goes red).
+  185 → 221 in V3 when the mapping tests landed. Each move turned the claim red
+  and each fix meant editing a gate, which is the one thing the ledger's rules
+  exist to prevent. V4 removed the incentive instead of re-freezing a fourth
+  time: the expect is now a **floor** — at least 221 passed, *and* no `failed`
+  or `error` anywhere on the summary line — so deleting a test still goes red
+  while adding one no longer requires touching the gate. 🔴 This is not a
+  one-way loosening. The old exact form also matched `1 failed, 221 passed`, so
+  a suite of 222 with one failure passed the gate; the new form is strictly
+  tighter on failures and looser only on count. Both halves are demonstrated by
+  real pytest runs recorded in the claim's `stmt`, not by argument.
 
 The eleven `slow` claims that the V1 refactor turned red were **re-pinned, not
 rewritten**: `tools/pinned_rescan.py` rescans the locked corpus inside a v0.8.0

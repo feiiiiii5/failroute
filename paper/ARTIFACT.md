@@ -470,10 +470,29 @@ They are not: 621 is what `v0.8.0` reports, and `tools/pinned_rescan.py` reprodu
 than through the working tree — **11 of them, all marked `slow`**.
 
 The remainder of §6.4 is unchanged and still correct on 09-05: `fetch_corpus.py`
-(version + sha256 pinned per package), `closure_check.py`,
+(version + sha256 pinned per package),
 `coverage_union.py --findings-dir bench/rescan-f2` → **250/621 = 40.3%** (pinned by
 `V2.frame_621_reproducible_in_tree` and `F3.union_new_4tool`), and `make_figures.py`
 through the `[paper]` extra.
+
+🔴 **`closure_check.py` is a third superseded line, and not because of the batches.**
+§6.4 tells a reviewer to expect `CLOSURE: CLOSED (8/8)`. Measured after the V4 seal
+commit:
+
+```
+versions PASS · tests PASS · self_scan PASS · readme_numbers PASS
+artifact PASS · roadmap PASS · source_todos PASS · git_clean FAIL
+CLOSURE: 1 FAIL          git_clean detail: "1 uncommitted path(s)"
+```
+
+Seven of eight pass. `check_git_clean` counts lines of `git status --porcelain`, and
+the only line left in this repository is `?? paper/arxiv/main.out` — a hyperref build
+intermediate whose three siblings (`main.aux`, `main.log`, `main.blg`) are already in
+`.gitignore` (lines 24–27) while `main.out` is not. So the whole gap is one missing
+`.gitignore` line, not a defect in the study; it is documented rather than fixed
+because `.gitignore` was outside the V4 batch's authorised paths. `KNOWN_OPEN` in
+`closure_check.py` is an empty dict, so nothing is registered as expected-to-fail and
+the FAIL is reported straight rather than downgraded to `KNOWN-OPEN`.
 
 ### 7.2 New tools (6)
 
@@ -499,10 +518,17 @@ Three details a reproducer will otherwise trip on:
   the probes regenerate from the tool in ≈3 s.
 * 🔴 **`refix_replay.py`'s pre-correction source is a reconstruction embedded in the
   script, not a git object.** V1 and V3 were both uncommitted when it was written, so no
-  commit holds "pre-V3 but post-V1"; `HEAD`'s `_shared.py` is still `v0.8.0` and lacks
-  `handler_facts_for`, so a plain checkout raises `ImportError`. The script self-guards: it
-  verifies the scratch tree is really the module that got imported and exits loudly
-  otherwise (macOS `/var` vs `/private/var` aliasing made that check misfire once).
+  commit held "pre-V3 but post-V1"; at that time `HEAD` was `2e7e83c`, whose `_shared.py`
+  was still `v0.8.0` and lacked `handler_facts_for`, so a plain checkout raised
+  `ImportError`. 🔴 **The V4 seal does not fix that.** All four batches went in as **one**
+  commit (`410fe28`), so the intermediate state "post-V1, pre-V3" still exists nowhere in
+  the history and the embedded reconstruction remains the only route to the red half of the
+  correction's evidence. To be precise about what is and is not missing: `HEAD`'s
+  `_shared.py` now *does* define `handler_facts_for`, so the `ImportError` is gone — what
+  no commit ever held is the **pre-correction `covered_by_for`**, which is the thing the
+  replay needs. The script self-guards: it verifies the scratch tree is really the module
+  that got imported and exits loudly otherwise (macOS `/var` vs `/private/var` aliasing
+  made that check misfire once).
 
 Output actually measured on 09-05:
 
