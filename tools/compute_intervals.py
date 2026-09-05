@@ -8,12 +8,19 @@ closed form 1 - alpha**(1/n)) is also reported.
 
 Usage: cd 新项目-failroute && .venv/bin/python tools/compute_intervals.py
 Writes paper/intervals.json and prints a markdown table.
+
+Usage (V2 frame): .venv/bin/python tools/compute_intervals.py --rq5 [--out PATH]
+Computes the refactored-frame cells (coverage, label x novelty crosstab, cluster
+correction, bare/typed stratification, trivial E722 baseline) and writes
+bench/intervals-v2.json. It is a separate mode with a separate default output so
+that the frozen paper/intervals.json a committed claim pins stays byte-identical.
 """
 import csv
 import glob
 import json
 import math
 import os
+import re
 import sys
 import time
 from collections import Counter, defaultdict
@@ -44,6 +51,249 @@ def labels(path):
     with open(path, encoding='utf-8') as f:
         return {int(r['sample_index']): r for r in csv.DictReader(f)}
 
+
+
+def _rq5_handler_kind(path, lineno):
+    """Classify the except clause a labelled finding sits in, from corpus source.
+
+    Returns 'bare' | 'catch-all-typed' | 'narrow-typed' | 'no-handler'. The pinned
+    corpus is read-only; this only parses it. Matching is exact on the handler's own
+    first line (that is where every handler-shaped rule reports), with innermost-span
+    containment as a fallback so a rule that reports inside the body still resolves.
+    """
+    import ast
+    src = open(path, encoding='utf-8', errors='replace').read()
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return 'unparseable'
+    handlers = [n for n in ast.walk(tree) if isinstance(n, ast.ExceptHandler)]
+    exact = [h for h in handlers if h.lineno == lineno]
+    if not exact:
+        exact = [h for h in handlers
+                 if h.lineno <= lineno <= (h.end_lineno or h.lineno)]
+        if not exact:
+            return 'no-handler'
+        exact.sort(key=lambda h: (h.end_lineno or h.lineno) - h.lineno)
+    h = exact[0]
+    if h.type is None:
+        return 'bare'
+    names = set()
+
+    def dotted(node):
+        if isinstance(node, ast.Name):
+            return node.id
+        if isinstance(node, ast.Attribute):
+            return node.attr
+        return None
+
+    if isinstance(h.type, ast.Tuple):
+        names = {dotted(e) for e in h.type.elts}
+    else:
+        names = {dotted(h.type)}
+    if names & {'Exception', 'BaseException'}:
+        return 'catch-all-typed'
+    return 'narrow-typed'
+
+
+def main_rq5() -> None:
+    """V2-batch cells: the refactored (476-finding) frame and its label crosstab.
+
+    Separate output file on purpose. `paper/intervals.json` is a committed artefact
+    that a contractlens claim asserts is clean against HEAD; writing new cells there
+    would turn that gate red without any regression. Reuses this module's wilson() and
+    cp_upper_zero() so the canonical-interval iron law still holds -- there is exactly
+    one implementation of the formula in the tree.
+    """
+    os.chdir(ROOT)
+    OUT = sys.argv[sys.argv.index('--out') + 1] if '--out' in sys.argv \
+        else 'bench/intervals-v2.json'
+
+    REQ = ['paper/annotations.csv', 'paper/annotations-v2-additions.csv',
+           'bench/corpus-coverage-per-finding-v2.jsonl', 'bench/e722-baseline.json',
+           'bench/corpus-coverage-union.json', 'bench/corpus-coverage-union-v2.json']
+    for _p in REQ:
+        if not os.path.exists(_p):
+            sys.exit('error: required RQ5 input missing: %s' % _p)
+
+    cells = []
+
+    def add(group, label, k, n, note=''):
+        lo, hi = wilson(k, n)
+        cells.append({'group': group, 'label': label, 'numerator': k, 'denominator': n,
+                      'point': round(k / n, 4) if n else None,
+                      'wilson95_low': round(lo, 4), 'wilson95_high': round(hi, 4),
+                      'wilson95_low_pct': round(100 * lo, 1),
+                      'wilson95_high_pct': round(100 * hi, 1),
+                      'wilson95_low_pct2': round(100 * lo, 2),
+                      'wilson95_high_pct2': round(100 * hi, 2),
+                      'width_pct': round(100 * (hi - lo), 1),
+                      'one_sided95_upper_pct': round(100 * cp_upper_zero(n), 1) if k == 0 else None,
+                      'note': note})
+
+    def rows(path):
+        with open(path, encoding='utf-8') as f:
+            return list(csv.DictReader(f))
+
+    orig = rows('paper/annotations.csv')
+    adds = rows('paper/annotations-v2-additions.csv')
+    for r in adds:
+        r['_src'] = 'v2-additions'
+    for r in orig:
+        r['_src'] = 'annotations'
+    allab = orig + adds
+
+    # --- the refactored frame, keyed the way the labels are keyed -------------------
+    frame = {}
+    dupes = 0
+    for fn in sorted(glob.glob('bench/corpus-coverage-per-finding-v2.jsonl')):
+        for line in open(fn, encoding='utf-8'):
+            if not line.strip():
+                continue
+            d = json.loads(line)
+            k = (d['repo'], d['file'], int(d['lineno']))
+            if k in frame:
+                dupes += 1
+            frame[k] = d
+    if dupes:
+        print('[rq5] warning: %d duplicate (repo,file,lineno) keys in the v2 frame' % dupes)
+
+    joined, unjoined = [], []
+    for r in allab:
+        k = (r['repo'], r['file'], int(r['lineno']))
+        if k in frame:
+            r['_f'] = frame[k]
+            joined.append(r)
+        else:
+            unjoined.append(r)
+    # A near-miss diagnostic, not a second join: if labels fail to match because the
+    # refactor moved a finding's reported line, that is a property of the result and
+    # has to be disclosed rather than papered over by widening the window.
+    near = 0
+    for r in unjoined:
+        for off in (-2, -1, 1, 2):
+            if (r['repo'], r['file'], int(r['lineno']) + off) in frame:
+                near += 1
+                break
+
+    # --- coverage of the two frames by the same four-linter union -------------------
+    u621 = json.load(open('bench/corpus-coverage-union.json', encoding='utf-8'))
+    u476 = json.load(open('bench/corpus-coverage-union-v2.json', encoding='utf-8'))
+    add('rq5-coverage', 'v0.8.0 frame: union of four linters covers findings',
+        u621['union_covered'], u621['failroute_total'], 'co-location, TOL=1; frozen frame')
+    add('rq5-coverage', 'refactored frame: union of four linters covers findings',
+        u476['union_covered'], u476['failroute_total'], 'co-location, TOL=1; V2 frame')
+    add('rq5-coverage', 'refactored frame: findings NO linter reaches',
+        u476['failroute_only'], u476['failroute_total'], 'complement of the cell above')
+
+    # --- the decisive crosstab: label x novelty, under both novelty definitions -----
+    for tag, pred in [('co-location', lambda f: bool(f['baseline_tools_colocated'])),
+                      ('static covered_by', lambda f: bool(f['covered_by_static']))]:
+        cov = [r for r in joined if pred(r['_f'])]
+        unc = [r for r in joined if not pred(r['_f'])]
+        kd = sum(1 for r in cov if r['label'] == 'DEFECT')
+        ud = sum(1 for r in unc if r['label'] == 'DEFECT')
+        add('rq5-crosstab', '%s: defects among findings a linter reaches' % tag,
+            kd, len(cov), 'labels joined to the refactored frame')
+        add('rq5-crosstab', '%s: defects among findings NO linter reaches' % tag,
+            ud, len(unc), 'the subset the paper called novel')
+
+    # --- cluster correction: the 80 labels are not 80 independent observations ------
+    def fname(sig):
+        m = re.match(r'\s*(?:async\s+)?def\s+(\w+)', sig or '')
+        return m.group(1) if m else (sig or '')
+
+    for tag, keyf in [('(repo,function name)', lambda r: (r['repo'], fname(r.get('function_signature')))),
+                      ('(repo,function)', lambda r: (r['repo'], r.get('function_signature', ''))),
+                      ('(repo,file,function)', lambda r: (r['repo'], r['file'],
+                                                          r.get('function_signature', ''))),
+                      ('(repo,file)', lambda r: (r['repo'], r['file']))]:
+        for name, subset in [('80 frozen labels', orig), ('140 labels', allab)]:
+            cl = defaultdict(list)
+            for r in subset:
+                cl[keyf(r)].append(r)
+            hit = sum(1 for v in cl.values() if any(x['label'] == 'DEFECT' for x in v))
+            add('rq5-cluster', '%s defect rate, clusters by %s' % (name, tag),
+                hit, len(cl), 'cluster-level; observations within a cluster are copies')
+            if tag == '(repo,function name)':
+                # The scheme that reproduces the paper's own disclosure: the 12 deepteam
+                # defects are three replicated code patterns (__init__ / is_successful /
+                # is_vulnerable), and the def name identifies them without a judgement
+                # call. Exact-signature clustering below splits the __init__ family into
+                # three cosmetic variants and so over-counts clusters; it is kept as a
+                # sensitivity. Restate the pooled "all but deepteam" zero-defect cell at
+                # cluster level too, since the observation-level 0/66 bound also assumes
+                # 66 independent items.
+                oth = {k: v for k, v in cl.items() if k[0] != 'deepteam'}
+                add('rq5-cluster', '%s all-but-deepteam defect rate, clusters by %s'
+                    % (name, tag),
+                    sum(1 for v in oth.values() if any(x['label'] == 'DEFECT' for x in v)),
+                    len(oth), 'the 0/66 observation-level bound, at cluster level')
+    for name, subset in [('80 frozen labels', orig), ('140 labels', allab)]:
+        add('rq5-cluster', '%s defect rate, observation level' % name,
+            sum(1 for r in subset if r['label'] == 'DEFECT'), len(subset),
+            'what the paper quoted before V2; treats every copy as independent')
+
+    # --- bare / typed stratification, from corpus source, not from the labels' prose -
+    strat = defaultdict(lambda: [0, 0])
+    kinds = {}
+    for r in allab:
+        if r['rule'] == 'silent-suppress':
+            kind = 'suppress'
+        else:
+            kind = _rq5_handler_kind(os.path.join(ROOT, r['file']), int(r['lineno']))
+        kinds[(r['_src'], int(r['sample_index'] if 'sample_index' in r else r['add_index']))] = kind
+        cell = strat[(r['_src'] == 'annotations', kind)]
+        cell[1] += 1
+        if r['label'] == 'DEFECT':
+            cell[0] += 1
+    for (is_orig, kind), (k, n) in sorted(strat.items()):
+        scope = '80 frozen labels' if is_orig else '60 supplementary labels'
+        add('rq5-stratification', '%s: %s handlers, defect rate' % (scope, kind), k, n,
+            'handler kind parsed from the pinned corpus at the finding line')
+
+    # --- the trivial baseline a reviewer will ask about first -----------------------
+    e = json.load(open('bench/e722-baseline.json', encoding='utf-8'))
+    add('rq5-e722', 'flake8 E722 candidates that are labelled defects',
+        e['defects_covered_by_e722'], e['e722_candidates'],
+        'E722 flags every bare except: in the corpus; recall 12/12 at that cost')
+    add('rq5-e722', 'ruff BLE001 candidates that are labelled defects',
+        e['defects_covered_by_ble001'], e['ble001_candidates'],
+        'BLE001 fires on except Exception: and not on bare except:, so it misses all 12')
+
+    info = {
+        'generated_at_utc8': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+        'method': 'Wilson score interval, z=%.9f; zero numerators also get the exact '
+                  'one-sided Clopper-Pearson upper bound. Same functions as the default '
+                  'mode -- no second implementation.' % Z,
+        'frame': {'findings': len(frame), 'labels': len(allab),
+                  'labels_joined': len(joined), 'labels_unjoined': len(unjoined),
+                  'labels_unjoined_but_within_2_lines': near,
+                  'unjoined_by_source': dict(Counter(r['_src'] for r in unjoined)),
+                  'unjoined_by_label': dict(Counter(r['label'] for r in unjoined))},
+        'coverage': {'frame_v080': {'total': u621['failroute_total'],
+                                    'covered': u621['union_covered'],
+                                    'only': u621['failroute_only']},
+                     'frame_refactored': {'total': u476['failroute_total'],
+                                          'covered': u476['union_covered'],
+                                          'only': u476['failroute_only']}},
+        'e722_baseline': e,
+        'handler_kinds': {'%s:%s' % (src, idx): v for (src, idx), v in sorted(kinds.items())},
+        'cells': cells,
+    }
+    json.dump(info, open(OUT, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
+
+    print('RQ5 frame: %d findings, %d labels, %d joined (%d unjoined, %d of those within '
+          '2 lines)' % (len(frame), len(allab), len(joined), len(unjoined), near))
+    print('| Group | Proportion | k/n | point | 95% Wilson CI | one-sided 95% upper |')
+    print('|---|---|---|---|---|---|')
+    for c in cells:
+        ub = ('%.1f%%' % c['one_sided95_upper_pct']) if c['one_sided95_upper_pct'] is not None else '-'
+        pt = '-' if c['point'] is None else '%.1f%%' % (100 * c['point'])
+        print('| %s | %s | %d/%d | %s | [%.1f%%, %.1f%%] | %s |' % (
+            c['group'], c['label'], c['numerator'], c['denominator'], pt,
+            c['wilson95_low_pct'], c['wilson95_high_pct'], ub))
+    print('\nwrote %s (%d cells)' % (OUT, len(cells)))
 
 
 def main() -> None:
@@ -371,4 +621,7 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    if '--rq5' in sys.argv:
+        main_rq5()
+    else:
+        main()

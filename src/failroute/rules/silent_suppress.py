@@ -7,13 +7,29 @@ silence is unchanged; only the syntax learns to hide.
 
 File-level rule: one finding per ``with`` statement even when several
 suppress items share it.
+
+🔴 V1 (2026-09-04): only **broad** suppression is reported —
+``suppress(Exception)``, ``suppress(BaseException)`` and the bare
+``suppress(...)`` whose arguments are not simple names. Suppressing a named,
+narrow exception type is the same routing decision as ``except ValueError:
+pass``, which this tool reports under ``no-action`` only when the failure is
+actually discarded; on the pinned corpus the split measured 23 broad to 4
+specific, so the restriction removes 4 findings and keeps every shape that
+discards an unbounded exception set.
+
+This rule is also the one place where ``covered_by`` is empty by construction
+rather than by luck: ``contextlib.suppress(...)`` is flagged by **no** rule in
+ruff, flake8+bugbear, bandit or pylint (verified by running all four over a
+synthetic file containing every shape — command and output in the V1 result
+section). Ruff's SIM105 goes the *other* way and recommends rewriting
+``try/except/pass`` into this form.
 """
 
 from __future__ import annotations
 
 import ast
 
-from failroute.ir import FailureMode, Finding, Rule, RuleSpec, ScanContext
+from failroute.ir import FailureMode, Finding, Rule, RuleSpec, ScanContext, Severity
 from failroute.rules._shared import (
     collect_import_bindings,
     exc_type_name,
@@ -120,6 +136,13 @@ class SilentSuppressRule(Rule):
                 and all(suppress_type_is_ignored(n) for n in exc_names)
             ):
                 continue
+            # V1: broad only. A narrow, named suppression is a documented
+            # routing decision of the same kind `except T: pass` is, and
+            # reporting it here just duplicated noise (4 of 27 on the corpus).
+            broad = {n.rsplit(".", 1)[-1] for n in exc_names} & {"Exception", "BaseException"}
+            unresolvable = len(exc_names) != len(hits[0].args)
+            if not broad and not unresolvable:
+                continue
             if "Exception" in exc_names:
                 message = (
                     "contextlib.suppress(Exception) silently discards every failure inside the "
@@ -141,6 +164,13 @@ class SilentSuppressRule(Rule):
                     handler_text=f"suppress({', '.join(exc_names) if exc_names else '...'})",
                     message=message,
                     rule_id=self.spec.rule_id,
+                    severity=Severity.HIGH,
+                    covered_by=(),
+                    verdict=(
+                        "no shipped linter rule flags contextlib.suppress(...): "
+                        "verified against ruff, flake8+bugbear, bandit and pylint, "
+                        "so this finding is novel by construction"
+                    ),
                 )
             )
         return findings

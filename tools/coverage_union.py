@@ -139,6 +139,13 @@ parser.add_argument('--out', default='bench/corpus-coverage-union.json',
                     help='where to write the union summary JSON')
 parser.add_argument('--with-semgrep', action='store_true',
                     help='add the hand-written semgrep rules as a 5th tool')
+parser.add_argument('--emit-per-finding', default=None, metavar='JSONL',
+                    help='also write one row per failroute finding with the list of '
+                         'baseline tools co-located on it. V2 (2026-09-05): the paper '
+                         'needs a (failroute-only x human-label) crosstab, which the '
+                         'aggregate counters cannot express. Without this the crosstab '
+                         'would have to be transcribed by hand, which the '
+                         '"数字禁止跨文档复制" red line forbids.')
 parser.add_argument('--ruff-select', default='S110,S112',
                     help="rule set ruff is invoked with (default: the paper's S110,S112). "
                          "S batch: pass 'S110,S112,BLE001' to give ruff its broad-except "
@@ -155,6 +162,7 @@ if not os.path.isdir(args.findings_dir):
     sys.exit(f'error: findings dir missing: {args.findings_dir}')
 _preflight_linters()
 
+per_finding_rows=[]
 per_tool=defaultdict(Counter); union_by_rule=Counter(); total_by_rule=Counter()
 union4_by_rule=Counter(); union5_by_rule=Counter()
 covered_total=0; covered_total_4=0; covered_total_5=0; fr_total=0; rows=[]
@@ -165,6 +173,7 @@ for p in LOCK['packages']:
     findings_path = os.path.join(args.findings_dir, f"{p['name']}.jsonl")
     if not os.path.isfile(findings_path):
         sys.exit(f'error: findings file missing for {p["name"]}: {findings_path}')
+    fr_records=[]
     for line in open(findings_path, encoding='utf-8'):
         d=json.loads(line); raw=d['file']
         # 🔴 L2: the scan jsonl store repo-relative paths (paper/corpus/...), so the
@@ -177,6 +186,7 @@ for p in LOCK['packages']:
                      'corpus under paper/corpus/ is not committed to git; run '
                      '`python tools/fetch_corpus.py` first.' % (f, d.get('id'), findings_path))
         fr.append((f,d['lineno'],d['rule']))
+        fr_records.append(d)
     fr_total+=len(fr)
     for _,_,rl in fr: total_by_rule[rl]+=1
     hits={n:set(fn(root)) for n,fn in TOOLS}
@@ -184,13 +194,25 @@ for p in LOCK['packages']:
     for n,hs in hits.items():
         for f,l in hs: idx[n][f].add(l)
     cov=0
-    for f,l,rl in fr:
+    for (f,l,rl),rec in zip(fr, fr_records):
         tools_hit=[n for n in hits if any(abs(c-l)<=TOL for c in idx[n].get(f,()))]
         for n in tools_hit: per_tool[n][rl]+=1
         if tools_hit: union_by_rule[rl]+=1; cov+=1
         hit4=[n for n in tools_hit if n!='semgrep']
         if hit4: union4_by_rule[rl]+=1; covered_total_4+=1
         if tools_hit: union5_by_rule[rl]+=1; covered_total_5+=1
+        if args.emit_per_finding:
+            per_finding_rows.append({
+                'repo': p['name'], 'file': rec['file'], 'lineno': rec['lineno'],
+                'rule': rl, 'mode': rec.get('mode'),
+                # V1 verdict fields, carried through so a crosstab can be sliced
+                # by severity or by the detector's own coverage inference without
+                # a second join against another artifact.
+                'severity': rec.get('severity'), 'isomorphism': rec.get('isomorphism'),
+                'covered_by_static': rec.get('covered_by'),
+                'baseline_tools_colocated': sorted(tools_hit),
+                'failroute_only': not tools_hit,
+            })
     covered_total+=cov
     rows.append((p['name'],len(fr),cov,len(fr)-cov))
     print(f"{p['name']:<20} failroute={len(fr):<5} 被任一工具覆盖={cov:<5} failroute-only={len(fr)-cov}")
@@ -221,3 +243,13 @@ json.dump({'generated_at_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),
  'per_package':[{'name':a,'failroute':b,'covered':c,'only':d} for a,b,c,d in rows]},
  open(args.out,'w',encoding='utf-8'),ensure_ascii=False,indent=2)
 print(f"\nwrote {args.out}")
+
+if args.emit_per_finding:
+    pf = args.emit_per_finding
+    if not os.path.isabs(pf):
+        pf = os.path.join(ROOT, pf)
+    os.makedirs(os.path.dirname(pf) or '.', exist_ok=True)
+    with open(pf, 'w', encoding='utf-8') as fh:
+        for row in per_finding_rows:
+            fh.write(json.dumps(row, ensure_ascii=False) + '\n')
+    print(f"wrote {pf} ({len(per_finding_rows)} per-finding rows)")

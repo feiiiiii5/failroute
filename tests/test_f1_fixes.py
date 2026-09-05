@@ -90,7 +90,12 @@ def test_f1_ignored_tuple_in_tail_position_is_not_implicit_fallback():
 # F-② warnings.warn is an error signal
 # ---------------------------------------------------------------------------
 
-def test_f2_warnings_warn_in_typed_handler_is_not_silent():
+def test_f2_warnings_warn_in_typed_handler_is_downgraded():
+# V1 (2026-09-04): recording a failure is a severity *modifier*, not an exemption.
+    # 委外任务清单.md §V1.1 layer 3 + probes C2/C3 in §V1.0-A: a log line does not
+    # change what the caller receives, so the finding stays and moves down one level.
+    # This test previously asserted `== []`, which encoded the old exemption.
+        # Typed base MEDIUM, one level down for warnings.warn -> LOW.
     source = (
         "import warnings\n"
         "def probe(x):\n"
@@ -100,10 +105,17 @@ def test_f2_warnings_warn_in_typed_handler_is_not_silent():
         "        warnings.warn('check failed, assuming absent')\n"
         "        return False\n"
     )
-    assert scan_source(source) == []
+    findings = scan_source(source)
+    assert [f.mode.value for f in findings] == ["silent-fallback"]
+    assert findings[0].severity.value == "low"
 
 
-def test_f2_warnings_warn_in_catch_all_handler_is_not_silent():
+def test_f2_warnings_warn_in_catch_all_handler_is_downgraded():
+# V1 (2026-09-04): recording a failure is a severity *modifier*, not an exemption.
+    # 委外任务清单.md §V1.1 layer 3 + probes C2/C3 in §V1.0-A: a log line does not
+    # change what the caller receives, so the finding stays and moves down one level.
+    # This test previously asserted `== []`, which encoded the old exemption.
+        # Catch-all base HIGH, one level down for warnings.warn -> MEDIUM.
     source = (
         "import warnings\n"
         "def probe(x):\n"
@@ -113,7 +125,9 @@ def test_f2_warnings_warn_in_catch_all_handler_is_not_silent():
         "        warnings.warn('check failed, assuming absent')\n"
         "        return False\n"
     )
-    assert scan_source(source) == []
+    findings = scan_source(source)
+    assert [f.mode.value for f in findings] == ["silent-fallback"]
+    assert findings[0].severity.value == "medium"
 
 
 def test_f2_warnings_simplefilter_is_not_a_signal():

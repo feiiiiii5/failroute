@@ -1,11 +1,19 @@
-"""``no-action`` rule: the handler body does nothing, so the failure vanishes."""
+"""``no-action`` rule: the handler body does nothing, so the failure vanishes.
+
+This is the *silence* channel, not the value channel: nothing is substituted
+for a result, so layer 1 (the declared return range) can only soften it, never
+excuse it. An explicitly declared ``-> None`` does downgrade the finding to
+INFO — the function never promised a value, and the annotated corpus labels
+best-effort cleanup in such functions as contract — but an *unannotated*
+function's contract is unknown and stays reportable.
+"""
 
 from __future__ import annotations
 
 import ast
 
-from failroute.ir import FailureMode, Finding, Rule, RuleSpec, ScanContext
-from failroute.rules._shared import make_finding
+from failroute.ir import FailureMode, Finding, Isomorphism, Rule, RuleSpec, ScanContext, Severity
+from failroute.rules._shared import facts_for, make_finding, severity_for
 
 SPEC = RuleSpec(
     rule_id="no-action",
@@ -47,6 +55,19 @@ class NoActionRule(Rule):
         # ImportError: pass``) -- adjudicated centrally, see ADR-0001.
         if id(handler) in ctx.probe_handlers:
             return []
+        facts = facts_for(handler, ctx)
+        if facts is None:  # pragma: no cover - only when unit-tested in isolation
+            return []
+        # A catch-all that discards everything is the worst shape this rule
+        # sees: no exception type was anticipated and nothing was recorded.
+        base = (
+            Severity.HIGH
+            if facts.isomorphism is Isomorphism.NON_ISOMORPHIC
+            else Severity.MEDIUM
+        )
+        severity, verdict = severity_for(facts, mode_default=base, channel="silence")
+        if severity is None:
+            return []
         return [
             make_finding(
                 self.spec.rule_id,
@@ -55,5 +76,9 @@ class NoActionRule(Rule):
                 self.spec.mode,
                 exc_name,
                 message="exception handler does nothing; the failure is silently discarded",
+                severity=severity,
+                isomorphism=facts.isomorphism,
+                covered_by=facts.covered_by,
+                verdict=verdict,
             )
         ]

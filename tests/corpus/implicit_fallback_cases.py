@@ -90,17 +90,17 @@ def generator_contract(items):
         print("iteration failed")
 
 
-def logged_fallthrough_is_documented_limitation(x):
-    # CLEAN (documented limitation): the failure is recorded at a readable
-    # severity, so the handler is informational
+def logged_fallthrough_is_downgraded(x):
+    # FLAGGED implicit-fallback at LOW (V1 2026-09-04): the failure is recorded,
+    # which lowers the consequence one level, but the caller still gets None
     try:
         return fetch_view(x)
     except Exception:
         logger.error("fetch failed")
 
 
-def typed_info_log_is_enough(x):
-    # CLEAN: a typed handler records the failure at any level
+def typed_info_log_is_downgraded(x):
+    # FLAGGED implicit-fallback at LOW (V1 2026-09-04): see the note above
     try:
         return lookup(x)
     except KeyError:

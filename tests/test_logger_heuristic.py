@@ -18,6 +18,12 @@ from failroute.rules._shared import is_loggerish_name
 
 
 def test_uppercase_log_name_is_recognised():
+# V1 (2026-09-04): recording a failure is a severity *modifier*, not an exemption.
+    # 委外任务清单.md §V1.1 layer 3 + probes C2/C3 in §V1.0-A: a log line does not
+    # change what the caller receives, so the finding stays and moves down one level.
+    # This test previously asserted `== []`, which encoded the old exemption.
+        # Recognition is the point: LOG.error must count as a recording channel,
+    # which now shows up as a one-level downgrade (HIGH -> MEDIUM).
     source = (
         "import logging\n"
         "LOG = logging.getLogger(__name__)\n"
@@ -28,10 +34,17 @@ def test_uppercase_log_name_is_recognised():
         "        LOG.error('failed: %s', x)\n"
         "        return None\n"
     )
-    assert scan_source(source) == []
+    findings = scan_source(source)
+    assert [f.mode.value for f in findings] == ["silent-fallback"]
+    assert findings[0].severity.value == "medium"
 
 
 def test_suffixed_logger_names_are_recognised():
+# V1 (2026-09-04): recording a failure is a severity *modifier*, not an exemption.
+    # 委外任务清单.md §V1.1 layer 3 + probes C2/C3 in §V1.0-A: a log line does not
+    # change what the caller receives, so the finding stays and moves down one level.
+    # This test previously asserted `== []`, which encoded the old exemption.
+        # audit_logger.warning: catch-all base HIGH, one level down = MEDIUM.
     source = (
         "def a(x):\n"
         "    try:\n"
@@ -40,10 +53,17 @@ def test_suffixed_logger_names_are_recognised():
         "        audit_logger.warning('f')\n"
         "        return None\n"
     )
-    assert scan_source(source) == []
+    findings = scan_source(source)
+    assert [f.mode.value for f in findings] == ["silent-fallback"]
+    assert findings[0].severity.value == "medium"
 
 
 def test_self_attr_logger_is_recognised():
+# V1 (2026-09-04): recording a failure is a severity *modifier*, not an exemption.
+    # 委外任务清单.md §V1.1 layer 3 + probes C2/C3 in §V1.0-A: a log line does not
+    # change what the caller receives, so the finding stays and moves down one level.
+    # This test previously asserted `== []`, which encoded the old exemption.
+        # self._log.warning: catch-all base HIGH, one level down = MEDIUM.
     source = (
         "class C:\n"
         "    def a(self, x):\n"
@@ -53,7 +73,9 @@ def test_self_attr_logger_is_recognised():
         "            self._log.warning('f')\n"
         "            return None\n"
     )
-    assert scan_source(source) == []
+    findings = scan_source(source)
+    assert [f.mode.value for f in findings] == ["silent-fallback"]
+    assert findings[0].severity.value == "medium"
 
 
 def test_non_logger_names_are_not_loggerish():

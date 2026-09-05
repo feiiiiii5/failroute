@@ -10,6 +10,14 @@ Records carry the same identity fields as the frozen jsonl (id / repo / file /
 lineno / end_lineno / rule / mode / message); annotation context windows are
 omitted because delta analysis never reads them.
 
+🔴 V2 (2026-09-05): records now also carry the four verdict fields the V1
+refactor added to every Finding -- ``severity`` / ``isomorphism`` /
+``covered_by`` / ``verdict``. They were missing, which meant the paper's
+recompute pipeline could not see them and any severity-stratified or
+coverage-differential number would have had to be transcribed by hand from a
+report. That is precisely what the "数字禁止跨文档复制" red line forbids, so the
+export was fixed before the paper was touched.
+
 🔴 Corpus hygiene note (measured 2026-09-01): the extracted trees under
 ``paper/corpus/`` have since accumulated 624 macOS Finder duplicates
 (``name 2.py``, ``name 2.md``...); the frozen ``paper/scan`` baseline was
@@ -138,6 +146,12 @@ def main() -> int:
                     "rule": rule,
                     "mode": f.mode.value,
                     "message": f.message,
+                    # V1 verdict fields. covered_by is stored sorted so the
+                    # jsonl is byte-stable across runs (the determinism gate).
+                    "severity": f.severity.value,
+                    "isomorphism": f.isomorphism.value if f.isomorphism is not None else None,
+                    "covered_by": list(f.covered_by),
+                    "verdict": f.verdict,
                 }
                 if finding_context is not None:
                     record.update(finding_context(ROOT, str(rel), f.lineno))

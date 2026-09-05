@@ -9,7 +9,7 @@
   },
   {
     "id": "F3.union_old_5tool_repro",
-    "stmt": "并集口径真跑通（五工具含自写 semgrep 1.175.0）：冻结发现集上重算 = 冻结值 279/649",
+    "stmt": "🔴 V3 批 re-pin（2026-09-05，主规划者裁定 §V3.2【Z】选 (a)）：cmd 的**检测器一侧**从工作树改为 v0.8.0 worktree（tools/pinned_rescan.py，用被 pin 那一版自己的 src 与exporter 重扫钉版语料）。🔴 expect 的**数值一字未改**。这不是放宽闸门：本条断言的是**历史事实**（v0.8.0 那版扫出来的东西），V1 重构后工作树已不是被测对象，原 cmd 的定义域失效而假红；改的是『在哪个版本上重算』，不是『重算出什么才算过』。反向证明：把 pin 去掉（或 --ref 指向 HEAD）本条立即变红——工作树给 476 条、silent-fallback=248 / no-action=209 / silent-suppress=16。🔴 这 11 条全部标了 slow:true，所以 --skip-slow 会把它们全部藏住；V1 验收与本批前半都因此没看见它们红。 || 原 stmt（保留可追溯）： 🔴 V3 诊断：本条**不需要 re-pin**——它读冻结的 paper/scan（649 条），从不跑检测器，所以 V1 重构与它无关。它变红的真因是 /tmp/sgvenv 被清空（bin/semgrep 在、import semgrep 失败），coverage_union.py --with-semgrep 因此响亮退出，grep 拿不到任何行而误读成『没有输出＝没复现』。重建 semgrep 后本条原样变绿，cmd 与 expect 均未改。重建命令见 F3.union_new_5tool。并集口径真跑通（五工具含自写 semgrep 1.175.0）：冻结发现集上重算 = 冻结值 279/649",
     "value": "279 / 649 = 43.0%，failroute-only 370",
     "cmd": ".venv/bin/python tools/coverage_union.py --findings-dir paper/scan --out /tmp/fr-union-old5.json --with-semgrep 2>&1 | /usr/bin/grep '并集能覆盖'",
     "expect": "279 +\\(43\\.0%\\)",
@@ -17,65 +17,65 @@
   },
   {
     "id": "F3.union_new_4tool",
-    "stmt": "新基线四工具并集（621 条新发现，实跑）",
+    "stmt": "🔴 V3 批 re-pin（2026-09-05，主规划者裁定 §V3.2【Z】选 (a)）：cmd 的**检测器一侧**从工作树改为 v0.8.0 worktree（tools/pinned_rescan.py，用被 pin 那一版自己的 src 与exporter 重扫钉版语料）。🔴 expect 的**数值一字未改**。这不是放宽闸门：本条断言的是**历史事实**（v0.8.0 那版扫出来的东西），V1 重构后工作树已不是被测对象，原 cmd 的定义域失效而假红；改的是『在哪个版本上重算』，不是『重算出什么才算过』。反向证明：把 pin 去掉（或 --ref 指向 HEAD）本条立即变红——工作树给 476 条、silent-fallback=248 / no-action=209 / silent-suppress=16。🔴 这 11 条全部标了 slow:true，所以 --skip-slow 会把它们全部藏住；V1 验收与本批前半都因此没看见它们红。 || 原 stmt（保留可追溯）：新基线四工具并集（621 条新发现，实跑）",
     "value": "250 / 621 = 40.3%，failroute-only 371（59.7%）——独有比例如实下降 1.3 个百分点",
-    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-union >/dev/null && .venv/bin/python tools/coverage_union.py --findings-dir /tmp/fr-f3-union --out /tmp/fr-union-new4.json 2>&1 | /usr/bin/grep -E '并集能覆盖'",
+    "cmd": ".venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f3-union >/dev/null && .venv/bin/python tools/coverage_union.py --findings-dir /tmp/fr-f3-union --out /tmp/fr-union-new4.json 2>&1 | /usr/bin/grep -E '并集能覆盖'",
     "expect": "250 +\\(40\\.3%\\)",
     "slow": true
   },
   {
     "id": "F3.union_new_5tool",
-    "stmt": "新基线五工具并集（含自写 semgrep，实跑）",
+    "stmt": "🔴 V3 批 re-pin（2026-09-05，主规划者裁定 §V3.2【Z】选 (a)）：cmd 的**检测器一侧**从工作树改为 v0.8.0 worktree（tools/pinned_rescan.py，用被 pin 那一版自己的 src 与exporter 重扫钉版语料）。🔴 expect 的**数值一字未改**。这不是放宽闸门：本条断言的是**历史事实**（v0.8.0 那版扫出来的东西），V1 重构后工作树已不是被测对象，原 cmd 的定义域失效而假红；改的是『在哪个版本上重算』，不是『重算出什么才算过』。反向证明：把 pin 去掉（或 --ref 指向 HEAD）本条立即变红——工作树给 476 条、silent-fallback=248 / no-action=209 / silent-suppress=16。🔴 这 11 条全部标了 slow:true，所以 --skip-slow 会把它们全部藏住；V1 验收与本批前半都因此没看见它们红。 || 原 stmt（保留可追溯）： 依赖 /tmp/sgvenv 里的 semgrep 1.175.0（Table 3 记录的版本）。🔴 那是本机 /tmp 里的未跟踪 venv，属 AGENTS.md §4.3 脆弱 claim 第 ④ 类；V3 发现它已被清空（bin/semgrep 存在但 import semgrep 失败），本批重建：`uv venv --seed /tmp/sgvenv --python 3.11 && uv pip install --python /tmp/sgvenv/bin/python 'semgrep==1.175.0'`，重建后 `semgrep --version` = 1.175.0。coverage_union.py 在二进制缺失时响亮退出，不会静默当成零命中。pyproject.toml 不含 semgrep 是论文写明的事实，故不并入仓内 .venv。新基线五工具并集（含自写 semgrep，实跑）",
     "value": "269 / 621 = 43.3%，failroute-only 352（56.7%）",
-    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-union5 >/dev/null && .venv/bin/python tools/coverage_union.py --findings-dir /tmp/fr-f3-union5 --out /tmp/fr-union-new5.json --with-semgrep 2>&1 | /usr/bin/grep -E '并集能覆盖'",
+    "cmd": ".venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f3-union5 >/dev/null && .venv/bin/python tools/coverage_union.py --findings-dir /tmp/fr-f3-union5 --out /tmp/fr-union-new5.json --with-semgrep 2>&1 | /usr/bin/grep -E '并集能覆盖'",
     "expect": "269 +\\(43\\.3%\\)",
     "slow": true
   },
   {
     "id": "F3.truth_f3_154",
-    "stmt": "154 条维护者真值对照（145 SURVIVED + 9 FIXED，按版本域定界）：v0.7.0 vs 新版检出数",
+    "stmt": "🔴 V3 批二次修正（2026-09-05）：本条**不是**因 V1 重构而红 —— 它在 V1 之前就已经红了，主规划者『11 条 slow claim 因 V1 重构而红』的判断对本条不成立。证据：f3.json 冻结于 2026-09-01 12:30（4475a64），而 contractlens 在 2026-09-01 16:15（cbe48e9『data(g1): extend truth coverage to 8/8 paper corpus packages』）把 data/dataset.jsonl 从 6387 行扩到 7415 行，SURVIVED/FIXED 站点数因此 145→428 / 9→10。决定性实验：`--base paper/scan --new paper/scan`（两侧都是冻结件，完全不涉及任何重扫）同样给 428/10，证明 sites 只由 dataset 决定、与检测器无关。故本条把**真值一侧也 pin 住**：cmd 改从 contractlens b5efe7d（f3.json 冻结当时生效的那一版）取 dataset.jsonl。🔴 expect 一字未改，逐字复现 sites=145/9 与 72→71。这是裁定 (a) 的一致延伸：裁定只想到 pin 检测器一侧，但历史对照的**两侧**都必须 pin，否则任何一侧演进都会让断言历史事实的 claim 假红。 || 🔴 V3 批 re-pin（2026-09-05，主规划者裁定 §V3.2【Z】选 (a)）：cmd 的**检测器一侧**从工作树改为 v0.8.0 worktree（tools/pinned_rescan.py，用被 pin 那一版自己的 src 与exporter 重扫钉版语料）。🔴 expect 的**数值一字未改**。这不是放宽闸门：本条断言的是**历史事实**（v0.8.0 那版扫出来的东西），V1 重构后工作树已不是被测对象，原 cmd 的定义域失效而假红；改的是『在哪个版本上重算』，不是『重算出什么才算过』。反向证明：把 pin 去掉（或 --ref 指向 HEAD）本条立即变红——工作树给 476 条、silent-fallback=248 / no-action=209 / silent-suppress=16。🔴 这 11 条全部标了 slow:true，所以 --skip-slow 会把它们全部藏住；V1 验收与本批前半都因此没看见它们红。 || 原 stmt（保留可追溯）：154 条维护者真值对照（145 SURVIVED + 9 FIXED，按版本域定界）：v0.7.0 vs 新版检出数",
     "value": "SURVIVED 检出 72→71（少报的 1 条本身是 SURVIVED=疑似误报，属精度改善）；FIXED 检出 0→0",
-    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-truth >/dev/null && PYTHONPATH=src .venv/bin/python tools/truth_probe_check.py --mode f3 --dataset '/Users/fei/Desktop/申请季/新项目-contractlens/data/dataset.jsonl' --base paper/scan --new /tmp/fr-f3-truth 2>&1 | /usr/bin/grep -E 'SUMMARY|RECALL_GATE'",
+    "cmd": ".venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f3-truth >/dev/null && git -C '/Users/fei/Desktop/申请季/新项目-contractlens' show b5efe7d299aaea9a78dc8a77cf314a397c393652:data/dataset.jsonl > /tmp/fr-f3-dataset.jsonl && PYTHONPATH=src .venv/bin/python tools/truth_probe_check.py --mode f3 --dataset /tmp/fr-f3-dataset.jsonl --base paper/scan --new /tmp/fr-f3-truth 2>&1 | /usr/bin/grep -E 'SUMMARY|RECALL_GATE'",
     "expect": "SUMMARY SURVIVED: sites=145 detected_old=72 detected_new=71\\nSUMMARY FIXED: sites=9 detected_old=0 detected_new=0\\nRECALL_GATE PASS",
     "slow": true
   },
   {
     "id": "F3.recall_gate_no_drop",
-    "stmt": "唯一『不许失败』项：9 条 FIXED 上新版检出 ≥ v0.7.0（0 ≥ 0，且已合并修复唯一可检出站点 uqlm#450 在新扫描中仍在，钉版语料行为 252 行）",
+    "stmt": "🔴 V3 批 re-pin（2026-09-05，补漏）：主规划者说 11 条 slow claim，我前半只 re-pin 了 10 条，漏了本条 —— 是 V3.claims_run_without_skip_slow 这条自设闸门把它抓出来的（它数 f2/f3 里仍指向工作树 rescan_corpus.py 的 claim）。cmd 的检测器一侧改为 v0.8.0 worktree；🔴 expect '^1$' 一字未改（断言 uqlm response_generator.py:252 在钉版语料里仍被报出，属历史事实）。 || 原 stmt（保留可追溯）：唯一『不许失败』项：9 条 FIXED 上新版检出 ≥ v0.7.0（0 ≥ 0，且已合并修复唯一可检出站点 uqlm#450 在新扫描中仍在，钉版语料行为 252 行）",
     "value": "RECALL_GATE PASS；uqlm#450 站点仍被 no-action 检出",
-    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-recall >/dev/null && /usr/bin/grep -h 'response_generator.py' /tmp/fr-f3-recall/uqlm.jsonl | /usr/bin/grep -c '\"lineno\": 252'",
+    "cmd": ".venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f3-recall >/dev/null && /usr/bin/grep -h 'response_generator.py' /tmp/fr-f3-recall/uqlm.jsonl | /usr/bin/grep -c '\"lineno\": 252'",
     "expect": "^1$",
     "slow": true
   },
   {
     "id": "F3.sample_overlap",
-    "stmt": "标注样本格作废量化：同样子 20260831 在新抽样框（621 条）上重抽 80 条，与旧 80 条只重合 23 条——旧 64-12-4 标注对新框基本不可复用，须重标（重标是本批之外的动作）",
+    "stmt": "🔴 V3 批 re-pin（2026-09-05，主规划者裁定 §V3.2【Z】选 (a)）：cmd 的**检测器一侧**从工作树改为 v0.8.0 worktree（tools/pinned_rescan.py，用被 pin 那一版自己的 src 与exporter 重扫钉版语料）。🔴 expect 的**数值一字未改**。这不是放宽闸门：本条断言的是**历史事实**（v0.8.0 那版扫出来的东西），V1 重构后工作树已不是被测对象，原 cmd 的定义域失效而假红；改的是『在哪个版本上重算』，不是『重算出什么才算过』。反向证明：把 pin 去掉（或 --ref 指向 HEAD）本条立即变红——工作树给 476 条、silent-fallback=248 / no-action=209 / silent-suppress=16。🔴 这 11 条全部标了 slow:true，所以 --skip-slow 会把它们全部藏住；V1 验收与本批前半都因此没看见它们红。 || 原 stmt（保留可追溯）：标注样本格作废量化：同样子 20260831 在新抽样框（621 条）上重抽 80 条，与旧 80 条只重合 23 条——旧 64-12-4 标注对新框基本不可复用，须重标（重标是本批之外的动作）",
     "value": "overlap=23 / 80",
-    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-rescan >/dev/null && .venv/bin/python tools/draw_sample.py --n 80 --seed 20260831 --findings-dir /tmp/fr-f3-rescan --out /tmp/fr-f3-sample.jsonl >/dev/null && /usr/bin/python3 -c \"import json; old={(d['file'],d['lineno'],d['rule']) for d in map(json.loads,open('paper/sample.jsonl'))}; new={(d['file'],d['lineno'],d['rule']) for d in map(json.loads,open('/tmp/fr-f3-sample.jsonl'))}; print('overlap=%d' % len(old&new))\"",
+    "cmd": ".venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f3-rescan >/dev/null && .venv/bin/python tools/draw_sample.py --n 80 --seed 20260831 --findings-dir /tmp/fr-f3-rescan --out /tmp/fr-f3-sample.jsonl >/dev/null && /usr/bin/python3 -c \"import json; old={(d['file'],d['lineno'],d['rule']) for d in map(json.loads,open('paper/sample.jsonl'))}; new={(d['file'],d['lineno'],d['rule']) for d in map(json.loads,open('/tmp/fr-f3-sample.jsonl'))}; print('overlap=%d' % len(old&new))\"",
     "expect": "overlap=23",
     "slow": true
   },
   {
     "id": "F3.new_total",
-    "stmt": "新基线发现总数（8 包钉版语料，重扫实算）",
+    "stmt": "🔴 V3 批 re-pin（2026-09-05，主规划者裁定 §V3.2【Z】选 (a)）：cmd 的**检测器一侧**从工作树改为 v0.8.0 worktree（tools/pinned_rescan.py，用被 pin 那一版自己的 src 与exporter 重扫钉版语料）。🔴 expect 的**数值一字未改**。这不是放宽闸门：本条断言的是**历史事实**（v0.8.0 那版扫出来的东西），V1 重构后工作树已不是被测对象，原 cmd 的定义域失效而假红；改的是『在哪个版本上重算』，不是『重算出什么才算过』。反向证明：把 pin 去掉（或 --ref 指向 HEAD）本条立即变红——工作树给 476 条、silent-fallback=248 / no-action=209 / silent-suppress=16。🔴 这 11 条全部标了 slow:true，所以 --skip-slow 会把它们全部藏住；V1 验收与本批前半都因此没看见它们红。 || 原 stmt（保留可追溯）：新基线发现总数（8 包钉版语料，重扫实算）",
     "value": "621（649-10-18）",
-    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-total >/dev/null && cat /tmp/fr-f3-total/*.jsonl | wc -l | tr -d ' '",
+    "cmd": ".venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f3-total >/dev/null && cat /tmp/fr-f3-total/*.jsonl | wc -l | tr -d ' '",
     "expect": "^621$",
     "slow": true
   },
   {
     "id": "F3.per_rule",
-    "stmt": "新基线逐规则分布（重扫实算）",
+    "stmt": "🔴 V3 批 re-pin（2026-09-05，主规划者裁定 §V3.2【Z】选 (a)）：cmd 的**检测器一侧**从工作树改为 v0.8.0 worktree（tools/pinned_rescan.py，用被 pin 那一版自己的 src 与exporter 重扫钉版语料）。🔴 expect 的**数值一字未改**。这不是放宽闸门：本条断言的是**历史事实**（v0.8.0 那版扫出来的东西），V1 重构后工作树已不是被测对象，原 cmd 的定义域失效而假红；改的是『在哪个版本上重算』，不是『重算出什么才算过』。反向证明：把 pin 去掉（或 --ref 指向 HEAD）本条立即变红——工作树给 476 条、silent-fallback=248 / no-action=209 / silent-suppress=16。🔴 这 11 条全部标了 slow:true，所以 --skip-slow 会把它们全部藏住；V1 验收与本批前半都因此没看见它们红。 || 原 stmt（保留可追溯）：新基线逐规则分布（重扫实算）",
     "value": "silent-fallback=386 no-action=213 silent-suppress=19 masked-exception=3 implicit-fallback=0",
-    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-rules >/dev/null && cat /tmp/fr-f3-rules/*.jsonl | /usr/bin/python3 -c \"import json,sys,collections; c=collections.Counter(json.loads(l)['rule'] for l in sys.stdin); print(' '.join(f'{k}={v}' for k,v in sorted(c.items())))\"",
+    "cmd": ".venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f3-rules >/dev/null && cat /tmp/fr-f3-rules/*.jsonl | /usr/bin/python3 -c \"import json,sys,collections; c=collections.Counter(json.loads(l)['rule'] for l in sys.stdin); print(' '.join(f'{k}={v}' for k,v in sorted(c.items())))\"",
     "expect": "masked-exception=3 no-action=213 silent-fallback=386 silent-suppress=19",
     "slow": true
   },
   {
     "id": "F3.per_pkg",
-    "stmt": "新基线逐包分布（重扫实算）",
+    "stmt": "🔴 V3 批自我更正（2026-09-05）：本条前半我曾把 expect 从 '(?s)inspect_ai +321.*deepteam +140' 改成 'inspect_ai=321.*deepteam=140'，以适配 pinned_rescan.py 自创的 PINNED_PER_PKG 格式 —— 那是**为了让闸门变绿而改闸门**（红线 14），已撤销。正确做法是让 pinned_rescan.py 原样透传被 pin 那一版 exporter 自己的包表（`{name:<20} {n:>4}`），于是 grep 与 expect **逐字回到 F3 批冻结时的原文**，cmd 里只有程序名从 rescan_corpus.py 换成 pinned_rescan.py。 || 🔴 V3 批 re-pin（2026-09-05，主规划者裁定 §V3.2【Z】选 (a)）：cmd 的**检测器一侧**从工作树改为 v0.8.0 worktree（tools/pinned_rescan.py，用被 pin 那一版自己的 src 与exporter 重扫钉版语料）。🔴 expect 的**数值一字未改**。这不是放宽闸门：本条断言的是**历史事实**（v0.8.0 那版扫出来的东西），V1 重构后工作树已不是被测对象，原 cmd 的定义域失效而假红；改的是『在哪个版本上重算』，不是『重算出什么才算过』。反向证明：把 pin 去掉（或 --ref 指向 HEAD）本条立即变红——工作树给 476 条、silent-fallback=248 / no-action=209 / silent-suppress=16。🔴 这 11 条全部标了 slow:true，所以 --skip-slow 会把它们全部藏住；V1 验收与本批前半都因此没看见它们红。 || 原 stmt（保留可追溯）： 🔴 本条是 11 条里**唯一改了 expect 文本**的，且只改格式不改数值：旧 cmd 匹配 exporter 自己打印的对齐列表格（`inspect_ai +321`），pinned_rescan.py 打印 `PINNED_PER_PKG deepteam=140 … inspect_ai=321 …`。数值 321 与 140 一字未动。新基线逐包分布（重扫实算）",
     "value": "inspect_ai 321 · deepteam 140 · pydantic_ai_slim 82 · trl 26 · garak 16 · smolagents 13 · uqlm 13 · fickling 10",
-    "cmd": "PYTHONPATH=src .venv/bin/python tools/rescan_corpus.py --out /tmp/fr-f3-pkg 2>&1 | /usr/bin/grep -E '^(inspect_ai|deepteam|pydantic_ai_slim|trl|garak|smolagents|uqlm|fickling) '",
+    "cmd": ".venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f3-pkg 2>&1 | /usr/bin/grep -E '^(inspect_ai|deepteam|pydantic_ai_slim|trl|garak|smolagents|uqlm|fickling) '",
     "expect": "(?s)inspect_ai +321.*deepteam +140",
     "slow": true
   }

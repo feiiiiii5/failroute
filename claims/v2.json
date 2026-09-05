@@ -1,0 +1,90 @@
+[
+  {
+    "id": "V2.e722_trivial_baseline",
+    "stmt": "RQ1『The baseline we should have run first』段与摘要、贡献表、Discussion、结论引用的 E722/BLE001 数字：flake8 --select E722 在八个扫描根上报 134 个候选并覆盖全部 12 条已确认缺陷；ruff --select BLE001 报 334 个候选、覆盖 0 条（它打 except Exception: 而不打裸 except:）。cmd 从原始数据重算（真跑两个 linter + 逐行 join paper/annotations.csv），不读回本批写的 JSON（铁律 1）。工具在 linter 不可用时响亮失败，不静默返回空集。",
+    "value": "E722=134 covering 12/12 DEFECT; BLE001=334 covering 0/12",
+    "cmd": ".venv/bin/python tools/e722_baseline.py --out /tmp/v2-e722-claim.json",
+    "expect": "E722 candidates\\s+= 134[\\s\\S]*BLE001 candidates\\s+= 334[\\s\\S]*DEFECT covered by E722\\s+= 12/12[\\s\\S]*DEFECT covered by BLE001 = 0/12",
+    "slow": true
+  },
+  {
+    "id": "V2.coverage_refactored_frame",
+    "stmt": "RQ5 结果 1 与摘要的覆盖率反转：重构后 476 条发现中四工具并集覆盖 247（51.9%），failroute-only 229（48.1%）—— 相对 v0.8.0 的 250/621（40.3%）是**上升**。cmd 重跑 coverage_union（四个 linter 真跑，co-location TOL=1），不读回 JSON。",
+    "value": "476 findings, 247 covered (51.9%), 229 failroute-only",
+    "cmd": ".venv/bin/python tools/coverage_union.py --findings-dir bench/rescan-v2 --out /tmp/v2-union-claim.json --emit-per-finding /tmp/v2-perfinding-claim.jsonl",
+    "expect": "failroute 总发现\\s+: 476[\\s\\S]*四工具并集能覆盖\\s+: 247\\s+\\(51\\.9%\\)[\\s\\S]*failroute-only\\s+: 229\\s+\\(48\\.1%\\)",
+    "slow": true
+  },
+  {
+    "id": "V2.frame_621_reproducible_in_tree",
+    "stmt": "RQ1 头条数字可从仓库内目录复现：committed bench/corpus-coverage-union.json 自报输入为 /tmp/i1-scan（任何 clone 都没有），而 bench/rescan-f2/ 是同一批 621 条发现的入库副本。对它重跑 coverage_union 必须逐格复现 621 / 250 / 371 与 Table 4、Table 5 的每个逐规则、逐工具格。这条把论文 §Reproduction 里新写的那段从断言变成可复算。",
+    "value": "621 findings, 250 covered, 371 failroute-only, from bench/rescan-f2",
+    "cmd": ".venv/bin/python tools/coverage_union.py --findings-dir bench/rescan-f2 --out /tmp/v2-union-621-claim.json --emit-per-finding /tmp/v2-perfinding-621-claim.jsonl",
+    "expect": "failroute 总发现\\s+: 621[\\s\\S]*四工具并集能覆盖\\s+: 250\\s+\\(40\\.3%\\)[\\s\\S]*failroute-only\\s+: 371\\s+\\(59\\.7%\\)[\\s\\S]*silent-fallback\\s+175/386[\\s\\S]*no-action\\s+72/213[\\s\\S]*silent-suppress\\s+0/19",
+    "slow": true
+  },
+  {
+    "id": "V2.crosstab_is_the_result",
+    "stmt": "🔴 分支 B 的决定性测量（Table 12 / tab:crosstab，摘要与贡献表同引）：140 条标注中 104 条能 join 上重构框，按 co-location 分层后，被任一 linter 覆盖的发现带 12/48 = 25.0% [14.9%, 38.8%] 缺陷，而**无 linter 覆盖**的发现只带 1/56 = 1.8% [0.3%, 9.4%]，两区间不相交。统计量由 canonical 工具算（铁律 7，全树只有一套 Wilson）：cmd 跑 compute_intervals.py --rq5，它从 per-finding 覆盖导出 + 两个标注 CSV 现场重算 join 与分层，不读回 intervals JSON。",
+    "value": "co-location: 12/48 = 25.0% [14.9, 38.8] vs 1/56 = 1.8% [0.3, 9.4]",
+    "cmd": ".venv/bin/python tools/compute_intervals.py --rq5 --out /tmp/v2-iv-claim.json",
+    "expect": "co-location: defects among findings a linter reaches \\| 12/48 \\| 25\\.0% \\| \\[14\\.9%, 38\\.8%\\][\\s\\S]*co-location: defects among findings NO linter reaches \\| 1/56 \\| 1\\.8% \\| \\[0\\.3%, 9\\.4%\\]"
+  },
+  {
+    "id": "V2.cluster_correction",
+    "stmt": "🔴 硬事实③（RQ2 新增两段 + 摘要 + 结论）：Table 2 的 15.0% 是 Wilson on n=80，把 12 条缺陷当 12 次独立观测，而论文自己已披露它们是**三个同族复制**。按（包, 函数名）聚类——正是能无判断地复现该三族的键——得 3/68 = 4.4% [1.5%, 12.2%]，故 15.0% 降级为描述性、4.4% 为估计值。🔴 主规划者的数我复算成 3/68 = 4.4%（其口径为 3/66 = 4.5% [1.6%, 12.5%]，分母差 2 个簇）：按函数名聚类时 80 条标注塌成 68 个簇而非 66 个。同格另附敏感性：按精确签名字符串聚类 5/71 = 7.0%（三个 __init__ 变体参数表有装饰性差异），按（包,文件,函数）12/78 = 15.4%（每份复制各在自己的文件里，该键根本抓不到复制）。pooled『all but deepteam』同步改为 0/63 上界 4.6%（原 0/66 上界 4.4%）。",
+    "value": "cluster-level 3/68 = 4.4% [1.5, 12.2]; observation-level 12/80 = 15.0% (descriptive)",
+    "cmd": ".venv/bin/python tools/compute_intervals.py --rq5 --out /tmp/v2-iv-claim2.json",
+    "expect": "80 frozen labels defect rate, clusters by \\(repo,function name\\) \\| 3/68 \\| 4\\.4% \\| \\[1\\.5%, 12\\.2%\\][\\s\\S]*80 frozen labels all-but-deepteam defect rate, clusters by \\(repo,function name\\) \\| 0/63 \\| 0\\.0% \\| \\[0\\.0%, 5\\.7%\\] \\| 4\\.6%[\\s\\S]*80 frozen labels defect rate, observation level \\| 12/80 \\| 15\\.0% \\| \\[8\\.8%, 24\\.4%\\]"
+  },
+  {
+    "id": "V2.bare_typed_stratification",
+    "stmt": "🔴 硬事实①（RQ2 新增段 + 摘要 + 结论）：80 条冻结标注按 handler 形状分层（形状由钉版语料在发现行现场 ast 解析得出，不从标注散文里读）：裸 except: 13 条中 12 条是缺陷 = 92.3% [66.7%, 98.6%]；catch-all typed（except Exception:）18 条 0 缺陷，单侧上界 15.3%；**窄具名 typed 46 条 0 缺陷，单侧 95% Clopper-Pearson 上界 6.3%**；suppress 3 条 0 缺陷，上界 63.2%。🔴 主规划者的数我复算成 6.3%（其口径 4.6% 取自 n=64）：4.6% 是把 18 条 catch-all typed 与 46 条窄具名混成一个『typed』层算出来的（1-0.05^(1/64)=4.57%）。混合是错的——except Exception: 正是 BLE001/W0718 已经打的东西，不属于检测器声称的未覆盖增量；论文因此报更宽的 6.3%（n=46）并写明为何不用更紧的那个。",
+    "value": "bare 12/13 = 92.3%; narrow-typed 0/46 one-sided upper 6.3%; catch-all-typed 0/18 upper 15.3%",
+    "cmd": ".venv/bin/python tools/compute_intervals.py --rq5 --out /tmp/v2-iv-claim3.json",
+    "expect": "80 frozen labels: bare handlers, defect rate \\| 12/13 \\| 92\\.3% \\| \\[66\\.7%, 98\\.6%\\][\\s\\S]*80 frozen labels: catch-all-typed handlers, defect rate \\| 0/18 \\| 0\\.0% \\| \\[0\\.0%, 17\\.6%\\] \\| 15\\.3%[\\s\\S]*80 frozen labels: narrow-typed handlers, defect rate \\| 0/46 \\| 0\\.0% \\| \\[0\\.0%, 7\\.7%\\] \\| 6\\.3%"
+  },
+  {
+    "id": "V2.refactor_delta_not_a_subset",
+    "stmt": "RQ5 结果 1 的集合差（论文原文明确写 184 消失 / 39 新增 / 433 保留，并据此拒绝把重构描述成『剪枝』）：cmd 从两个 per-finding 覆盖导出现场重算集合差、逐规则归因、以及 140 条标注在重构下的去向。🔴 主规划者的数我复算成 184 dropped / 39 added（其口径『142 of the 145 dropped findings were failroute-only』两处不对：145 是**净**变化不是消失数，消失的是 184 个站点；其中 failroute-only 的是 156 = 84.8%，不是 142）。另：🔴 主规划者的『47/64 = 73.4% CONTRACT 被移除或降级』与『34/34 = 100% 声明 -> None/Optional 契约』均未复现——实测全 140 条口径为 58/122 = 47.5%；限定『声明 None-admitting 返回类型』为 35/38 = 92.1%，限定字面 -> None 为 22/23 = 95.7%，**都不是 100%**（3 条仍 HIGH/MEDIUM）。论文按 92.1% 写并点名那 3 条与 1 条存活于 HIGH 的 FALSE_POSITIVE。",
+    "value": "621->476 findings; 184 sites dropped (156 = 84.8% failroute-only), 39 added, 433 kept; 13/13 DEFECT kept at HIGH",
+    "cmd": ".venv/bin/python tools/rq5_refactor_delta.py",
+    "expect": "frames: 621 findings / 617 sites\\s+->\\s+476 findings / 472 sites\\s+\\(net -145\\)[\\s\\S]*sites: dropped 184\\s+added 39\\s+kept 433[\\s\\S]*dropped\\s+184 sites,\\s+156 failroute-only \\(84\\.8%\\)[\\s\\S]*DEFECT\\s+n=13 kept=13 dropped=0[\\s\\S]*CONTRACT none_admitting\\s+38 labels: dropped-or-downgraded 35 \\(92\\.1%\\), still HIGH/MEDIUM 3"
+  },
+  {
+    "id": "V2.static_covered_by_over_credits",
+    "stmt": "🔴 被 V3 批取代（2026-09-05）：本条钉的是**修前**的过度归因量（static 87 / co-location 229 / 两者分歧 142，其中 137 条是 no-action 被记到 bandit:B110+ruff:S110 名下）。V3 修好了 covered_by 推断，分歧降到 **5**、static 独有升到 **224**、no-action 份额归 0 —— 所以本条 expect 随之更新。🔴 这不是放宽：判据仍然是『两种 novelty 口径的整框计数必须与实测一致』，只是实测值变了；反向证明＝把 covered_by 的类型门槛去掉，disagree 立刻回到 142，本条红。修前修后的完整对照由 V3.covered_by_fix_before_after 从留存导出重算。 || 原 stmt（保留可追溯）：RQ5『static covered_by 不健全』段：两种 novelty 口径在整框上给出 87（static，18.3%）对 229（co-location，48.1%），二者嵌套（87 全在 229 内），且有 142 条被 static 判为已覆盖却无任何 linter 实际命中，其中 137 条是 no-action 被记到 bandit:B110 / ruff:S110 名下。cmd 从 per-finding 导出现场重算这些计数。这条的作用是把『static 列不可信、co-location 列才是可用的那一个』从修辞变成可复算的量化，并钉住方向：修好该推断只会把无缺陷观测移进 novel 格，使该格缺陷率更低，故 Table 8 的结论对这一缺陷稳健。",
+    "value": "static-novel 224, co-location-novel 229, nested; residual disagreement 5, no-action share 0",
+    "cmd": ".venv/bin/python -c \"import json\nR=[json.loads(l) for l in open('bench/corpus-coverage-per-finding-v2.jsonl',encoding='utf-8') if l.strip()]\nsn=sum(1 for r in R if not r['covered_by_static'])\ncn=sum(1 for r in R if not r['baseline_tools_colocated'])\ndis=[r for r in R if r['covered_by_static'] and not r['baseline_tools_colocated']]\nna=sum(1 for r in dis if r['rule']=='no-action')\nnested=all(not r['baseline_tools_colocated'] for r in R if not r['covered_by_static'])\nprint('static_novel=%d coloc_novel=%d disagree=%d no_action_share=%d nested=%s'%(sn,cn,len(dis),na,nested))\"",
+    "expect": "static_novel=224 coloc_novel=229 disagree=5 no_action_share=0 nested=True"
+  },
+  {
+    "id": "V2.static_covered_by_witness",
+    "stmt": "🔴 被 V3 批取代（2026-09-05）：本条原为**见证缺陷存在**而写——garak/analyze/ci_calculator.py:40 的 handler 是字面 `except (ValueError, TypeError): pass`，四个基线实跑命中 0，而检测器的 covered_by 却记着 bandit:B110+ruff:S110。V3 修好推断后，该站点的 covered_by 变为**空**，与四个基线的实测一致。本条因此翻转为『见证缺陷已修』：仍真跑四个 linter（lint_hits 必须为 0），并断言检测器不再归因任何规则。🔴 不是放宽——它现在要求两个独立来源一致；反向证明＝恢复旧推断，credited 一侧立刻变回 B110+S110，本条红。论文正文保留了这个缺陷的记述（§RQ5『was unsound. We measured the whole mapping and fixed it.』），按 §V3.2【Y】裁定改成『发现并修复、附修前修后数字』而非删除。 || 原 stmt（保留可追溯）：上一条的**见证用例**（论文正文点名了这个文件与行号，故它本身必须可复算）：garak/analyze/ci_calculator.py:40 的 handler 是字面的 except (ValueError, TypeError): pass，检测器的 covered_by 记为 bandit:B110 + ruff:S110；但对这一个文件真跑四个基线，命中数为 0（ruff 输出 All checks passed!、bandit 与 flake8 无行、pylint 给 10.00/10）。即 B110/S110 打裸 except: pass 而不打具名元组，形状推断不知道这件事。反向证明：若该推断被修正（不再给具名元组记 B110/S110），credited 一侧会变，本条即红——这正是应有的行为，因为它钉的是论文当前措辞所依赖的事实。",
+    "value": "4 linters return 0 hits on that file and the detector now credits nothing there either",
+    "cmd": ".venv/bin/python -c \"import json,os,subprocess\nR=[json.loads(l) for l in open('bench/corpus-coverage-per-finding-v2.jsonl',encoding='utf-8') if l.strip()]\nr=next(x for x in R if x['repo']=='garak' and x['file'].endswith('ci_calculator.py') and x['lineno']==40)\nf=os.path.abspath(r['file']); PY=os.path.abspath('.venv/bin/python')\nassert os.path.exists(f), f\ncmds=[[PY,'-m','ruff','check','--no-cache','--isolated','--select','S110,S112,B110','--output-format','json',f],[PY,'-m','bandit','-r',f,'-f','json','-t','B110,B112','-q'],[PY,'-m','flake8','--select','E722,B001,B017','--format','%(path)s',f],[PY,'-m','pylint','--disable=all','--enable=W0702,W0703,W0705,W0706','--output-format=json','--persistent=n',f]]\nn=0\nfor c in cmds:\n    o=subprocess.run(c,capture_output=True,text=True,timeout=600).stdout.strip()\n    if not o or o in ('[]','{}'): continue\n    d=json.loads(o)\n    n+= len(d) if isinstance(d,list) else len(d.get('results',[]))\nprint('lint_hits=%d credited=%s'%(n,'+'.join(sorted(x.split(':')[1] for x in r['covered_by_static']))))\"",
+    "expect": "lint_hits=0 credited=\\s*$",
+    "slow": true
+  },
+  {
+    "id": "V2.abstract_within_arxiv_form_limit",
+    "stmt": "🔴 被 V4 批更正记录值（2026-09-05）：value 原写 1910，重跑本条自己的 cmd 实测 **1903（余量 17）**。expect 是刻意写成区间的（`1[0-9]{3} / 1920 (fits)`），所以数值漂了 7 个字符闸门照样绿、没人发现 —— 🔴 **这正是本条 stmt 下一句自己点名的失效模式：『手维护的长度就是没人复跑的主张』**。V2 把源码注释里的数字换成命令是对的，但 value 字段本身又成了一个手维护的数字。处置：只改 value（记录值），🔴 **expect 的区间形式一字未动** —— 把它收紧成 1903 精确值属改闸门，且会重新制造『每次改摘要都要动闸门』的诱因，与本批 §V4.1 事 1 把 F1.no_regression 改成 ≥ 是同一个道理。 || P3：摘要不超 arXiv 表单 1920 字符（口径＝abstract 环境正文、去首尾空白、换行计 1 字符、**不剥 TeX 标记**）。🔴 历史事故两次：一次按剥标记口径量成 1904 而实际 1975 超限；本批又发现源码注释自 S 批起写着 1894，而 T 批加长后实际是 1917 —— 手维护的长度就是没人复跑的主张。故本批改成了命令：tools/check_abstract_len.py 超限即非零退出，源码注释不再写数字。当前实测 1910（余量 10）。反向证明：把摘要加长到超限，本条与工具的退出码同时变红。",
+    "value": "form convention 1903 / 1920, fits（余量 17；2026-09-05 实测，取代此前记录的 1910）",
+    "cmd": ".venv/bin/python tools/check_abstract_len.py",
+    "expect": "form convention\\s+: 1[0-9]{3} / 1920\\s+\\(fits\\)[\\s\\S]*whitespace flattened: 1[0-9]{3} / 1920\\s+\\(fits\\)"
+  },
+  {
+    "id": "V2.paper_numbers_drive_from_exports",
+    "stmt": "🔴 V2 第 0 步（动 main.tex 之前先补导出管线）的验收：rescan_corpus.py 与 CLI 的 --export-findings 必须把 severity / isomorphism / covered_by / verdict 四个字段写进导出，否则论文里 RQ5 的每个数字都只能手抄。cmd 直接检查两个已生成导出的字段齐全性与行数，并核对 476 这个总数与聚合 JSON 一致（即导出与统计同源，不是两份数）。",
+    "value": "rescan export carries all four V1 fields; coverage export carries severity/isomorphism/covered_by_static; 476 rows agree with the aggregate",
+    "cmd": ".venv/bin/python -c \"import json\nreq={'bench/rescan-v2/deepteam.jsonl':{'severity','isomorphism','covered_by','verdict'},\n     'bench/corpus-coverage-per-finding-v2.jsonl':{'severity','isomorphism','covered_by_static'}}\nfor p,need in req.items():\n    rows=[json.loads(l) for l in open(p,encoding='utf-8') if l.strip()]\n    miss=need-set(rows[0])\n    assert not miss, (p,sorted(miss))\nR=[json.loads(l) for l in open('bench/corpus-coverage-per-finding-v2.jsonl',encoding='utf-8') if l.strip()]\nagg=json.load(open('bench/corpus-coverage-union-v2.json',encoding='utf-8'))\nprint('export_field_sets_ok=%d rows_agree=%s'%(len(req), len(R)==agg['failroute_total']))\"",
+    "expect": "export_field_sets_ok=2 rows_agree=True"
+  },
+  {
+    "id": "V2.frozen_truth_untouched",
+    "stmt": "🔴 红线 9 的本批自证：V2 只被授权新建 paper/annotations-v2-additions.csv，绝不得改动任何SHA 锁死真值。cmd 对根仓 failroute 的 git status 做结构断言——受保护路径必须零改动（既非 modified 亦非 deleted）。反向证明：动其中任一文件即红。paper/intervals.json 一并纳入，因为 contractlens 的 k4 claim 断言它与 HEAD 一致，本批新增的 --rq5 模式必须绕开它（写 bench/intervals-v2.json）而不是就地扩格。",
+    "value": "0 modifications under paper/corpus, annotations*.csv, sample.jsonl, corpus-lock.json, merged-pr-recall.csv, arm2-tracked-sites.csv, h1_arm3_classification.csv, intervals.json",
+    "cmd": "git status --porcelain paper/corpus paper/annotations.csv paper/annotations-second-pass.csv paper/sample.jsonl paper/corpus-lock.json paper/merged-pr-recall.csv paper/arm2-tracked-sites.csv paper/h1_arm3_classification.csv paper/intervals.json paper/figures | wc -l | tr -d ' '",
+    "expect": "^0$"
+  }
+]

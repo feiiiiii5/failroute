@@ -180,10 +180,13 @@ def test_f5_suppress_in_callback_inside_reraising_handler_stays_reported():
 
 
 def test_f5_suppress_outside_any_handler_stays_reported():
+    # V1 (2026-09-04): fixture switched from OSError to Exception so the test
+    # still exercises what it was written for -- a suppress *outside* any
+    # handler is not excused by ADR-0002 -- under the broad-only rule.
     source = (
         "from contextlib import suppress\n"
         "def close(handle):\n"
-        "    with suppress(OSError):\n"
+        "    with suppress(Exception):\n"
         "        handle.close()\n"
     )
     assert [f.rule_id for f in scan_source(source)] == ["silent-suppress"]

@@ -4,14 +4,16 @@ from __future__ import annotations
 
 import ast
 
-from failroute.ir import FailureMode, Finding, Rule, RuleSpec, ScanContext
+from failroute.ir import FailureMode, Finding, Rule, RuleSpec, ScanContext, Severity
 from failroute.rules._shared import (
     body_has_raise,
     constant_value,
     dotted_name,
+    facts_for,
     is_catch_all,
     is_fallback_value,
     make_finding,
+    severity_for,
     walk_scope,
 )
 
@@ -76,6 +78,16 @@ class MaskedExceptionRule(Rule):
             return []
         if not (_has_conditional_raise(handler) and _has_fallback_return(handler, ctx)):
             return []
+        facts = facts_for(handler, ctx)
+        if facts is None:  # pragma: no cover - only when unit-tested in isolation
+            return []
+        # Some paths propagate and some substitute a constant, so the base is
+        # MEDIUM rather than HIGH: the caller is not always deceived.
+        severity, verdict = severity_for(
+            facts, mode_default=Severity.MEDIUM, channel="return"
+        )
+        if severity is None:
+            return []
         return [
             make_finding(
                 self.spec.rule_id,
@@ -85,5 +97,9 @@ class MaskedExceptionRule(Rule):
                 exc_name,
                 message="catch-all conditionally re-raises but also falls back to a "
                 "constant return; the failure outcome depends on the branch",
+                severity=severity,
+                isomorphism=facts.isomorphism,
+                covered_by=facts.covered_by,
+                verdict=verdict,
             )
         ]

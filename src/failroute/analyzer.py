@@ -47,10 +47,19 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from failroute.ir import FailureMode, Finding, Rule, ScanContext
+from failroute.ir import (
+    FailureMode,
+    Finding,
+    HandlerFacts,
+    Isomorphism,
+    Rule,
+    ScanContext,
+    Severity,
+)
 from failroute.rules import FILE_RULES, HANDLER_RULES
 from failroute.rules._shared import (
     collect_import_bindings,
+    handler_facts_for,
     handler_marked_off,
     import_probe_handler_ids,
     is_ignored_handler,
@@ -61,8 +70,11 @@ logger = logging.getLogger(__name__)
 __all__ = [
     "FailureMode",
     "Finding",
+    "HandlerFacts",
+    "Isomorphism",
     "Rule",
     "ScanContext",
+    "Severity",
     "scan_tree",
     "scan_source",
     "scan_path",
@@ -89,6 +101,11 @@ def scan_tree(
     ``rules.<id>.enabled = false``); ``extra_fallback_values`` carries
     project-specific fallback sentinels (``[tool.failroute]
     fallback_values``).
+
+    Every handler's value range, isomorphism verdict, data-flow consequences
+    and lint coverage are computed **once** here, before any rule runs, and
+    handed to the rules on the scan context. A rule that re-derived them would
+    be free to disagree with its neighbour about the same handler.
     """
     ctx = ScanContext(
         file=file,
@@ -97,6 +114,7 @@ def scan_tree(
         extra_fallback_values=frozenset(extra_fallback_values),
         extra_fallback_names=frozenset(extra_fallback_names),
         probe_handlers=import_probe_handler_ids(tree),
+        handler_facts=handler_facts_for(tree),
     )
 
     findings: list[Finding] = []
@@ -163,8 +181,12 @@ def scan_path(
             return findings
         try:
             source = path.read_text(encoding="utf-8", errors="replace")
-        except OSError as exc:  # pragma: no cover - read errors are environment-specific
-            logger.warning("skipping %s: %s", path, exc)
+        except (OSError, ValueError) as exc:
+            # Debug, not warning: logging's last-resort handler writes
+            # WARNING and above straight to stderr, and a whole-corpus scan
+            # must not emit a line per unreadable file. Skipping is the
+            # documented behaviour, and the count is reported by the CLI.
+            logger.debug("skipping %s: unreadable (%s)", path, exc)
             return findings
         try:
             findings.extend(
@@ -178,6 +200,10 @@ def scan_path(
             )
         except SyntaxError:
             logger.debug("skipping %s: not parseable as Python", path)
+        except ValueError:
+            # ast.parse raises ValueError (not SyntaxError) on source
+            # containing a null byte, which real generated files do contain.
+            logger.debug("skipping %s: source contains a null byte", path)
         except RecursionError:  # pragma: no cover - depends on interpreter recursion budget
             # Deeply nested generated files (payload resources, vendored
             # schemas) can exceed the interpreter's recursion budget during
@@ -333,8 +359,11 @@ def _finding_from_dict(data: dict[str, Any]) -> Finding:
 
     Raises ``KeyError``/``ValueError`` on schema drift; the caller decides
     what a corrupt entry means (re-scan the file) instead of this helper
-    silently returning ``None``.
+    silently returning ``None``. An unrecognised severity or isomorphism token
+    counts as drift: defaulting it would let a cache written by an older engine
+    masquerade as a current verdict.
     """
+    isomorphism_raw = data.get("isomorphism")
     return Finding(
         file=data["file"],
         lineno=data["lineno"],
@@ -344,6 +373,10 @@ def _finding_from_dict(data: dict[str, Any]) -> Finding:
         handler_text=data.get("handler_text", ""),
         message=data.get("message", ""),
         rule_id=data.get("rule_id", ""),
+        severity=Severity(data.get("severity", Severity.MEDIUM.value)),
+        isomorphism=None if isomorphism_raw is None else Isomorphism(isomorphism_raw),
+        covered_by=tuple(data.get("covered_by", ()) or ()),
+        verdict=data.get("verdict", ""),
     )
 
 

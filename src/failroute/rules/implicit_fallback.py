@@ -37,13 +37,16 @@ from __future__ import annotations
 import ast
 from collections.abc import Iterator
 
-from failroute.ir import FailureMode, Finding, Rule, RuleSpec, ScanContext
+from failroute.ir import FailureMode, Finding, Rule, RuleSpec, ScanContext, Severity
 from failroute.rules._shared import (
+    _TRY_STAR,
     ACTIVE_CALL_NAMES,
     constant_value,
-    handler_logs_error,
+    fallback_token,
+    handler_bindings,
     handler_marked_off,
     is_ignored_handler,
+    severity_for,
     walk_scope,
 )
 
@@ -104,6 +107,11 @@ def _returns_real_value(func: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
 _MATCH = getattr(ast, "Match", ())  # Python 3.10+; empty tuple on 3.9 makes isinstance() a no-op
 
 
+def _is_try_star(stmt: ast.stmt) -> bool:
+    """``except*`` (PEP 654, 3.11+) shares every field with ``try``."""
+    return _TRY_STAR is not None and isinstance(stmt, _TRY_STAR)
+
+
 def _always_terminates(stmts: list[ast.stmt]) -> bool:
     """True when *every* path through ``stmts`` leaves via return/raise/continue/break.
 
@@ -130,15 +138,21 @@ def _always_terminates(stmts: list[ast.stmt]) -> bool:
         elif isinstance(stmt, (ast.With, ast.AsyncWith)):
             if _always_terminates(stmt.body):
                 return True
-        elif isinstance(stmt, ast.Try):
-            # `finally` that terminates wins outright.
-            if stmt.finalbody and _always_terminates(stmt.finalbody):
+        elif isinstance(stmt, ast.Try) or _is_try_star(stmt):
+            # `finally` that terminates wins outright. getattr throughout: a
+            # PEP 654 `try*` node carries the same field names as `try`, but the
+            # static type of the branch is only `ast.stmt`.
+            finalbody = list(getattr(stmt, "finalbody", []) or [])
+            if finalbody and _always_terminates(finalbody):
                 return True
-            body_terminates = _always_terminates(stmt.body) or (
-                bool(stmt.orelse) and _always_terminates(stmt.orelse)
+            body = list(getattr(stmt, "body", []) or [])
+            orelse = list(getattr(stmt, "orelse", []) or [])
+            handlers = list(getattr(stmt, "handlers", []) or [])
+            body_terminates = _always_terminates(body) or (
+                bool(orelse) and _always_terminates(orelse)
             )
-            handlers_terminate = bool(stmt.handlers) and all(
-                _always_terminates(h.body) for h in stmt.handlers
+            handlers_terminate = bool(handlers) and all(
+                _always_terminates(h.body) for h in handlers
             )
             if body_terminates and handlers_terminate:
                 return True
@@ -226,8 +240,8 @@ def _tail_tries(stmts: list[ast.stmt]) -> Iterator[ast.Try]:
     if not stmts:
         return
     last = stmts[-1]
-    if isinstance(last, ast.Try):
-        yield last
+    if isinstance(last, ast.Try) or _is_try_star(last):
+        yield last  # type: ignore[misc]  # TryStar has the same fields as Try
     elif isinstance(last, (ast.If, ast.With, ast.AsyncWith)):
         yield from _tail_tries(last.body)
 
@@ -254,18 +268,40 @@ class ImplicitFallbackRule(Rule):
         # applies them itself.
         if handler_marked_off(handler, ctx.source_lines) or is_ignored_handler(handler):
             return None
-        # Documented limitation: a handler that records the failure at a
-        # readable severity is informational, not silent.
-        if handler_logs_error(handler):
+        facts = ctx.handler_facts.get(id(handler))
+        if facts is None:  # pragma: no cover - only when unit-tested in isolation
             return None
-        # Empty bodies are no-action's shape; explicit fallback values are
-        # silent-fallback's shape; a terminating statement (raise / return /
-        # process exit) means no fall-through exists.
+        # Empty bodies are no-action's shape, not this rule's.
         if _body_is_effectively_empty(handler):
             return None
-        if _has_top_level_assign(handler) or _has_top_level_terminal(handler):
+        # 🔴 V1: path-sensitive. The old gate was `_always_terminates` over the
+        # handler's *direct* statements, which is exactly the blind spot the
+        # annotated corpus caught four times over (deepteam
+        # `simulate_baseline_attacks`, fickling `check_pickle`, inspect_ai grok
+        # `generate`, pydantic-ai `execute_output_function` -- all four labelled
+        # FALSE_POSITIVE for the same root cause). The exit enumeration answers
+        # the question directly: if no path falls through, there is no implicit
+        # None to observe.
+        if not any(exit_.kind == "fallthrough" for exit_ in facts.exits):
             return None
-        if _has_top_level_exit(handler):
+        # A process exit means the caller never observes a return value at all.
+        if any(exit_.kind == "exit" for exit_ in facts.exits):
+            return None
+        # Explicit fallback constants are silent-fallback's shape; skip only
+        # when that rule would actually report one, so a handler that binds a
+        # real value and then falls through stays this rule's to report.
+        for binding in handler_bindings(handler):
+            if isinstance(binding.stmt, ast.AugAssign) or binding.value is None:
+                continue
+            if fallback_token(binding.value, ctx) is not None:
+                return None
+        severity, verdict = severity_for(
+            facts,
+            mode_default=Severity.MEDIUM,
+            channel="fallthrough",
+            routed_none=True,
+        )
+        if severity is None:
             return None
         return Finding(
             file=ctx.file,
@@ -280,4 +316,8 @@ class ImplicitFallbackRule(Rule):
                 "implicit None on this path while the success path returns real values"
             ),
             rule_id=self.spec.rule_id,
+            severity=severity,
+            isomorphism=facts.isomorphism,
+            covered_by=facts.covered_by,
+            verdict=verdict,
         )

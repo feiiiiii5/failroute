@@ -109,7 +109,13 @@ def f():
     assert len(findings) == 1
 
 
-def test_warning_log_still_exempts_catch_all():
+def test_warning_log_downgrades_catch_all_one_level():
+    # V1 (2026-09-04): recording a failure is a severity *modifier*, not an exemption.
+    # 委外任务清单.md §V1.1 layer 3 + probes C2/C3 in §V1.0-A: a log line does not
+    # change what the caller receives, so the finding stays and moves down one level.
+    # This test previously asserted `== []`, which encoded the old exemption.
+    # Catch-all base HIGH, one level down for logger.warning -> MEDIUM. The
+    # caller still receives 0.0 where a real judgement was promised.
     findings = scan_source(
         """
 def f():
@@ -120,12 +126,19 @@ def f():
         return 0.0
 """
     )
-    assert findings == []
+    assert [f.mode.value for f in findings] == ["silent-fallback"]
+    assert findings[0].severity.value == "medium"
 
 
-def test_any_level_log_exempts_typed_handler():
-    # Typed handlers document the anticipated failure mode by naming it;
-    # recording it at info level is enough of a trace.
+def test_any_level_log_downgrades_typed_handler():
+    # V1 (2026-09-04): recording a failure is a severity *modifier*, not an exemption.
+    # 委外任务清单.md §V1.1 layer 3 + probes C2/C3 in §V1.0-A: a log line does not
+    # change what the caller receives, so the finding stays and moves down one level.
+    # This test previously asserted `== []`, which encoded the old exemption.
+    # Typed base MEDIUM, one level down for logger.info -> LOW. The old two-tier
+    # rule exempted typed handlers at *any* level, which is exactly what probe C3
+    # (`except TimeoutError` + logger.info + `return 0.0`, §V1.0-A 应报) identified
+    # as wrong.
     findings = scan_source(
         """
 def f():
@@ -136,7 +149,8 @@ def f():
         return
 """
     )
-    assert findings == []
+    assert [f.mode.value for f in findings] == ["silent-fallback"]
+    assert findings[0].severity.value == "low"
 
 
 # ------------------------------------------------------------ scope hygiene

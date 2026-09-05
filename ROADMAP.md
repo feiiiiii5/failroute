@@ -12,6 +12,18 @@ Where failroute goes next — and, as importantly, where it deliberately does no
   per submission, no pressure, no duplication.
 - **Distribution channels already in place**: PyPI install, composite GitHub
   Action, pre-commit hook manifest, `[tool.failroute]` project config.
+- **The lint-overlap claim is measured, not inferred.** `covered_by` says which
+  trivial-lint rules already point at a finding, and the whole "does this add
+  anything over ruff/bandit?" question rests on it. It used to be a
+  shape-inference table written from a handful of spot checks; the spot checks
+  never covered narrow-typed handlers, so `S110`/`B110`/`S112`/`B112` were
+  credited to handlers those rules do not fire on — 146 findings on the pinned
+  corpus. `tools/lint_mapping_probe.py` now runs all four tools over 68
+  synthetic handlers (11 caught-type forms × 6 body forms, plus two
+  `contextlib.suppress` cases), records the result in
+  `bench/lint-rule-mapping.json`, and `--check-parity` fails if the production
+  code path disagrees with what the tools actually did. A new mapping has to
+  survive that probe before it can be written down.
 
 ## Candidates (each requires evidence before it ships)
 
@@ -23,6 +35,7 @@ recall gate still at 1.0 afterwards.
 |---|---|---|
 | Baseline / diff mode | Report only findings introduced since a baseline file — the CI-adoption unlock for existing large codebases | 3 real repositories where maintainers asked for it |
 | Inter-procedural fallback-flow tracking | Follow a fallback value to where it is consumed (score aggregation, reports) | A labelled corpus slice of >= 10 flow-through cases |
+| ~~Intra-procedural~~ answer-target tracking | **Partly landed in the V1 refactor, intra-procedurally only**: an assignment in a handler is reported only when the target is assigned in the guarded block, returned by the function, or read after the `try` (plus object state in a function with no value channel). This is what stopped `self._did_stream = True` and `self._has_interpretation_error = True` being reported as routed failures. The inter-procedural half — following the value into another method or module — is still gated as above. |
 | Additional modes (e.g. logged-but-swallowed) | The known limitation where logging handlers are treated as informational | Corpus evidence that reviewers want it flagged |
 
 ## Shipped from this list (with the evidence that unlocked it)

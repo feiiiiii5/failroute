@@ -1,7 +1,20 @@
-"""Benchmark gate: scanner must match the hand-labelled corpus exactly.
+"""Regression gate over the hand-written fixture corpus.
 
-Ground truth (tests/corpus/manifest.json) is labelled independently of tool
-output, so precision == recall == 1.0 here is a real claim, not a tautology.
+V1 (2026-09-04): this is a **regression** gate, not a quality measurement, and
+it must not be cited as one. 委外任务清单.md §V1.4 G5 downgrades it explicitly:
+the fixtures in ``tests/corpus/`` and the detector were written by the same
+author, and the paper's own RQ4 records the consequence -- this corpus never
+caught the ``for stmt in handler.body`` blind spot that hid a whole class of
+handler shapes. Passing here says "nothing changed unexpectedly", not "the
+detector is good".
+
+Quality evidence lives in ``bench/realworld/``, whose 80 labelled coordinates
+come from third-party code in the SHA256-locked paper corpus.
+
+Ground truth (``tests/corpus/manifest.json``) is labelled independently of tool
+output. One label was revised in V1 and carries an inline note saying so: the
+fixture at ``silent_fallback_cases.py:65`` asserted the logging exemption that
+§V1.1 layer 3 removes.
 """
 
 from __future__ import annotations
@@ -21,7 +34,7 @@ def _load_benchmark():
     return module
 
 
-def test_corpus_precision_and_recall_are_perfect():
+def test_corpus_regression_is_clean():
     report = _load_benchmark().run()
     assert report["false_positives"] == [], report["false_positives"]
     assert report["false_negatives"] == [], report["false_negatives"]

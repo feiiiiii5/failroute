@@ -12,6 +12,7 @@ from typing import Union
 
 from failroute.analyzer import Finding, scan_path, scan_repo
 from failroute.config import load_config
+from failroute.ir import Severity
 from failroute.sarif import to_sarif_json
 
 
@@ -23,9 +24,22 @@ def _version() -> str:
 
 _EPILOG = """\
 exit status:
-  0  scan completed, no findings
-  1  scan completed, findings above threshold
-  2  usage or input error
+  0  scan completed, and nothing reached --fail-on (or --exit-zero was given)
+  1  scan completed, more findings at or above --fail-on than --threshold allows
+  2  usage or input error, or the scan itself failed
+
+🔴 Exit 1 is gated on *severity*, not on the raw finding count. The previous
+contract ("any finding at all exits 1") made a clean scan of a typical
+repository indistinguishable from a failed one, because almost every codebase
+has at least one INFO-level finding. Default --fail-on high means CI fails on
+defects, not on observations.
+
+every finding carries:
+  severity    high | medium | low | info  (the consequence level)
+  covered_by  trivial-lint rules that already flag the same handler; empty
+              means nothing else points at this line (--only-novel shows just
+              those)
+  verdict     why that severity, in one line
 
 project configuration lives in [tool.failroute] (pyproject.toml):
   exclude, threshold, ignore, fallback_values, rules.<id>.enabled/severity
@@ -121,6 +135,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="repository label recorded in each --export-findings record (default: empty)",
     )
     parser.add_argument(
+        "--fail-on",
+        choices=("high", "medium", "low", "info"),
+        default="high",
+        metavar="LEVEL",
+        help="exit 1 when a finding reaches this severity or above (default: high). "
+        "Findings below it are still reported; they just do not fail the run.",
+    )
+    parser.add_argument(
+        "--exit-zero",
+        action="store_true",
+        help="always exit 0, even when findings reach --fail-on (report-only mode)",
+    )
+    parser.add_argument(
+        "--only-novel",
+        action="store_true",
+        help="report only findings whose covered_by is empty, i.e. the ones no "
+        "trivial lint rule (E722 / BLE001 / S110 / B015 / ...) already flags",
+    )
+    parser.add_argument(
         "--quiet",
         action="store_true",
         help="only print the finding count summary",
@@ -204,6 +237,14 @@ def _export_findings(
                 "rule": rule,
                 "mode": f.mode.value,
                 "message": f.message,
+                # The four V1 verdict fields, so an offline labeller sees the
+                # same record the JSON/SARIF outputs carry. Without them the
+                # export is the only format that loses the severity, which is
+                # how a hand-transcribed number sneaks into a paper.
+                "severity": f.severity.value,
+                "isomorphism": f.isomorphism.value if f.isomorphism is not None else None,
+                "covered_by": list(f.covered_by),
+                "verdict": f.verdict,
                 **_finding_context(scan_root, f.file, f.lineno),
             }
             fh.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -214,7 +255,16 @@ def _render(findings: list[Finding], fmt: str, severity_overrides: dict[str, str
         return "\n".join(json.dumps(f.to_dict(), ensure_ascii=False) for f in findings)
     if fmt == "sarif":
         return to_sarif_json(findings, severity_overrides=severity_overrides)
-    return "\n".join(f"{f.file}:{f.lineno}: {f.mode.value}: {f.message}" for f in findings)
+    lines = []
+    for f in findings:
+        novel = "" if f.covered_by else " [novel]"
+        lines.append(f"{f.file}:{f.lineno}: {f.severity.value}: {f.mode.value}{novel}: {f.message}")
+    return "\n".join(lines)
+
+
+def _gate_count(findings: list[Finding], fail_on: Severity) -> int:
+    """How many findings reach ``fail_on``; this, not the total, decides exit 1."""
+    return sum(1 for f in findings if f.severity.at_least(fail_on))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -237,35 +287,55 @@ def main(argv: list[str] | None = None) -> int:
     if args.json and args.format == "text":
         fmt = "json"
 
+    fail_on = Severity(args.fail_on)
+
     # --repo/-exclude only make sense over a directory tree; a single file is
     # scanned directly (previously `--repo file.py` silently reported zero).
-    if path.is_dir() and (args.repo or excludes):
-        findings = scan_repo(
-            path,
-            exclude=excludes,
-            disabled_rules=disabled_rules,
-            extra_fallback_values=cfg.fallback_values,
-            extra_fallback_names=cfg.fallback_names,
-            jobs=args.jobs,
-            use_cache=args.cache,
-        )
-    else:
-        findings = scan_path(
-            path,
-            disabled_rules=disabled_rules,
-            extra_fallback_values=cfg.fallback_values,
-            extra_fallback_names=cfg.fallback_names,
-        )
+    #
+    # 🔴 An unexpected exception here is a *run failure*, not a clean scan. It
+    # must not be allowed to escape as a traceback (a CI log full of stack
+    # frames from someone else's source tree is the worst possible output for a
+    # linter), and it must not be reported as exit 1, which would read as
+    # "findings above threshold". Exit 2 says "the tool did not complete".
+    try:
+        if path.is_dir() and (args.repo or excludes):
+            findings = scan_repo(
+                path,
+                exclude=excludes,
+                disabled_rules=disabled_rules,
+                extra_fallback_values=cfg.fallback_values,
+                extra_fallback_names=cfg.fallback_names,
+                jobs=args.jobs,
+                use_cache=args.cache,
+            )
+        else:
+            findings = scan_path(
+                path,
+                disabled_rules=disabled_rules,
+                extra_fallback_values=cfg.fallback_values,
+                extra_fallback_names=cfg.fallback_names,
+            )
+    except Exception as exc:  # noqa: BLE001 - the CLI boundary is exactly where a
+        # catch-all belongs: nothing useful can be done with the type, and the
+        # alternative is a traceback in someone else's CI log.
+        print(f"failroute: error: scan failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 2
 
     # Deterministic order regardless of filesystem enumeration.
     findings.sort(key=_sort_key)
+
+    if args.only_novel:
+        findings = [f for f in findings if not f.covered_by]
+
+    gated = _gate_count(findings, fail_on)
+    failed = gated > threshold and not args.exit_zero
 
     if args.export_findings is not None:
         _export_findings(findings, args.export_findings, path.resolve(), args.repo_name)
         print(
             f"{len(findings)} finding(s) exported to {args.export_findings}", file=sys.stderr
         )
-        return 0 if len(findings) <= threshold else 1
+        return 1 if failed else 0
 
     rendered = _render(findings, fmt, cfg.severity_overrides)
 
@@ -280,7 +350,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{len(findings)} finding(s) written to {args.output}", file=sys.stderr)
     else:
         print(f"{len(findings)} finding(s)", file=sys.stderr)
-    return 0 if len(findings) <= threshold else 1
+    # Spell out why a run with findings still exited 0, so "no gate reached"
+    # never has to be inferred from silence.
+    if findings and not failed:
+        print(
+            f"gate: {gated} of {len(findings)} at or above {fail_on.value}"
+            f" (threshold {threshold})"
+            + ("; --exit-zero" if args.exit_zero else ""),
+            file=sys.stderr,
+        )
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -14,9 +14,13 @@ registry-dispatched rules:
 
 from __future__ import annotations
 
+import os
+import sys
 from pathlib import Path
 
-from failroute import main, scan_repo, scan_source
+import pytest
+
+from failroute import main, scan_path, scan_repo, scan_source
 from failroute.analyzer import FailureMode
 
 
@@ -217,3 +221,184 @@ def test_cache_invalidated_by_engine_version(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(ana, "_engine_version", lambda: "0.0.0-test-old")
     second = scan_repo(tmp_path, use_cache=True)
     assert first == second  # findings identical, but recomputed, not served
+
+
+# ---------------------------------------------------------------------------
+# G6⑥ hostile-input boundaries (V1, 2026-09-04)
+#
+# 委外任务清单.md §V1.4 G6⑥ names these nine shapes explicitly. The gate they
+# serve is G6③/④: "a static analyser's least acceptable failure is crashing on
+# someone else's code". Each test asserts *no exception escapes*, not that a
+# particular finding is produced -- a skipped file is a correct outcome, a
+# traceback is not.
+# ---------------------------------------------------------------------------
+
+
+def test_empty_file_is_clean(tmp_path: Path):
+    target = tmp_path / "empty.py"
+    target.write_text("", encoding="utf-8")
+    assert scan_path(target) == []
+
+
+def test_comment_only_file_is_clean(tmp_path: Path):
+    target = tmp_path / "comments.py"
+    target.write_text("# nothing but comments\n\n# still nothing\n", encoding="utf-8")
+    assert scan_path(target) == []
+
+
+def test_non_utf8_source_does_not_crash(tmp_path: Path):
+    # latin-1 bytes that are invalid UTF-8. scan_path reads with
+    # errors="replace", so the file is scanned as mojibake rather than raising.
+    target = tmp_path / "latin1.py"
+    target.write_bytes(
+        "def g():\n    s = 'café'\n    try:\n        h()\n"
+        "    except Exception:\n        pass\n".encode("latin-1")
+    )
+    findings = scan_path(target)
+    assert [f.mode.value for f in findings] == ["no-action"]
+
+
+def test_null_byte_source_is_skipped_not_raised(tmp_path: Path):
+    # ast.parse raises ValueError (not SyntaxError) on a null byte; that used to
+    # be an uncaught path.
+    target = tmp_path / "nullbyte.py"
+    target.write_bytes(b"x = 1\n\x00\n")
+    assert scan_path(target) == []
+
+
+def test_syntax_error_file_is_skipped_not_raised(tmp_path: Path):
+    target = tmp_path / "broken.py"
+    target.write_text("def f(:\n    pass\n", encoding="utf-8")
+    assert scan_path(target) == []
+
+
+def test_very_long_single_line_does_not_crash(tmp_path: Path):
+    target = tmp_path / "longline.py"
+    target.write_text(
+        "x = '" + "a" * 400_000 + "'\ntry:\n    g()\nexcept Exception:\n    pass\n",
+        encoding="utf-8",
+    )
+    assert [f.mode.value for f in scan_path(target)] == ["no-action"]
+
+
+def test_deeply_nested_handler_is_still_found(tmp_path: Path):
+    # 50 levels of `if` above the handler. Two things are being tested: the
+    # AST walk reaches it, and enumerate_exits' depth budget does not silently
+    # drop the finding.
+    depth = 50
+    src = "def f(x):\n"
+    for i in range(1, depth + 1):
+        src += "    " * i + "if x:\n"
+    src += "    " * (depth + 1) + "try:\n"
+    src += "    " * (depth + 2) + "g()\n"
+    src += "    " * (depth + 1) + "except Exception:\n"
+    src += "    " * (depth + 2) + "pass\n"
+    target = tmp_path / "deep.py"
+    target.write_text(src, encoding="utf-8")
+    findings = scan_path(target)
+    assert [f.mode.value for f in findings] == ["no-action"]
+    assert findings[0].lineno == depth + 4
+
+
+def test_nesting_beyond_the_parser_limit_is_skipped(tmp_path: Path):
+    # CPython's tokenizer rejects more than ~100 indentation levels, so this
+    # file is not valid Python. The point is that the scanner says "skipped"
+    # rather than raising.
+    depth = 200
+    src = "def f(x):\n" + "".join("    " * i + "if x:\n" for i in range(1, depth + 1))
+    src += "    " * (depth + 1) + "pass\n"
+    target = tmp_path / "toodeep.py"
+    target.write_text(src, encoding="utf-8")
+    assert scan_path(target) == []
+
+
+def test_pathologically_nested_expression_does_not_crash(tmp_path: Path):
+    target = tmp_path / "extreme.py"
+    target.write_text("x = " + "[" * 4000 + "]" * 4000 + "\n", encoding="utf-8")
+    assert scan_path(target) == []
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 10), reason="match/case is PEP 634 syntax, rejected before 3.10"
+)
+def test_match_statement_handler_is_found(tmp_path: Path):
+    src = (
+        "def f(cmd) -> float:\n"
+        "    try:\n"
+        "        return run(cmd)\n"
+        "    except ValueError:\n"
+        "        match cmd:\n"
+        "            case 'a':\n"
+        "                return 0.0\n"
+        "            case _:\n"
+        "                return 1.0\n"
+    )
+    target = tmp_path / "matchcase.py"
+    target.write_text(src, encoding="utf-8")
+    findings = scan_path(target)
+    assert [f.mode.value for f in findings] == ["silent-fallback"]
+    # Both arms are visible, which the top-level-only walk could never do.
+    assert "0.0" in findings[0].message and "1.0" in findings[0].message
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 11), reason="except* is PEP 654 syntax, rejected before 3.11"
+)
+def test_except_star_handler_is_found(tmp_path: Path):
+    # 🔴 Before V1 the traversal matched ast.Try only, so every `except*`
+    # handler in a scanned tree was invisible. PEP 654 forbids return/break/
+    # continue inside an except* block, so the observable shapes are `pass`,
+    # assignment and re-raise.
+    src = (
+        "def f():\n"
+        "    try:\n"
+        "        g()\n"
+        "    except* ValueError:\n"
+        "        pass\n"
+    )
+    target = tmp_path / "trystar.py"
+    target.write_text(src, encoding="utf-8")
+    findings = scan_path(target)
+    assert [f.mode.value for f in findings] == ["no-action"]
+
+
+def test_symlink_loop_terminates(tmp_path: Path):
+    # A directory that contains a symlink to itself. rglob must not follow it
+    # into an infinite descent.
+    sub = tmp_path / "loop"
+    sub.mkdir()
+    (sub / "a.py").write_text("try:\n    g()\nexcept Exception:\n    pass\n", encoding="utf-8")
+    (sub / "self").symlink_to(sub, target_is_directory=True)
+    assert len(scan_repo(sub)) == 1
+
+
+def test_symlinked_file_is_scanned(tmp_path: Path):
+    real = tmp_path / "real.py"
+    real.write_text("try:\n    g()\nexcept Exception:\n    pass\n", encoding="utf-8")
+    link = tmp_path / "link.py"
+    link.symlink_to(real)
+    assert len(scan_path(link)) == 1
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root bypasses file permissions")
+def test_unreadable_file_is_skipped_not_raised(tmp_path: Path):
+    target = tmp_path / "noperm.py"
+    target.write_text("try:\n    g()\nexcept Exception:\n    pass\n", encoding="utf-8")
+    os.chmod(target, 0o000)
+    try:
+        assert scan_path(target) == []
+    finally:
+        os.chmod(target, 0o644)
+
+
+def test_unreadable_file_emits_no_stderr_noise(tmp_path: Path, caplog):
+    # G6③ requires "stderr 无噪音" over a whole-corpus scan. logging's
+    # last-resort handler writes WARNING and above straight to stderr, so a
+    # skipped file must be logged at DEBUG.
+    import logging
+
+    target = tmp_path / "broken.py"
+    target.write_text("def f(:\n", encoding="utf-8")
+    with caplog.at_level(logging.DEBUG):
+        scan_path(target)
+    assert all(record.levelno < logging.WARNING for record in caplog.records)

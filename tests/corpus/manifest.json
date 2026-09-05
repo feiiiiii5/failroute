@@ -45,6 +45,18 @@
     },
     {
       "file": "implicit_fallback_cases.py",
+      "lineno": 98,
+      "mode": "implicit-fallback",
+      "note": "V1 2026-09-04: relabelled from true-negative (old note: 'documented limitation: error-level log makes the handler informational'). 委外任务清单.md §V1.1 layer 3 turns logging into a one-level severity modifier, so a logged fall-through is reported at LOW instead of exempted."
+    },
+    {
+      "file": "implicit_fallback_cases.py",
+      "lineno": 106,
+      "mode": "implicit-fallback",
+      "note": "V1 2026-09-04: relabelled from true-negative (old note: 'typed handler logging at any level is informational'). 委外任务清单.md §V1.1 layer 3 turns logging into a one-level severity modifier, so a logged fall-through is reported at LOW instead of exempted."
+    },
+    {
+      "file": "implicit_fallback_cases.py",
       "lineno": 134,
       "mode": "silent-fallback"
     },
@@ -104,33 +116,14 @@
       "mode": "silent-fallback"
     },
     {
+      "file": "silent_fallback_cases.py",
+      "lineno": 65,
+      "mode": "silent-fallback",
+      "note": "V1 2026-09-04: relabelled from true-negative. The old note read 'documented limitation: handlers that log are informational'. 委外任务清单.md §V1.1 layer 3 removes that exemption (probe C2: logger.warning + `return 0.0` 应报), so this is now a finding at MEDIUM."
+    },
+    {
       "file": "suppress_cases.py",
       "lineno": 23,
-      "mode": "silent-suppress"
-    },
-    {
-      "file": "suppress_cases.py",
-      "lineno": 31,
-      "mode": "silent-suppress"
-    },
-    {
-      "file": "suppress_cases.py",
-      "lineno": 37,
-      "mode": "silent-suppress"
-    },
-    {
-      "file": "suppress_cases.py",
-      "lineno": 43,
-      "mode": "silent-suppress"
-    },
-    {
-      "file": "suppress_cases.py",
-      "lineno": 50,
-      "mode": "silent-suppress"
-    },
-    {
-      "file": "suppress_cases.py",
-      "lineno": 90,
       "mode": "silent-suppress"
     },
     {
@@ -194,16 +187,6 @@
       "file": "implicit_fallback_cases.py",
       "lineno": 89,
       "note": "generator: fall-through ends iteration, a different contract"
-    },
-    {
-      "file": "implicit_fallback_cases.py",
-      "lineno": 98,
-      "note": "documented limitation: error-level log makes the handler informational"
-    },
-    {
-      "file": "implicit_fallback_cases.py",
-      "lineno": 106,
-      "note": "typed handler logging at any level is informational"
     },
     {
       "file": "implicit_fallback_cases.py",
@@ -272,11 +255,6 @@
     },
     {
       "file": "silent_fallback_cases.py",
-      "lineno": 65,
-      "note": "documented limitation: handlers that log are informational"
-    },
-    {
-      "file": "silent_fallback_cases.py",
       "lineno": 74,
       "note": "fallback return unreachable after unconditional raise"
     },
@@ -284,6 +262,26 @@
       "file": "silent_fallback_cases.py",
       "lineno": 83,
       "note": "non-empty container is not a fallback shape"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 31,
+      "note": "V1 2026-09-04: relabelled from expected. 委外任务清单.md §V1.2 restricts silent-suppress to broad suppression (suppress(Exception) / suppress(BaseException) / unresolvable arguments); this statement suppresses only narrow named types. Measured on the pinned corpus the split is 23 broad to 4 specific."
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 37,
+      "note": "V1 2026-09-04: relabelled from expected. 委外任务清单.md §V1.2 restricts silent-suppress to broad suppression (suppress(Exception) / suppress(BaseException) / unresolvable arguments); this statement suppresses only narrow named types. Measured on the pinned corpus the split is 23 broad to 4 specific."
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 43,
+      "note": "V1 2026-09-04: relabelled from expected. 委外任务清单.md §V1.2 restricts silent-suppress to broad suppression (suppress(Exception) / suppress(BaseException) / unresolvable arguments); this statement suppresses only narrow named types. Measured on the pinned corpus the split is 23 broad to 4 specific."
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 50,
+      "note": "V1 2026-09-04: relabelled from expected. 委外任务清单.md §V1.2 restricts silent-suppress to broad suppression (suppress(Exception) / suppress(BaseException) / unresolvable arguments); this statement suppresses only narrow named types. Measured on the pinned corpus the split is 23 broad to 4 specific."
     },
     {
       "file": "suppress_cases.py",
@@ -309,6 +307,11 @@
       "file": "suppress_cases.py",
       "lineno": 83,
       "note": "KeyboardInterrupt suppression: informational by design"
+    },
+    {
+      "file": "suppress_cases.py",
+      "lineno": 90,
+      "note": "V1 2026-09-04: relabelled from expected. 委外任务清单.md §V1.2 restricts silent-suppress to broad suppression (suppress(Exception) / suppress(BaseException) / unresolvable arguments); this statement suppresses only narrow named types. Measured on the pinned corpus the split is 23 broad to 4 specific."
     },
     {
       "file": "v06_shapes.py",

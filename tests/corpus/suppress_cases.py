@@ -26,27 +26,27 @@ def suppress_catch_all():
 
 
 def suppress_typed():
-    # FLAGGED silent-suppress: discarding a named failure is the same routing
-    # decision as `except FileNotFoundError: pass`, which is already flagged
+    # CLEAN (V1 2026-09-04): narrow named type. silent-suppress now reports
+    # broad suppression only -- see the module docstring and manifest note.
     with suppress(FileNotFoundError):
         os.remove(cache_path)
 
 
 async def suppress_async():
-    # FLAGGED silent-suppress
+    # CLEAN (V1 2026-09-04): narrow named type, async form
     async with contextlib.suppress(ValueError):
         await publish_result(0.0)
 
 
 def suppress_aliased_import():
-    # FLAGGED silent-suppress: aliasing does not change the semantics
+    # CLEAN (V1 2026-09-04): narrow named type; aliasing still resolves
     with swallow_errors(KeyError):
         return lookup(metric_name)
 
 
 def suppress_multiline_body():
-    # FLAGGED silent-suppress: body shape is irrelevant, the failure is routed
-    # to silence either way
+    # CLEAN (V1 2026-09-04): narrow named type; body shape is irrelevant to
+    # the broad/narrow decision, which is made on the suppressed types
     with suppress(OSError):
         stream = open(path)
         stream.read()
@@ -85,8 +85,8 @@ def suppress_keyboard_interrupt():
 
 
 def suppress_mixed_ignore_and_real_error():
-    # FLAGGED silent-suppress: one real error type means real failures are
-    # silenced alongside the idiomatic one
+    # CLEAN (V1 2026-09-04): mixed tuple with no broad member. Under the
+    # broad-only rule this is a narrow suppression, so it is not reported.
     with contextlib.suppress(asyncio.CancelledError, OSError):
         await_ready(tasks)
 

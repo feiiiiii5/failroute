@@ -31,9 +31,11 @@ def test_conditional_raise_with_fallthrough_is_reported():
     assert [f.mode for f in findings] == [FailureMode.IMPLICIT_FALLBACK]
 
 
-def test_logged_fallthrough_is_exempt():
-    # Documented limitation: a handler that records the failure at a readable
-    # severity is informational, not silent.
+def test_logged_fallthrough_is_downgraded_not_exempt():
+    # V1 (2026-09-04): 委外任务清单.md §V1.1 layer 3 makes recording a failure a
+    # one-level severity modifier instead of an exemption. The caller still
+    # receives the implicit None where a real value was promised; LOG.error only
+    # means someone can find out afterwards. Base MEDIUM -> LOW.
     source = (
         "import logging\n"
         "LOG = logging.getLogger(__name__)\n"
@@ -43,7 +45,9 @@ def test_logged_fallthrough_is_exempt():
         "    except Exception:\n"
         "        LOG.error('failed: %s', x)\n"
     )
-    assert scan_source(source) == []
+    findings = scan_source(source)
+    assert [f.mode for f in findings] == [FailureMode.IMPLICIT_FALLBACK]
+    assert findings[0].severity.value == "low"
 
 
 def test_procedure_function_is_exempt():

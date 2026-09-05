@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from failroute.ir import Finding
+from failroute.ir import SEVERITY_TO_SARIF_LEVEL, Finding
 from failroute.rules import all_rules, rule_by_id
 
 # Single source of truth is the installed distribution metadata; the previous
@@ -37,10 +37,22 @@ _MODE_DEFAULT_LEVELS = {"silent-fallback": "error", "implicit-fallback": "error"
 
 
 def _level(finding: Finding, severity_overrides: dict[str, str]) -> str:
+    """SARIF level for one finding.
+
+    🔴 V1: the level now follows the **finding's** severity, not its rule's
+    declared default. Two ``silent-fallback`` findings can legitimately differ
+    by three levels once the declared return range and the isomorphism verdict
+    are taken into account, and a per-rule level cannot express that — which is
+    precisely why the old model had to *exempt* logged handlers instead of
+    downgrading them.
+
+    An explicit ``[tool.failroute.rules.<id>] severity = "..."`` still wins: a
+    project that wants every ``no-action`` treated as an error can say so.
+    """
     rule = rule_by_id(finding.rule_id) if finding.rule_id else None
-    if rule is not None:
-        return severity_overrides.get(rule.spec.rule_id, rule.spec.severity)
-    return _MODE_DEFAULT_LEVELS.get(finding.mode.value, "warning")
+    if rule is not None and rule.spec.rule_id in severity_overrides:
+        return severity_overrides[rule.spec.rule_id]
+    return SEVERITY_TO_SARIF_LEVEL.get(finding.severity, "warning")
 
 
 def _rules_metadata(severity_overrides: dict[str, str]) -> list[dict[str, Any]]:

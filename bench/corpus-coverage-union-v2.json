@@ -1,0 +1,114 @@
+{
+  "generated_at_utc": "2026-09-05T04:47:07Z",
+  "findings_dir": "bench/rescan-v2",
+  "tools": [
+    "ruff",
+    "bandit",
+    "pylint",
+    "flake8+bugbear"
+  ],
+  "ruff_select": "S110,S112",
+  "line_tolerance": 1,
+  "failroute_total": 476,
+  "union_covered": 247,
+  "failroute_only": 229,
+  "union_covered_4tool_recheck": 247,
+  "union_covered_5tool": 247,
+  "by_rule": {
+    "silent-fallback": {
+      "total": 248,
+      "covered": 172,
+      "covered_4": 172,
+      "covered_5": 172,
+      "only": 76
+    },
+    "masked-exception": {
+      "total": 3,
+      "covered": 3,
+      "covered_4": 3,
+      "covered_5": 3,
+      "only": 0
+    },
+    "no-action": {
+      "total": 209,
+      "covered": 72,
+      "covered_4": 72,
+      "covered_5": 72,
+      "only": 137
+    },
+    "silent-suppress": {
+      "total": 16,
+      "covered": 0,
+      "covered_4": 0,
+      "covered_5": 0,
+      "only": 16
+    }
+  },
+  "per_tool_by_rule": {
+    "ruff": {
+      "no-action": 72
+    },
+    "bandit": {
+      "no-action": 63
+    },
+    "pylint": {
+      "masked-exception": 3,
+      "no-action": 67,
+      "silent-fallback": 172
+    },
+    "flake8+bugbear": {
+      "no-action": 3,
+      "silent-fallback": 121
+    }
+  },
+  "per_package": [
+    {
+      "name": "garak",
+      "failroute": 34,
+      "covered": 19,
+      "only": 15
+    },
+    {
+      "name": "inspect_ai",
+      "failroute": 202,
+      "covered": 74,
+      "only": 128
+    },
+    {
+      "name": "pydantic_ai_slim",
+      "failroute": 47,
+      "covered": 8,
+      "only": 39
+    },
+    {
+      "name": "uqlm",
+      "failroute": 14,
+      "covered": 7,
+      "only": 7
+    },
+    {
+      "name": "trl",
+      "failroute": 26,
+      "covered": 6,
+      "only": 20
+    },
+    {
+      "name": "smolagents",
+      "failroute": 12,
+      "covered": 2,
+      "only": 10
+    },
+    {
+      "name": "deepteam",
+      "failroute": 134,
+      "covered": 127,
+      "only": 7
+    },
+    {
+      "name": "fickling",
+      "failroute": 7,
+      "covered": 4,
+      "only": 3
+    }
+  ]
+}

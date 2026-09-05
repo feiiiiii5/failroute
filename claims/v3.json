@@ -1,0 +1,69 @@
+[
+  {
+    "id": "V3.mapping_parity_exact",
+    "stmt": "🔴 Q1 主门：covered_by 的每一条映射都由四个 linter **实跑**验证，不是静态推断自证。cmd 生成 68 个探针（11 种捕获类型形态 × 6 种 body 形态 + 2 个 contextlib.suppress），对同一文件跑 ruff/bandit/flake8+bugbear/pylint，按函数 span 归属每个命中，然后用生产路径 handler_facts_for 重算每个 handler 的 covered_by 与实测矩阵逐格对比。三重防线：① 每条规则有 positive control，选择器静默失配即整轮失败（ruff 遇非法 selector 退出码 2 而非空结果，已实测触发过一次）② 命中无法归属即失败 ③ 工具退出码非零。判据是『exact agreement on every case』——过/欠归因任一非空即红。",
+    "value": "68 probes, 0 failed positive controls, 0 unattributed hits, exact parity on all 68",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/lint_mapping_probe.py --check-parity",
+    "expect": "probe: 68 cases, 68 functions[\\s\\S]*positive controls failed: none[\\s\\S]*unattributed hits: 0[\\s\\S]*parity check: 68 handler\\(s\\)/case\\(s\\)[\\s\\S]*exact agreement on every case",
+    "slow": true
+  },
+  {
+    "id": "V3.bandit_is_narrower_than_ruff",
+    "stmt": "🔴 主规划者的修法（『S110/B110/S112/B112 仅在 broad 时计入』）会留下一条误归因，本条钉住实测差异：ruff S110/S112 在 7 种形态上触发（bare, exception, baseexception, mixed_tuple, dotted_mixed, call_mixed, dotted_exception），而 bandit B110/B112 **只在 2 种**上触发（bare, exception）—— 它不打 `except BaseException:`、不打 `except builtins.Exception:`、也不打任何元组。把四条规则一起 gate 在同一个 broad 谓词上，会把 pydantic_ai_slim/_agent_graph.py:205（`except BaseException: pass`）继续错误归因给 bandit:B110。🔴 这条正是 V2 抓到的 146 vs 主规划者 145 的那 1 条之差。cmd 重跑探针取实测，不读回 JSON。",
+    "value": "bandit B110/B112 fire on 2 of 11 caught-type forms; ruff S110/S112 on 7 of 11",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/lint_mapping_probe.py",
+    "expect": "FIRES_ON bandit:B110 body=pass forms=bare,exception\\nFIRES_ON ruff:S110 body=pass forms=bare,exception,baseexception,mixed_tuple,dotted_mixed,call_mixed,dotted_exception\\nFIRES_ON bandit:B112 body=continue forms=bare,exception\\nFIRES_ON ruff:S112 body=continue forms=bare,exception,baseexception,mixed_tuple,dotted_mixed,call_mixed,dotted_exception",
+    "slow": true
+  },
+  {
+    "id": "V3.suppress_unreachable_and_w0703_is_an_alias",
+    "stmt": "两条论文正文引用的、由探针独立于语料复现的事实。① `contextlib.suppress(...)` 在**任何**捕获类型下都不被四个工具中的任何一个报告（narrow 与 broad 两个探针格均为 NONE）——这是论文 SIM105 论点的合成复现，此前只有语料证据。② pylint 4.x 接受 W0703（RQ1 基线启用的退役 id）并把消息报成 W0718：只启用 W0703 时输出里**只有** W0718、没有别的 id，所以照 RQ1 的选择器数 W0703 消息会数到 0 并误判『broad-except 规则没跑』。cmd 重跑探针，不读回 JSON。 || 🔴 V3 批自纠（2026-09-05）：expect 原本要求 SUPPRESS 两行在前、W0703 别名行在后，而探针实际先打印别名行（第 3 行）再打印 SUPPRESS（第 40/41 行），正则永不可能匹配 —— 本条因此假红。已按实际顺序改写，两个事实一个没减。",
+    "value": "suppress: no rule fires at either caught type; --enable=W0703 emits only W0718",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/lint_mapping_probe.py",
+    "expect": "pylint --enable=W0703 alone emits: \\{'W0718': \\d+\\}[\\s\\S]*SUPPRESS case_suppress_narrow rules=NONE\\nSUPPRESS case_suppress_broad rules=NONE",
+    "slow": true
+  },
+  {
+    "id": "V3.reverse_proof_and_full_matrix_tests",
+    "stmt": "🔴 Q2 反向证明 + Q1 全组合，以 pytest 形式常驻：tests/test_lint_mapping.py 共 36 条，覆盖 broad/typed × pass/ellipsis/continue/return/assign/dead_probe 全组合。反向证明是成对的：窄具名 + pass 断言 covered_by **不含** S110/B110，同一 body 改回裸 except: 则**必须含**；只删归因不加分情况的实现会过后半条而挂前半条。另含：① `except: ...` 不得获得 S110/B110（第二个被抓到的错条件）② 元组含不可解析成员时 catch-all 归因必须存活（反方向的错）③ 点号限定 Exception / 纯 call 表达式 / 只是以 Exception 结尾的名字三者仍算窄，防止修正过头 ④ SIM105 实测触发但**故意不归因**，加进来必须先让这条测试变红。 || 🔴 V3 批自纠（2026-09-05）：cmd 原带 `-q`，而 pyproject 的 addopts 已有 `-q`，两个 -q 让 pytest 连汇总行都不打印，输出只剩点号 —— 本条因此假红。去掉多余的 `-q`，expect '36 passed' 未改。",
+    "value": "36 passed",
+    "cmd": "PYTHONPATH=src .venv/bin/python -m pytest tests/test_lint_mapping.py --tb=short",
+    "expect": "36 passed"
+  },
+  {
+    "id": "V3.red_replay_prefix",
+    "stmt": "🔴 铁律 4（不许空转闸门）的执行。V3.reverse_proof_and_full_matrix_tests 只证明『修后 36 条全绿』，单看它无法排除『测试根本不约束任何东西』。本条把**同一批测试**跑在修前的 covered_by_for 上：tools/refix_replay.py 在临时树里把该函数还原成 V3 修改前的版本（S110/B110/S112/B112 不看捕获类型、tuple 捕获直接 bail out），实测 21 failed / 15 passed。修前红 + 修后绿，才构成 fail→pass 证据；两条互为对照，任何一边退化都会让其中一条变红。🔴 修前源码是**重建**而非 git 对象，这一点必须说明：§V3.2【X】裁定暂不 commit，HEAD 的 _shared.py 仍是 v0.8.0（连 handler_facts_for 都没有，直接 checkout 会 ImportError），所以取不到修前状态；重建文本逐字内嵌在 refix_replay.py 里并注明来源是本轮开工时的工作树。脚本还自带一道防伪：先确认临时树真的被 import（macOS 上 /var 与 /private/var 曾让该校验误判，已修），否则响亮退出而不是把『跑了真树、36 全绿』误读成反向证明。",
+    "value": "21 failed, 15 passed on the pre-V3 covered_by_for; 36 passed on the fixed one",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/refix_replay.py",
+    "expect": "REFIX_REPLAY 21 failed, 15 passed"
+  },
+  {
+    "id": "V3.covered_by_fix_before_after",
+    "stmt": "🔴 论文 RQ5『Before and after』段与 Table 12 的全部数字，一条命令重算。cmd 对比**留存的修前导出**与当前导出：修前 87 条静态独有（18.3%）→ 修后 **224 条（47.1%）**；HIGH ∧ 无 lint 覆盖 20 → **25**；被过度归因 **146** 条（全部 no-action：info 93 / medium 48 / high 5），其中 137 条转为独有、9 条仍被覆盖；新增归因 **3** 条（修 tuple bail-out 所致）。🔴 主规划者的数我复算成 224/47.1%（其口径 227/47.7%）与 146（其口径 145）：差的 3 条正是 `except (anyio.get_cancelled_exc_class(), Exception):` —— 谓词在元组含不可解析成员时整体放弃，把它们误判为窄类型、独占率虚高；这是**反方向**的错（高估独有率＝美化本工具），主规划者的修法没有覆盖它。HIGH∧空 = 25 与 over-credited 构成 info 93/medium 48/high 5 与其一致。🔴 发现总数 476 修前修后不变（本修只改归因不改输出），co-location 229 亦不变（那是真跑 linter 得到的经验量）。 || 🔴 V3 批自纠（2026-09-05）：'rules removed' 一项原按 {'ruff:S110': 137, 'bandit:B110': 146} 写，工具实际按 sorted() 输出 {'bandit:B110': 146, 'ruff:S110': 137}。两个数字都对，只是我写 expect 时猜了打印顺序 —— 已按实际顺序改，其余 7 项逐字未动。（更正二：整条 expect 还要求 'findings : 476 -> 476' 出现在最后，而工具在第 22 行就打印它、其余各项在 23–30 行，串联正则因此永不可能匹配 —— 已按实际输出顺序把它移到最前。两处都是我把 expect 写成了『我以为的输出』而不是『实际的输出』，数字一个没改。）",
+    "value": "static novel 87 (18.3%) -> 224 (47.1%); HIGH uncovered 20 -> 25; over-credited 146; gained 3; findings 476 unchanged",
+    "cmd": ".venv/bin/python tools/rq5_refactor_delta.py",
+    "expect": "findings                 : 476 -> 476[\\s\\S]*statically novel         : 87 -> 224   \\(18\\.3% -> 47\\.1%\\)[\\s\\S]*HIGH and uncovered       : 20 -> 25[\\s\\S]*co-location novel        : 229 -> 229[\\s\\S]*over-credited findings   : 146, of which 137 became novel and 9 stayed covered[\\s\\S]*gained credit            : 3[\\s\\S]*over-credited by severity: \\{'medium': 48, 'info': 93, 'high': 5\\}[\\s\\S]*rules removed            : \\{'bandit:B110': 146, 'ruff:S110': 137\\}"
+  },
+  {
+    "id": "V3.residual_five_bounded",
+    "stmt": "🔴 论文 RQ5『A residual we did not eliminate』段：修正后仍与经验口径不一致的**只剩 5 条 / 476**（修前是 142 条）。5 条全是 silent-fallback、全是 `except Exception:`、finding 行与 handler 行偏移 0；实测 ruff BLE001 在这 5 行**确实命中**，而 BLE001 被刻意排除在 RQ1 的 ruff 选择器（S110,S112）之外 —— 即 RQ1 已披露的那个不对称；pylint 在这 4 个文件里**一条都没报**。已排除三种解释：解析失败（pylint 给 openai.py 9.96/10、无 fatal/syntax）、行内 pragma（4 个文件均不含 'pylint' 字样）、`as` 绑定（直接实测：W0718 在 `except Exception:`、`except Exception as e:`、以及使用 e 的同形 handler 上都触发，裸 except: 上不触发）。🔴 判别条件**未被隔离**，论文照直写『we did not isolate it』而不是编一个解释。方向已知且对我们不利：这 5 条**高估** linter 覆盖、即**低估**本工具独占率；且 5 条都不是已标注发现，故 Table 12 的交叉表不受影响（104 条标注上两口径 0 分歧）。",
+    "value": "5 residual disagreements of 476, all silent-fallback except-Exception, all credited W0718+BLE001",
+    "cmd": ".venv/bin/python -c \"import json,collections\nR=[json.loads(l) for l in open('bench/corpus-coverage-per-finding-v2.jsonl',encoding='utf-8') if l.strip()]\nd=[r for r in R if r['covered_by_static'] and not r['baseline_tools_colocated']]\ncred=all(sorted(r['covered_by_static'])==['pylint:W0718','ruff:BLE001'] for r in d)\nprint('residual=%d rules=%s credited_uniform=%s of=%d'%(len(d),dict(collections.Counter(r['rule'] for r in d)),cred,len(R)))\"",
+    "expect": "residual=5 rules=\\{'silent-fallback': 5\\} credited_uniform=True of=476"
+  },
+  {
+    "id": "V3.pinned_rescan_is_the_historical_object",
+    "stmt": "🔴 §V3.2【Z】裁定 (a) 的执行证明：11 条 slow claim 现在都经 tools/pinned_rescan.py 在 **v0.8.0 worktree** 里、用那一版自己的 src 与 exporter 重扫钉版语料。本条独立验证该 pin 真的 reproduces 历史事实：PINNED_TOTAL=621，逐规则 masked-exception=3 / no-action=213 / silent-fallback=386 / silent-suppress=19，逐包 inspect_ai=321 / deepteam=140 —— 与论文 Table 3、Table 4 及 F3.new_total/per_rule/per_pkg 的 expect 逐字一致。反向证明：同一个 helper 若指向工作树（即不 pin），得到 476 / silent-fallback=248 / no-action=209 / silent-suppress=16，本条立即红。🔴 用 v0.8.0 **自己的** rescan_corpus.py 而非仓库当前那份：当前 exporter 会写 severity/isomorphism/covered_by/verdict，而 v0.8.0 的 Finding 没有这些字段，跨版本配对会 AttributeError。已核 `git diff v0.8.0 HEAD -- src/` 为空，故 tag 是忠实 pin。",
+    "value": "PINNED_TOTAL=621; masked-exception=3 no-action=213 silent-fallback=386 silent-suppress=19; inspect_ai=321 deepteam=140",
+    "cmd": ".venv/bin/python tools/pinned_rescan.py --out /tmp/v3-pin-claim",
+    "expect": "PINNED_TOTAL=621\\nPINNED_PER_RULE masked-exception=3 no-action=213 silent-fallback=386 silent-suppress=19\\nPINNED_PER_PKG deepteam=140 .*inspect_ai=321",
+    "slow": true
+  },
+  {
+    "id": "V3.claims_run_without_skip_slow",
+    "stmt": "🔴 Q4 的机制修复，不只是一次通过：V1 的 11 条红之所以没人看见，是因为它们全部标了 slow:true，而 V1 验收与本批前半都用 `verify_claims.py --skip-slow`。本条把『不许带 --skip-slow』变成可执行事实：统计 claims/*.json 里 slow 标记的条数，并断言 f2/f3 中**每一条** slow claim 的 cmd 都经 pinned_rescan.py 或读冻结输入（paper/scan），即没有任何 claim 还在用工作树检测器去断言 v0.8.0 的历史事实。反向证明：把任一条的 pin 去掉，unpinned 计数上升，本条红。",
+    "value": "0 slow claims in f2/f3 still re-scan with the working-tree detector",
+    "cmd": ".venv/bin/python -c \"import json\nbad=[]; slow=0; tot=0\nfor p in ('claims/f2.json','claims/f3.json'):\n    for c in json.load(open(p,encoding='utf-8')):\n        tot+=1\n        if c.get('slow'): slow+=1\n        cmd=c['cmd']\n        rescans='tools/rescan_corpus.py' in cmd\n        pinned='tools/pinned_rescan.py' in cmd\n        if rescans and not pinned: bad.append(c['id'])\nprint('f2f3_claims=%d slow=%d unpinned_working_tree_rescans=%d %s'%(tot,slow,len(bad),bad))\"",
+    "expect": "unpinned_working_tree_rescans=0 \\[\\]"
+  }
+]

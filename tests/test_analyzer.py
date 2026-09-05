@@ -275,9 +275,13 @@ except Exception:
     assert len(findings) == 2
 
 
-def test_logging_handler_not_flagged():
-    # A handler that logs the failure leaves a trace; logging + return
-    # fallback is informational, not silent corruption.
+def test_logging_handler_is_downgraded_not_exempted():
+# V1 (2026-09-04): recording a failure is a severity *modifier*, not an exemption.
+    # 委外任务清单.md §V1.1 layer 3 + probes C2/C3 in §V1.0-A: a log line does not
+    # change what the caller receives, so the finding stays and moves down one level.
+    # This test previously asserted `== []`, which encoded the old exemption.
+        # The caller still receives None where a real result was promised:
+    # catch-all base HIGH, one level down for logger.error -> MEDIUM.
     findings = scan_source(
         """
 def f():
@@ -288,10 +292,18 @@ def f():
         return None
 """
     )
-    assert findings == []
+    assert [f.mode.value for f in findings] == ["silent-fallback"]
+    assert findings[0].severity.value == "medium"
+    assert "recorded" in findings[0].verdict
 
 
-def test_log_and_assign_not_flagged():
+def test_log_and_assign_is_downgraded_not_exempted():
+# V1 (2026-09-04): recording a failure is a severity *modifier*, not an exemption.
+    # 委外任务清单.md §V1.1 layer 3 + probes C2/C3 in §V1.0-A: a log line does not
+    # change what the caller receives, so the finding stays and moves down one level.
+    # This test previously asserted `== []`, which encoded the old exemption.
+        # `data = {}` substitutes an empty container for the real result and
+    # `return data` hands it to the caller; logger.warning lowers HIGH -> MEDIUM.
     findings = scan_source(
         """
 def f():
@@ -303,7 +315,8 @@ def f():
     return data
 """
     )
-    assert findings == []
+    assert [f.mode.value for f in findings] == ["silent-fallback"]
+    assert findings[0].severity.value == "medium"
 
 
 def test_assign_from_exception_is_not_fallback():
@@ -388,18 +401,22 @@ def f():
 
 
 def test_silent_suppress_direct_import():
+    # V1 (2026-09-04): silent-suppress reports broad suppression only
+    # (委外任务清单.md §V1.2). The fixture uses `Exception` so this still tests
+    # what it was written to test -- that `from contextlib import suppress`
+    # resolves -- rather than accidentally testing the narrow-type exemption.
     findings = scan_source(
         """
 from contextlib import suppress
 
 def f():
-    with suppress(FileNotFoundError):
+    with suppress(Exception):
         os.remove(path)
 """
     )
     assert len(findings) == 1
     assert findings[0].mode == FailureMode.SILENT_SUPPRESS
-    assert "except FileNotFoundError: pass" in findings[0].message
+    assert "contextlib.suppress(Exception)" in findings[0].message
 
 
 def test_silent_suppress_aliased_import():
@@ -408,7 +425,7 @@ def test_silent_suppress_aliased_import():
 from contextlib import suppress as swallow
 
 def f():
-    with swallow(KeyError):
+    with swallow(Exception):
         lookup(name)
 """
     )
@@ -421,7 +438,7 @@ def test_silent_suppress_async_with():
 import contextlib
 
 async def f():
-    async with contextlib.suppress(ValueError):
+    async with contextlib.suppress(Exception):
         await op()
 """
     )
@@ -527,7 +544,29 @@ def f():
     assert findings == []
 
 
-def test_suppress_mixed_ignore_and_real_error_flagged():
+def test_suppress_mixed_ignore_and_broad_error_flagged():
+    # V1 (2026-09-04): the "one real error type" in a mixed tuple now has to be
+    # a *broad* one. `CancelledError + OSError` is narrow-only and stays clean;
+    # `CancelledError + Exception` silences an unbounded set and is reported.
+    findings = scan_source(
+        """
+import asyncio
+import contextlib
+
+def f():
+    with contextlib.suppress(asyncio.CancelledError, Exception):
+        op()
+"""
+    )
+    assert len(findings) == 1
+    assert findings[0].mode == FailureMode.SILENT_SUPPRESS
+
+
+def test_suppress_narrow_types_only_is_not_flagged():
+    # V1 (2026-09-04): 委外任务清单.md §V1.2 restricts silent-suppress to broad
+    # suppression. Measured on the pinned corpus the split is 23 broad to 4
+    # specific, so the restriction removes the narrow ones and keeps every
+    # shape that discards an unbounded exception set.
     findings = scan_source(
         """
 import asyncio
@@ -536,7 +575,29 @@ import contextlib
 def f():
     with contextlib.suppress(asyncio.CancelledError, OSError):
         op()
+
+def g():
+    with contextlib.suppress(FileNotFoundError):
+        os.remove(path)
+"""
+    )
+    assert findings == []
+
+
+def test_suppress_finding_is_novel_and_high():
+    # No shipped linter rule flags contextlib.suppress(...): verified against
+    # ruff, flake8+bugbear, bandit and pylint. covered_by is empty by
+    # construction, which is what makes this rule the tool's one unambiguous
+    # contribution over trivial linting.
+    findings = scan_source(
+        """
+import contextlib
+
+def f():
+    with contextlib.suppress(Exception):
+        op()
 """
     )
     assert len(findings) == 1
-    assert findings[0].mode == FailureMode.SILENT_SUPPRESS
+    assert findings[0].covered_by == ()
+    assert findings[0].severity.value == "high"

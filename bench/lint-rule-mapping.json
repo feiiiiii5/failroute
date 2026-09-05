@@ -1,0 +1,1231 @@
+{
+  "generated_at_utc8": "2026-09-05 15:05:42",
+  "interpreter": "/Users/fei/Desktop/申请季/新项目-failroute/.venv/bin/python",
+  "probe_cases": 68,
+  "linter_exit_codes": {
+    "ruff": 1,
+    "bandit": 1,
+    "flake8": 1,
+    "pylint": 4
+  },
+  "pylint_w0703_alias": {
+    "enabled": "W0703",
+    "exit_code": 4,
+    "emitted_message_ids": {
+      "W0718": 36
+    }
+  },
+  "selectors": {
+    "ruff": [
+      "E722",
+      "BLE001",
+      "S110",
+      "S112",
+      "B015",
+      "SIM105"
+    ],
+    "bandit": [
+      "B110",
+      "B112"
+    ],
+    "flake8": [
+      "E722",
+      "B001",
+      "B015",
+      "B017"
+    ],
+    "pylint": [
+      "W0702",
+      "W0703",
+      "W0705",
+      "W0706",
+      "W0718"
+    ]
+  },
+  "positive_controls": {
+    "flake8:E722": true,
+    "ruff:E722": true,
+    "bugbear:B001": true,
+    "pylint:W0702": true,
+    "ruff:BLE001": true,
+    "pylint:W0718": true,
+    "bandit:B110": true,
+    "ruff:S110": true,
+    "bandit:B112": true,
+    "ruff:S112": true,
+    "bugbear:B015": true,
+    "ruff:B015": true,
+    "ruff:SIM105": true
+  },
+  "positive_controls_failed": [],
+  "rules_that_fired_nowhere": [],
+  "unattributed_hits": [],
+  "derived": {
+    "bare|assign": [
+      "bugbear:B001",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:E722"
+    ],
+    "bare|continue": [
+      "bandit:B112",
+      "bugbear:B001",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:E722",
+      "ruff:S112"
+    ],
+    "bare|dead_probe": [
+      "bugbear:B001",
+      "bugbear:B015",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:B015",
+      "ruff:E722"
+    ],
+    "bare|ellipsis": [
+      "bugbear:B001",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:E722",
+      "ruff:SIM105"
+    ],
+    "bare|pass": [
+      "bandit:B110",
+      "bugbear:B001",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:E722",
+      "ruff:S110",
+      "ruff:SIM105"
+    ],
+    "bare|return_none": [
+      "bugbear:B001",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:E722"
+    ],
+    "catch_all_typed|assign": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "catch_all_typed|continue": [
+      "bandit:B112",
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S112"
+    ],
+    "catch_all_typed|dead_probe": [
+      "bugbear:B015",
+      "pylint:W0718",
+      "ruff:B015",
+      "ruff:BLE001"
+    ],
+    "catch_all_typed|ellipsis": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:SIM105"
+    ],
+    "catch_all_typed|pass": [
+      "bandit:B110",
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S110",
+      "ruff:SIM105"
+    ],
+    "catch_all_typed|return_none": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "catch_all_typed|suppress": [],
+    "narrow_typed|assign": [],
+    "narrow_typed|continue": [],
+    "narrow_typed|dead_probe": [
+      "bugbear:B015",
+      "ruff:B015"
+    ],
+    "narrow_typed|ellipsis": [
+      "ruff:SIM105"
+    ],
+    "narrow_typed|pass": [
+      "ruff:SIM105"
+    ],
+    "narrow_typed|return_none": [],
+    "narrow_typed|suppress": [],
+    "unresolved_type|assign": [],
+    "unresolved_type|continue": [],
+    "unresolved_type|dead_probe": [
+      "bugbear:B015",
+      "ruff:B015"
+    ],
+    "unresolved_type|ellipsis": [],
+    "unresolved_type|pass": [],
+    "unresolved_type|return_none": []
+  },
+  "per_case": {
+    "case_bare_assign": [
+      "bugbear:B001",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:E722"
+    ],
+    "case_bare_continue": [
+      "bandit:B112",
+      "bugbear:B001",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:E722",
+      "ruff:S112"
+    ],
+    "case_bare_dead_probe": [
+      "bugbear:B001",
+      "bugbear:B015",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:B015",
+      "ruff:E722"
+    ],
+    "case_bare_ellipsis": [
+      "bugbear:B001",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:E722",
+      "ruff:SIM105"
+    ],
+    "case_bare_pass": [
+      "bandit:B110",
+      "bugbear:B001",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:E722",
+      "ruff:S110",
+      "ruff:SIM105"
+    ],
+    "case_bare_return_none": [
+      "bugbear:B001",
+      "flake8:E722",
+      "pylint:W0702",
+      "ruff:E722"
+    ],
+    "case_baseexception_assign": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_baseexception_continue": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S112"
+    ],
+    "case_baseexception_dead_probe": [
+      "bugbear:B015",
+      "pylint:W0718",
+      "ruff:B015",
+      "ruff:BLE001"
+    ],
+    "case_baseexception_ellipsis": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:SIM105"
+    ],
+    "case_baseexception_pass": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S110",
+      "ruff:SIM105"
+    ],
+    "case_baseexception_return_none": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_call_expr_dead_probe": [
+      "bugbear:B015",
+      "ruff:B015"
+    ],
+    "case_call_mixed_assign": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_call_mixed_continue": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S112"
+    ],
+    "case_call_mixed_dead_probe": [
+      "bugbear:B015",
+      "pylint:W0718",
+      "ruff:B015",
+      "ruff:BLE001"
+    ],
+    "case_call_mixed_ellipsis": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_call_mixed_pass": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S110"
+    ],
+    "case_call_mixed_return_none": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_dotted_exception_assign": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_dotted_exception_continue": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S112"
+    ],
+    "case_dotted_exception_dead_probe": [
+      "bugbear:B015",
+      "pylint:W0718",
+      "ruff:B015",
+      "ruff:BLE001"
+    ],
+    "case_dotted_exception_ellipsis": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:SIM105"
+    ],
+    "case_dotted_exception_pass": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S110",
+      "ruff:SIM105"
+    ],
+    "case_dotted_exception_return_none": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_dotted_mixed_assign": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_dotted_mixed_continue": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S112"
+    ],
+    "case_dotted_mixed_dead_probe": [
+      "bugbear:B015",
+      "pylint:W0718",
+      "ruff:B015",
+      "ruff:BLE001"
+    ],
+    "case_dotted_mixed_ellipsis": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:SIM105"
+    ],
+    "case_dotted_mixed_pass": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S110",
+      "ruff:SIM105"
+    ],
+    "case_dotted_mixed_return_none": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_dotted_narrow_dead_probe": [
+      "bugbear:B015",
+      "ruff:B015"
+    ],
+    "case_dotted_narrow_ellipsis": [
+      "ruff:SIM105"
+    ],
+    "case_dotted_narrow_pass": [
+      "ruff:SIM105"
+    ],
+    "case_exception_assign": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_exception_continue": [
+      "bandit:B112",
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S112"
+    ],
+    "case_exception_dead_probe": [
+      "bugbear:B015",
+      "pylint:W0718",
+      "ruff:B015",
+      "ruff:BLE001"
+    ],
+    "case_exception_ellipsis": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:SIM105"
+    ],
+    "case_exception_pass": [
+      "bandit:B110",
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S110",
+      "ruff:SIM105"
+    ],
+    "case_exception_return_none": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_mixed_tuple_assign": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_mixed_tuple_continue": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S112"
+    ],
+    "case_mixed_tuple_dead_probe": [
+      "bugbear:B015",
+      "pylint:W0718",
+      "ruff:B015",
+      "ruff:BLE001"
+    ],
+    "case_mixed_tuple_ellipsis": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:SIM105"
+    ],
+    "case_mixed_tuple_pass": [
+      "pylint:W0718",
+      "ruff:BLE001",
+      "ruff:S110",
+      "ruff:SIM105"
+    ],
+    "case_mixed_tuple_return_none": [
+      "pylint:W0718",
+      "ruff:BLE001"
+    ],
+    "case_narrow_single_dead_probe": [
+      "bugbear:B015",
+      "ruff:B015"
+    ],
+    "case_narrow_single_ellipsis": [
+      "ruff:SIM105"
+    ],
+    "case_narrow_single_pass": [
+      "ruff:SIM105"
+    ],
+    "case_narrow_tuple_dead_probe": [
+      "bugbear:B015",
+      "ruff:B015"
+    ],
+    "case_narrow_tuple_ellipsis": [
+      "ruff:SIM105"
+    ],
+    "case_narrow_tuple_pass": [
+      "ruff:SIM105"
+    ]
+  },
+  "detector_parity": [
+    {
+      "case": "case_bare_assign",
+      "class": "bare",
+      "body": "assign",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B001",
+        "flake8:E722",
+        "pylint:W0702",
+        "ruff:E722"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B001",
+        "flake8:E722",
+        "pylint:W0702",
+        "ruff:E722"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_bare_dead_probe",
+      "class": "bare",
+      "body": "dead_probe",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B001",
+        "bugbear:B015",
+        "flake8:E722",
+        "pylint:W0702",
+        "ruff:B015",
+        "ruff:E722"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B001",
+        "bugbear:B015",
+        "flake8:E722",
+        "pylint:W0702",
+        "ruff:B015",
+        "ruff:E722"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_bare_ellipsis",
+      "class": "bare",
+      "body": "ellipsis",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B001",
+        "flake8:E722",
+        "pylint:W0702",
+        "ruff:E722"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B001",
+        "flake8:E722",
+        "pylint:W0702",
+        "ruff:E722"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_bare_pass",
+      "class": "bare",
+      "body": "pass",
+      "findings": 1,
+      "claimed": [
+        "bandit:B110",
+        "bugbear:B001",
+        "flake8:E722",
+        "pylint:W0702",
+        "ruff:E722",
+        "ruff:S110"
+      ],
+      "measured_in_vocabulary": [
+        "bandit:B110",
+        "bugbear:B001",
+        "flake8:E722",
+        "pylint:W0702",
+        "ruff:E722",
+        "ruff:S110"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_bare_return_none",
+      "class": "bare",
+      "body": "return_none",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B001",
+        "flake8:E722",
+        "pylint:W0702",
+        "ruff:E722"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B001",
+        "flake8:E722",
+        "pylint:W0702",
+        "ruff:E722"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_baseexception_assign",
+      "class": "catch_all_typed",
+      "body": "assign",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_baseexception_dead_probe",
+      "class": "catch_all_typed",
+      "body": "dead_probe",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_baseexception_ellipsis",
+      "class": "catch_all_typed",
+      "body": "ellipsis",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_baseexception_pass",
+      "class": "catch_all_typed",
+      "body": "pass",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_baseexception_return_none",
+      "class": "catch_all_typed",
+      "body": "return_none",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_call_expr_assign",
+      "class": "unresolved_type",
+      "body": "assign",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_call_expr_dead_probe",
+      "class": "unresolved_type",
+      "body": "dead_probe",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B015",
+        "ruff:B015"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B015",
+        "ruff:B015"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_call_expr_ellipsis",
+      "class": "unresolved_type",
+      "body": "ellipsis",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_call_expr_pass",
+      "class": "unresolved_type",
+      "body": "pass",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_call_expr_return_none",
+      "class": "unresolved_type",
+      "body": "return_none",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_call_mixed_assign",
+      "class": "catch_all_typed",
+      "body": "assign",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_call_mixed_dead_probe",
+      "class": "catch_all_typed",
+      "body": "dead_probe",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_call_mixed_ellipsis",
+      "class": "catch_all_typed",
+      "body": "ellipsis",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_call_mixed_pass",
+      "class": "catch_all_typed",
+      "body": "pass",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_call_mixed_return_none",
+      "class": "catch_all_typed",
+      "body": "return_none",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_dotted_exception_assign",
+      "class": "catch_all_typed",
+      "body": "assign",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_dotted_exception_dead_probe",
+      "class": "catch_all_typed",
+      "body": "dead_probe",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_dotted_exception_ellipsis",
+      "class": "catch_all_typed",
+      "body": "ellipsis",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_dotted_exception_pass",
+      "class": "catch_all_typed",
+      "body": "pass",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_dotted_exception_return_none",
+      "class": "catch_all_typed",
+      "body": "return_none",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_dotted_mixed_assign",
+      "class": "catch_all_typed",
+      "body": "assign",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_dotted_mixed_dead_probe",
+      "class": "catch_all_typed",
+      "body": "dead_probe",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_dotted_mixed_ellipsis",
+      "class": "catch_all_typed",
+      "body": "ellipsis",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_dotted_mixed_pass",
+      "class": "catch_all_typed",
+      "body": "pass",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_dotted_mixed_return_none",
+      "class": "catch_all_typed",
+      "body": "return_none",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_exception_assign",
+      "class": "catch_all_typed",
+      "body": "assign",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_exception_dead_probe",
+      "class": "catch_all_typed",
+      "body": "dead_probe",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_exception_ellipsis",
+      "class": "catch_all_typed",
+      "body": "ellipsis",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_exception_pass",
+      "class": "catch_all_typed",
+      "body": "pass",
+      "findings": 1,
+      "claimed": [
+        "bandit:B110",
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "measured_in_vocabulary": [
+        "bandit:B110",
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_exception_return_none",
+      "class": "catch_all_typed",
+      "body": "return_none",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_mixed_tuple_assign",
+      "class": "catch_all_typed",
+      "body": "assign",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_mixed_tuple_dead_probe",
+      "class": "catch_all_typed",
+      "body": "dead_probe",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B015",
+        "pylint:W0718",
+        "ruff:B015",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_mixed_tuple_ellipsis",
+      "class": "catch_all_typed",
+      "body": "ellipsis",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_mixed_tuple_pass",
+      "class": "catch_all_typed",
+      "body": "pass",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001",
+        "ruff:S110"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_mixed_tuple_return_none",
+      "class": "catch_all_typed",
+      "body": "return_none",
+      "findings": 1,
+      "claimed": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "measured_in_vocabulary": [
+        "pylint:W0718",
+        "ruff:BLE001"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_narrow_single_assign",
+      "class": "narrow_typed",
+      "body": "assign",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_narrow_single_dead_probe",
+      "class": "narrow_typed",
+      "body": "dead_probe",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B015",
+        "ruff:B015"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B015",
+        "ruff:B015"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_narrow_single_ellipsis",
+      "class": "narrow_typed",
+      "body": "ellipsis",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_narrow_single_pass",
+      "class": "narrow_typed",
+      "body": "pass",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_narrow_single_return_none",
+      "class": "narrow_typed",
+      "body": "return_none",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_narrow_tuple_assign",
+      "class": "narrow_typed",
+      "body": "assign",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_narrow_tuple_dead_probe",
+      "class": "narrow_typed",
+      "body": "dead_probe",
+      "findings": 1,
+      "claimed": [
+        "bugbear:B015",
+        "ruff:B015"
+      ],
+      "measured_in_vocabulary": [
+        "bugbear:B015",
+        "ruff:B015"
+      ],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_narrow_tuple_ellipsis",
+      "class": "narrow_typed",
+      "body": "ellipsis",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_narrow_tuple_pass",
+      "class": "narrow_typed",
+      "body": "pass",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_narrow_tuple_return_none",
+      "class": "narrow_typed",
+      "body": "return_none",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    },
+    {
+      "case": "case_suppress_broad",
+      "class": "catch_all_typed",
+      "body": "suppress",
+      "findings": 1,
+      "claimed": [],
+      "measured_in_vocabulary": [],
+      "over_credit": [],
+      "under_credit": []
+    }
+  ]
+}

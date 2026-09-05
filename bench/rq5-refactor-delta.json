@@ -1,0 +1,181 @@
+{
+  "inputs": {
+    "old": "bench/corpus-coverage-per-finding-621.jsonl",
+    "new": "bench/corpus-coverage-per-finding-v2.jsonl",
+    "labels": [
+      {
+        "path": "paper/annotations.csv",
+        "tag": "frozen 80"
+      },
+      {
+        "path": "paper/annotations-v2-additions.csv",
+        "tag": "supplementary 60"
+      }
+    ]
+  },
+  "frames": {
+    "old": {
+      "findings": 621,
+      "distinct_sites": 617,
+      "linter_covered": 250,
+      "failroute_only": 371,
+      "by_rule": {
+        "masked-exception": 3,
+        "no-action": 213,
+        "silent-fallback": 382,
+        "silent-suppress": 19
+      }
+    },
+    "new": {
+      "findings": 476,
+      "distinct_sites": 472,
+      "linter_covered": 247,
+      "failroute_only": 229,
+      "by_rule": {
+        "masked-exception": 3,
+        "no-action": 209,
+        "silent-fallback": 244,
+        "silent-suppress": 16
+      },
+      "severity": {
+        "low": 13,
+        "medium": 126,
+        "high": 208,
+        "info": 129
+      },
+      "isomorphism": {
+        "unknown": 206,
+        "non-isomorphic": 254,
+        "None": 16
+      }
+    }
+  },
+  "delta": {
+    "net_findings": -145,
+    "sites_dropped": 184,
+    "sites_added": 39,
+    "sites_kept": 433,
+    "is_a_subset": false,
+    "dropped": {
+      "sites": 184,
+      "failroute_only": 156,
+      "linter_covered": 28,
+      "failroute_only_pct": 84.8
+    },
+    "added": {
+      "sites": 39,
+      "failroute_only": 15,
+      "linter_covered": 24,
+      "failroute_only_pct": 38.5
+    },
+    "kept": {
+      "sites": 433,
+      "failroute_only": 212,
+      "linter_covered": 221,
+      "failroute_only_pct": 49.0
+    },
+    "dropped_by_rule": {
+      "no-action": 4,
+      "silent-fallback": 177,
+      "silent-suppress": 3
+    },
+    "added_by_rule": {
+      "silent-fallback": 39
+    },
+    "multi_finding_sites_old": 4,
+    "multi_finding_sites_new": 4
+  },
+  "label_disposition": {
+    "FALSE_POSITIVE": {
+      "dropped": 3,
+      "_n": 5,
+      "kept": 2,
+      "sev_high": 2,
+      "rule_changed": 1
+    },
+    "CONTRACT": {
+      "kept": 89,
+      "sev_low": 11,
+      "_n": 122,
+      "sev_medium": 34,
+      "sev_high": 30,
+      "sev_info": 14,
+      "dropped": 33
+    },
+    "DEFECT": {
+      "kept": 13,
+      "sev_high": 13,
+      "_n": 13
+    }
+  },
+  "label_rule_changes": [
+    {
+      "label": "FALSE_POSITIVE",
+      "repo": "fickling",
+      "file": "paper/corpus/fickling-0.1.12/fickling/polyglot.py",
+      "lineno": 150,
+      "labelled_as": "implicit-fallback",
+      "now_reported_as": "silent-fallback",
+      "severity": "high"
+    }
+  ],
+  "covered_by_fix": {
+    "pre_fix_export": "bench/corpus-coverage-per-finding-v2-pre-coverby-fix.jsonl",
+    "findings_pre": 476,
+    "findings_post": 476,
+    "static_novel_pre": 87,
+    "static_novel_post": 224,
+    "static_novel_pct_pre": 18.3,
+    "static_novel_pct_post": 47.1,
+    "high_uncovered_pre": 20,
+    "high_uncovered_post": 25,
+    "coloc_novel_pre": 229,
+    "coloc_novel_post": 229,
+    "over_credited_findings": 146,
+    "over_credited_that_became_novel": 137,
+    "over_credited_but_still_covered": 9,
+    "gained_credit_findings": 3,
+    "over_credited_by_rule": {
+      "no-action": 146
+    },
+    "over_credited_by_severity": {
+      "medium": 48,
+      "info": 93,
+      "high": 5
+    },
+    "rules_removed": {
+      "bandit:B110": 146,
+      "ruff:S110": 137
+    }
+  },
+  "declared_return_groups": {
+    "CONTRACT/no-declared-return": 55,
+    "CONTRACT/none": 23,
+    "CONTRACT/none-admitting": 15,
+    "CONTRACT/other": 29,
+    "DEFECT/no-declared-return": 5,
+    "DEFECT/other": 8,
+    "FALSE_POSITIVE/no-declared-return": 2,
+    "FALSE_POSITIVE/other": 3
+  },
+  "contracts": {
+    "all": {
+      "labels": 122,
+      "still_high_or_medium": 64,
+      "dropped_or_downgraded": 58,
+      "dropped_or_downgraded_pct": 47.5
+    },
+    "none_admitting": {
+      "labels": 38,
+      "still_high_or_medium": 3,
+      "dropped_or_downgraded": 35,
+      "dropped_or_downgraded_pct": 92.1
+    },
+    "literal_none": {
+      "labels": 23,
+      "still_high_or_medium": 1,
+      "dropped_or_downgraded": 22,
+      "dropped_or_downgraded_pct": 95.7
+    }
+  }
+}

@@ -2,6 +2,198 @@
 
 All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased] — V1 predicate refactor (2026-09-04)
+
+> Not yet released: the version stays at 0.8.0 because a release moves five
+> pointers at once (`pyproject.toml`, `__init__.py`, `action/action.yml`,
+> `README.md` pre-commit rev, `SECURITY.md` support table) and
+> `tests/test_release_consistency.py` fails unless all five agree. Only
+> `src/failroute/**`, `tests/**`, `bench/realworld/`, `CHANGELOG.md` and
+> `ROADMAP.md` were in scope for this batch, so the pointers were deliberately
+> left alone rather than half-moved.
+
+### Changed — the predicate itself
+
+The detector's question was *"did a handler's top-level statement return or
+assign a generic constant?"*. It is now *"was the failure converted into a value
+the caller cannot tell apart from success, and is that conversion outside the
+function's contract?"*, decided in three layers:
+
+1. **Value range.** An explicitly declared `-> None` / `Optional[X]` return
+   range, or a local whose own annotation admits `None`, makes the routed value
+   contractual rather than a substitute for a result.
+2. **Exception/predicate isomorphism.** Is the caught exception *the answer* to
+   the question the function exists to answer? `_is_serializable` guarding
+   `json.dumps(x)` and catching `(TypeError, ValueError)` is isomorphic — being
+   unserializable *is* the negative answer. `is_vulnerable` guarding a loop over
+   test cases is not: an exception aborts a partial computation that is then
+   reported as a complete, clean "not vulnerable". Decided from three structural
+   signals only — catch-all-ness, whether the guarded block loops, whether it
+   can produce a value at all — and **never from the function's name**. A
+   polarity regex over names was measured first: it hit 3 of 8 confirmed defects
+   and judged `is_private_ip`, the one fail-closed positive example in the
+   paper, backwards.
+3. **Consequence.** Recording the failure now moves a finding **down one level**
+   instead of exempting it; a value that outlives the call (object state, result
+   constructor) moves it **up one**. Only the exception itself reaching the
+   caller — in the return value or a collection the caller reads — makes an
+   outcome genuinely distinguishable.
+
+### Added
+
+- **Per-finding severity** (`high`/`medium`/`low`/`info`) on every finding, in
+  text, JSON and SARIF output. A per-*rule* SARIF level could not express two
+  `silent-fallback` findings three levels apart, which is precisely why the old
+  model had to exempt logged handlers instead of downgrading them.
+- **`covered_by`** on every finding: the trivial-lint rules that already point
+  at the same handler. Empty means nothing else flags this line. Every mapping
+  was established by running the four tools over a synthetic file carrying one
+  instance of each shape — 68 probes: 11 caught-type forms × 6 body forms plus
+  two `contextlib.suppress` cases — and `tools/lint_mapping_probe.py
+  --check-parity` re-runs that measurement against the production code path
+  rather than trusting the table in `_shared.py`. What the tools actually do:
+  - bare `except:` → `flake8:E722`, `ruff:E722`, `bugbear:B001`, `pylint:W0702`
+  - a catch-all typed handler (`Exception` / `BaseException`, including inside
+    a tuple, dotted, or an unresolvable call) → `ruff:BLE001`, `pylint:W0718`
+  - an inert body → `ruff:S110` on any broad handler but `bandit:B110` only on
+    bare or plain `except Exception:`; `ruff:S112` / `bandit:B112` split the
+    same way over `continue`. `S110`/`B110` need a literal `pass` — `...` does
+    not trigger them.
+  - a discarded comparison in the guarded block → `ruff:B015`, `bugbear:B015`
+  Three results are counter-intuitive and were each measured twice: **`BLE001`
+  does not fire on a bare `except:`** (it covered 0 of the 12 confirmed defects
+  in the pinned corpus); **bandit is strictly narrower than ruff** — B110/B112
+  fire on bare and plain `except Exception:` only, not on `except
+  BaseException:` nor on a tuple containing either; and **no tool in the set
+  flags `contextlib.suppress(...)` at all**. `ruff:SIM105` does fire on an
+  inert body at every caught type, and is deliberately *not* credited: it
+  suggests rewriting to `suppress`, which is a style preference, not a report
+  that the failure was discarded.
+- **`--only-novel`** to report just the findings whose `covered_by` is empty,
+  and **`--fail-on {high,medium,low,info}`** (default `high`) plus
+  **`--exit-zero`**.
+- **`bench/realworld/`** — an external regression bench built *before* the
+  predicate was touched, from the 80 human-labelled coordinates in the
+  SHA256-locked paper corpus plus the seven probe shapes. 87 cases, five gates.
+  Run with `PYTHONPATH=src python3 bench/realworld/run.py`.
+
+### Fixed
+
+- **`covered_by` over-credited the linters.** Found and fixed inside this same
+  unreleased build; the account is kept because the *direction* of the error is
+  the point. The first implementation inferred `S110`/`B110`/`S112`/`B112` from
+  the handler's body alone, never looking at what it catches. Those four rules
+  fire only on broad handlers, so every narrow-typed `except X: pass` was
+  credited with lint coverage it does not have: **146 findings** on the pinned
+  corpus (93 `info`, 48 `medium`, 5 `high`), of which 137 are genuinely novel
+  rather than covered. Static novelty consequently read 87/476 (18.3%) where the
+  corrected figure is **224/476 (47.1%)**, and HIGH findings with no lint
+  coverage read 20 where the corrected figure is **25**. The total finding count
+  is unchanged at 476 — this was a mislabelled field, not a detection change.
+  It had to be fixed rather than disclosed as a caveat because the error ran in
+  the direction of *flattering* the linters, and the paper's central negative
+  result is precisely that trivial lint already absorbs the increment: a field
+  known to overstate lint coverage cannot be allowed to drive that claim. The
+  same audit found a second error running the other way — a tuple catch bailed
+  out of the broadness test entirely, so `except (CancelledError, Exception):`
+  was credited with nothing and 3 findings were under-credited.
+  `tools/refix_replay.py` now replays the 36 mapping tests against the pre-fix
+  predicate (21 of them fail) so the gate cannot silently go vacuous.
+- **Path-sensitive handler exits.** `for stmt in handler.body` could not see
+  `if strict: return 0.0 else: return 1.0`, so a handler routing the failure on
+  *every* path reported nothing. Replaced by an enumerator covering
+  `if`/`else`, `with`, `try`/`except`/`else`/`finally`, `match`/`case` and
+  loops (approximated conservatively), never entering nested `def`/`class`/
+  `lambda`. Each block is expanded exactly once.
+- **`except*` (PEP 654) was invisible.** The traversal matched `ast.Try` only,
+  so every `except*` handler in a scanned tree was silently skipped. `ast.TryStar`
+  is now handled wherever `ast.Try` is.
+- **Null-byte sources raised.** `ast.parse` reports those as `ValueError`, not
+  `SyntaxError`; the skip path now catches both.
+- **Skipped files could print to stderr.** An unreadable file logged at
+  `WARNING`, which reaches stderr through logging's last-resort handler — one
+  line per unreadable file during a whole-tree scan. Now `DEBUG`.
+- **An unexpected exception during a scan escaped as a traceback** and, worse,
+  would have been indistinguishable from "findings above threshold". It is now
+  caught at the CLI boundary and reported as exit 2.
+- **Exit 1 no longer means "any finding at all".** The old contract made a
+  clean scan of a typical repository look like a failure in CI, since almost
+  every codebase has at least one low-severity finding.
+
+### Removed / narrowed
+
+- `silent-suppress` now reports **broad** suppression only
+  (`suppress(Exception)` / `suppress(BaseException)` / unresolvable arguments).
+  On the pinned corpus the split measured 23 broad to 4 specific, so this drops
+  4 findings and keeps every shape that discards an unbounded exception set.
+- `name-shadowing` still ships, but at `info`, with the reason recorded in the
+  rule: its consequence is a *loud* failure (`UnboundLocalError` on the next
+  read), which is the opposite of failure-routing, so it must not count toward
+  any precision or recall claim about this family. The rejected justification
+  for deleting it — "CPython is safe about rebinding the exception name" — is
+  **false** and was measured; the conclusion survives, that reason does not.
+
+### Measured effect on the pinned corpus
+
+2,124 files / 524,229 lines across eight SHA256-locked packages:
+
+| | v0.8.0 | this build |
+|---|---|---|
+| findings | 617 coordinates | 472 coordinates (476 findings) |
+| high | — (no per-finding severity) | 208 |
+| high ∧ `covered_by` empty | not expressible | 25 |
+
+All 12 confirmed defects are still reported, all at `high`. On the 16 labelled
+`-> bool` coordinates the isomorphism verdict is 8:8 correct, including not
+reporting `is_private_ip`.
+
+The 25 was 20 until the `covered_by` fix above; the five that joined are all
+specific-typed handlers — two `except SyntaxError: pass`, one
+`except FileNotFoundError: pass`, one `except (OSError, _7Z_ARCHIVE_ERROR):
+pass`, one `except anyio.get_cancelled_exc_class(): pass` — which is exactly the
+shape the old inference wrongly credited `S110`/`B110` for. The authoritative
+stratification of the confirmed defects by handler form is the paper's RQ2
+crosstab, not this table.
+
+### Known red, by design
+
+- `tools/closure_check.py` reports `git_clean FAIL` while this work is
+  uncommitted, and it is meant to: the `covered_by` fix is deliberately not
+  committed until the paper's numbers are final, so a field known to have been
+  wrong is never the tip of a branch.
+- One bench case disagrees with a human label and is left disagreeing:
+  `pydantic_ai/models/fallback.py:478`, `with suppress(Exception):` inside a
+  telemetry method declared `-> None`, labelled CONTRACT. The label rests on
+  "telemetry is best-effort", which is domain knowledge the structure does not
+  encode. Reporting it is the conservative direction; see
+  `bench/realworld/README.md`.
+
+### No longer red (this section used to list them)
+
+The V1 batch left two claims-ledger entries stale on purpose, its own scope
+being the detector rather than the tooling. Both are closed:
+
+- `F1.f2_consistency` asserted that `warnings.warn` exempts a handler, which
+  layer 3 overturns — recording the failure now downgrades a finding one level
+  instead of suppressing it. Replaced in V1 by a **paired probe**: the same
+  handler with and without `warnings.warn` must both be reported and must sit
+  one severity level apart. That is strictly stronger than the original, since
+  it fails both if the exemption comes back and if the downgrade is removed.
+- `F1.no_regression` pinned a test count that moved 158 → 185 in V1 and
+  185 → 221 in V3 when the mapping tests landed. Re-frozen at each step, with
+  the substance unchanged: zero failures, and a count that is pinned exactly
+  rather than bounded below (`--deselect` one test and it goes red).
+
+The eleven `slow` claims that the V1 refactor turned red were **re-pinned, not
+rewritten**: `tools/pinned_rescan.py` rescans the locked corpus inside a v0.8.0
+worktree using that revision's own source and exporter, so each claim still
+asserts the historical scan it was written about, with its expected numbers
+untouched. `F3.truth_f3_154` needed a second pin on the truth side — it reads
+`dataset.jsonl` from the neighbouring contractlens repository, whose coverage
+was extended three hours after the claim was frozen, so the cmd now takes that
+file at the commit which was in force at the time. `verify_claims.py` **without**
+`--skip-slow` is the acceptance gate; with it, all eleven are invisible.
+
 ## [0.8.0] - 2026-09-01
 
 ### Changed
