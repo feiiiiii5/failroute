@@ -594,6 +594,25 @@ and `*_utc8` keys, and a live measurement is supposed to be timestamped. No clai
 its bytes (they assert the tool's stdout), so nothing is red — but **do not "fix" the
 timestamp, and do not claim that file is byte-reproducible.**
 
+🔴 **The consequence that only appeared once these files were tracked.** While both were
+untracked, rewriting them was invisible to git. The V4 seal commit tracked them, so the
+same rewrite now shows up as a modification: running the full ledger at `410fe28` left
+` M bench/lint-rule-mapping.json` in `git status` — its `generated_at` had moved, and that
+is the *only* line of the diff — while `bench/rq5-refactor-delta.json` stayed clean, exactly
+as the hashes above predict. So `closure_check.py`'s `git_clean` cannot reach 0 on a tree
+where the ledger has been run, for **two** reasons and not one: `paper/arxiv/main.out`
+(§7.1), and this.
+
+The minimal fix is to give `lint_mapping_probe.py` an `--out` flag and point the three
+claims at a `/tmp` path, matching the 23 claims that already write only there. That keeps
+the committed matrix as a *record* — regenerable by running the tool with no `--out` — while
+making the ledger non-destructive, which is what a reviewer running the acceptance gate
+needs. The V4 batch did **not** implement it: it would mean editing a tool and three claim
+`cmd`s at the exact moment of sealing, and `closure_check` is not one of the R1–R5 gates.
+Reported instead. The regenerated matrix *is* committed, so the tree is clean at the
+instant of the seal and dirties only when someone next runs the ledger — which is now
+documented rather than surprising.
+
 ### 7.5 🔴 `paper/annotations-v2-additions.csv` — do not check it with `wc -l`
 
 New file: the 60 supplementary labels RQ5 adds. The frozen `annotations.csv` and
