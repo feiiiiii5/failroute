@@ -419,6 +419,8 @@ fickling & 0.1.12 & \texttt{fickling} & 16 & 5{,}024 \\
 \end{tabular}
 \end{table}
 
+A second, style-opposite corpus tests whether the headline comparison survives outside bare-\texttt{except} code. Eight infrastructure packages were fetched as pinned PyPI sdists (URL, SHA-256, upload time and tree hash in \texttt{paper/corpus-lock-control.json}, same schema as above): \texttt{attrs} 26.1.0, \texttt{httpx} 0.28.1, \texttt{requests} 2.34.2 and \texttt{urllib3} 2.7.0 (the four zero-bare-\texttt{except} packages of Section~\ref{sec:control}), plus \texttt{click} 8.5.0 (CLI), \texttt{pydantic} 2.13.5 (validation), \texttt{anyio} 4.15.1 (concurrency) and \texttt{msgpack} 1.2.2 (serialization) --- chosen for domain diversity before any scan ran, explicitly avoiding the HTTP-client stack that three of the first four share. Only each package body is scanned (scan roots recorded in the lock file), the same definition as above. Section~\ref{sec:control} reports the comparison.
+
 \subsection{RQ1 --- Prevalence and cross-tool coverage}
 \label{sec:rq1}
 
@@ -1520,6 +1522,127 @@ and~\ref{tab:coverage} exactly. The \texttt{--rq5} interval mode writes
 \texttt{paper/intervals.json} byte-identical, so the frozen artefact RQ1--RQ4 are
 computed from is not disturbed by this section.
 
+\subsection{Control-corpus comparison}
+\label{sec:control}
+
+\paragraph{Design.} The main corpus is dominated by one handler shape: 134 bare
+\texttt{except:} clauses, 131 of them in a single package, holding all 12 confirmed
+defects. Any claim of the form ``the lint baseline already covers the defects''
+may therefore be an artefact of code style rather than a general fact. The control
+corpus inverts the style: across its eight package bodies (263 \texttt{.py} files,
+109{,}400 lines, 842 handlers) there is exactly one bare \texttt{except}, in
+\texttt{msgpack/fallback.py:812}, whose handler resets the buffer and re-raises
+--- so even the single E722 candidate is a non-defect. The detector build is the
+frozen 0.9.x predicate, unmodified; the four baselines run with RQ1's exact rule
+selection and $\pm$1-line matching. The four first packages contribute 243 handlers
+and 0 bare clauses; the four added for domain diversity contribute 599 handlers
+and the 1 re-raising bare clause.
+
+\paragraph{Result: density does not collapse, E722 does.} Table~\ref{tab:control}
+contrasts the two styles. Finding density is 21.0\% (476/2{,}270) against 15.6\%
+(38/243) on the first four control packages and 18.3\% (154/842) on all eight:
+no order-of-magnitude gap, so ``the tool reports less on disciplined code'' is
+not the story. The story is the trivial baseline. \texttt{flake8 --select E722}
+returns 134 candidates on the main corpus, containing all 12 confirmed defects;
+on the control corpus it returns 1 candidate, containing none, for a recall of
+zero. A two-proportion $z$ test on the densities gives $z=1.96$, $p=0.050$ ---
+on the significance boundary either way. We therefore state neither ``constant''
+nor ``different'': the difference is not statistically significant, and the
+sample is too small to assert equality.
+
+\paragraph{Result: the 38 control findings contain no defect.} All 38 findings on
+the first four packages were adjudicated handler by handler (file, enclosing
+function, all read sites; the two HIGH findings additionally against repository
+history, closed-issue records and pinning unit tests). Zero are defects, which
+bounds the defect share at 7.6\% one-sided 95\% Clopper--Pearson --- against
+77.6\% had only the 2 unique-HIGH findings been read. The 2 unique HIGH findings
+are both documented contracts. \texttt{attrs/src/attr/\_compat.py:51} catches
+\texttt{(ValueError, TypeError)} when \texttt{inspect.signature} fails and stores
+\texttt{None}; the class docstring states it returns \texttt{None} ``whenever
+there is none'', both read sites guard on the field, the shape dates to 2022
+(\#912), and a unit test pins the extractor's behaviour. No closed issue reports
+it swallowing a failure. \texttt{urllib3/src/urllib3/connectionpool.py:812}
+catches transport errors, wraps each into a \texttt{ProtocolError}, feeds it to
+\texttt{retries.increment} --- which raises \texttt{MaxRetryError\ldots from reason}
+on exhaustion (\texttt{util/retry.py:543}) --- saves it for the retry warning,
+closes the connection in \texttt{finally}, and recurses into \texttt{urlopen};
+the exception is never swallowed. That control-flow structure dates to 2009 with
+a 2016 revision, and the retry-exhaustion tests assert the \texttt{MaxRetryError}
+propagation. The remaining 36 findings are the same contract shapes as the main
+corpus's benign tail: optional-dependency and codec probes, \texttt{try/except/else}
+sentinels, re-raises, and teardown handlers.
+
+\paragraph{Result: the recall side is exhaustively clean.} Of the control corpus's
+243 handlers the tool reports 38; 114 unreported handlers contain a \texttt{raise}
+and need no review; the remaining 91 silent-and-unreported handlers were each
+read. Zero are misses the tool should have caught --- optional-import and
+capability probes, \texttt{StopIteration} protocol handling, \texttt{dict.get} and
+\texttt{list.index} sentinels, documented best-effort fallbacks
+(\texttt{requote\_uri}, \texttt{get\_unicode\_from\_response}), data-model protocol
+returns (\texttt{NotImplemented}), and CLI exit paths. Exhaustion means
+exhaustion: 91 of 91 with zero misses is a true zero-leak statement, not an
+interval. The 15 prior pilot draws this replaces had a residual bound of 18.1\%.
+
+\paragraph{The four diversity packages agree.} \texttt{click} (31 findings, 13
+HIGH), \texttt{anyio} (45 findings, 1 HIGH), \texttt{pydantic} (40 findings, 1
+HIGH) and \texttt{msgpack} (0 findings) reproduce the pattern: 12 of the 15 HIGH
+findings are \texttt{except Exception} capability probes already covered by
+\texttt{BLE001}/\texttt{W0718} (Windows-console shims, stream predicates,
+\texttt{TaskGroup} propagation with explicit re-raise paths). The 3 uncovered
+HIGH findings are contracts on reading: \texttt{click/core.py:161} is a
+\texttt{list.index} probe returning infinity as the documented sort key;
+\texttt{click/types.py:269} converts the user's \texttt{ValueError} via
+\texttt{self.fail}, which raises \texttt{UsageError} --- the exception escapes
+through a call rather than a \texttt{raise} statement, a shape no callee-local
+rule can see; \texttt{pydantic/v1/\_hypothesis\_plugin.py:125} is a
+\texttt{contextlib.suppress(Exception)} digit search in hypothesis test-support
+code, confirming the SIM105-adjacent blind spot of Section~\ref{sec:rq1} from the
+other side.
+
+\paragraph{A fourth intra-procedural undecidability instance.}
+\texttt{connectionpool.py:812} names a new false-positive mechanism:
+\textbf{state-flag amplification}. The finding is \texttt{clean\_exit = False} (set
+alongside \texttt{release\_this\_conn = False}), a control-flow flag consumed in
+\texttt{finally} and after the handler; the \texttt{amplifies} criterion (``the
+value outlives the call'') promotes it to HIGH exactly as it would a substituted
+return value. Telling the two apart requires knowing where the variable is
+consumed, which lies outside the handler. Like the three constructed
+counterexamples and the \texttt{exception\_escapes} case below, it is documented
+here and left in the code: each is an instance of the limit the paper argues,
+and patching them would weaken the evidence they constitute.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Style-opposite corpora, same detector build and baseline selection.
+Densities are findings per handler inside the scan roots. E722 recall is
+measured against adjudicated defects (12 in Group~A, 0 found in Group~B).}
+\label{tab:control}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+ & Group~A & B core (4 pkgs) & B all (8 pkgs) \\
+\midrule
+Handlers & 2{,}270 & 243 & 842 \\
+Bare \texttt{except:} & 134 & 0 & 1 (re-raise) \\
+Findings & 476 (21.0\%) & 38 (15.6\%) & 154 (18.3\%) \\
+HIGH & 208 & 6 & 21 \\
+Unique HIGH (\texttt{covered\_by} empty) & 25 & 2 & 5 \\
+E722 candidates & 134 & 0 & 1 \\
+E722 recall of defects & 12/12 & 0/0 & 0/0 \\
+Adjudicated defects & 12/80 + 1/60 & 0 of 38 & 0 of 38, 0 of 15 new HIGH \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Reproducing this subsection.}
+\begin{verbatim}
+PYTHONPATH=src .venv/bin/python tools/control_rescan.py --check
+    # -> verifies bench/control-rescan/<pkg>.jsonl against a fresh fetch
+    # (SHA-256 checked per paper/corpus-lock-control.json) and re-scan;
+    # prints CHECK-OK per package, exits non-zero on any drift.
+.venv/bin/python tools/compute_intervals.py --control
+    # -> prints the 7.6% bound, z=1.96, p=0.050 from the committed jsonl.
+\end{verbatim}
+
 \section{Discussion}
 
 \paragraph{A detector this imprecise is still useful, but not as an oracle.}
@@ -1593,6 +1716,58 @@ packages had essentially no defects and a large number of carefully-commented
 intentional contracts; the one package with a systematic problem had it
 replicated across dozens of near-identical files. This suggests triage effort
 should be allocated per-package after a cheap pilot sample, not uniformly.
+
+\paragraph{Four layers of overfitting, stated against ourselves.}
+The refactor's gains should be read as an overfitting report, not a quality
+certificate. First, the acceptance gates demand no-regression on the same
+corpus the patches were developed against, so every patch is fitted to its own
+test set by construction. Second, all 140 labels (80 + 60) were available
+during development; there is no held-out set, and the 60 supplementary labels
+were drawn precisely from sites whose status the refactor changed. Third, every
+counterexample that moved the argument --- the three constructed probes below,
+the state-flag mechanism of Section~\ref{sec:control}, the mapping defects of
+Section~\ref{sec:rq5} --- arrived from outside review; self-inspection caught
+none of them. Fourth, and it is the terminal one: callee-local analysis cannot
+define ``the caller cannot distinguish'' without caller intent, so its
+separation criterion is necessarily a syntactic proxy, and proxies fitted on one
+style fail on the next. The control corpus is the check we should have built
+first: it finds no defect the tool can uniquely claim, on either style.
+
+\paragraph{The conclusion the evidence supports.}
+Failure-routing is an \emph{inter-procedural contract mismatch}: whether a
+caught exception substituted by a value is a defect depends on what the caller
+is entitled to assume, and that assumption lives outside the handler. Any
+heuristic confined to the callee therefore degrades, without caller intent,
+into fitting the shapes of whatever corpus it was tuned on. The call-site
+evidence for a cross-procedural rescue is too thin to change that verdict: a
+textual same-package call search over the 267 distinct flagged functions finds
+at least one candidate call site for 153 (57\%), median 1; even counting every
+bare textual mention, including comments and string literals, reaches only
+208/267 (78\%) with median 2. The reachable sites exist, but at one or two
+mentions each they carry no usable statement of intent --- the problem is
+semantic density, not reachability. \texttt{tools/compute\_intervals.py
+--control} recomputes the control cells; \texttt{/tmp} scripts used for the
+call-site counts are described in the accompanying report rather than shipped,
+so these two ratios are audit-plot figures, not claims, and are stated as such.
+
+\paragraph{Three constructed probes that pin the boundary --- code frozen.}
+External review supplied three minimal probes, verified against the frozen
+0.9.1 build on 2026-09-06: \texttt{is\_admin() -> bool} with
+\texttt{except DatabaseTimeout: return False} is missed (a specific-typed
+handler in a boolean probe is excused even when the caught exception is
+operational); \texttt{fetch\_cached\_token() -> Optional[T]} with
+\texttt{except RedisConnectionError: return None} is missed (a declared
+\texttt{Optional} excuses hiding an infrastructure failure as a legitimate
+absence); and a validation loop with the \texttt{try} \emph{outside} the
+\texttt{for} and \texttt{except ValueError: return False} is reported at HIGH
+(a short-circuit validation idiom flagged as failure-routing). All three live
+in \texttt{Threats}: they are the sharpest statement of the
+intra-procedural limit, and fixing them would trade evidence for comfort. The
+same holds for the \texttt{exception\_escapes} case
+(\texttt{realtime/\_session.py:2156}, where the exception object travels inside
+the returned value) and the state-flag amplification of
+Section~\ref{sec:control}: four known imprecisions, documented in the changelog
+of the frozen 0.9.1 rather than patched.
 
 \paragraph{The \texttt{contextlib.suppress} blind spot is real.}
 0/19 of the findings are visible to the four selected rule sets, and none is
@@ -1701,6 +1876,32 @@ study's other threats.
   operationalises the except-handler subfamily only; 64.3\% of ground-truth
   defects lie outside it. All prevalence/recall claims are scoped to the
   subfamily.
+\item \textbf{Control scope is two styles, not the ecosystem.}
+  The control comparison covers a zero-bare-\texttt{except} infrastructure style
+  against the main AI/ML style; both are Python, both are PyPI. The conclusion
+  carried by Section~\ref{sec:control} is scoped to those two corpora, this
+  detector build, and this adjudication protocol. A third style, another
+  detector, or another annotator could move it, and the 7.6\% bound is over
+  findings, not over the defect prevalence of disciplined code at large.
+\item \textbf{Control adjudication is single-annotator.} The 38 findings and
+  the 91 recall-side handlers were read once, by one annotator, with history,
+  issue-record and test evidence taken only for the 2 unique HIGH findings;
+  the remaining 36 + 91 rest on in-source contract evidence (docstrings,
+  guarded read sites, explicit fallback comments, re-raise paths). Borderline
+  CONTRACT-vs-DEFECT calls were resolved toward CONTRACT wherever a documented
+  policy existed; the direction of that bias is stated so a re-adjudication
+  can test it.
+\item \textbf{Call-site counts are method-sensitive.}
+  The 57\% / median-1 and 78\% / median-2 figures in Discussion are two
+  textual search methods over the same 267 functions; an AST name-load count
+  gives 33\% with median 0. All three agree the evidence is thin, but none is
+  a call graph, and dynamic dispatch, re-exports and cross-package callers are
+  uncounted throughout.
+\item \textbf{Known imprecisions are frozen, not fixed.}
+  The three constructed probes, the state-flag amplification
+  (Section~\ref{sec:control}) and the \texttt{exception\_escapes} case
+  (Section~\ref{sec:rq5}) are documented failure modes of the shipped 0.9.1
+  predicate. Any precision figure in this paper is net of them.
 \item \textbf{Version pinning is a snapshot.} All findings are relative to the
   pinned versions in \texttt{paper/\allowbreak corpus-lock.json};\allowbreak{} upstream may have fixed or
   introduced instances since.

@@ -1,0 +1,465 @@
+{
+ "attrs": {
+  "root": "/tmp/x1/control_trees/attrs-26.1.0/src/attr",
+  "ruff": [],
+  "bandit": [
+   [
+    "/tmp/x1/control_trees/attrs-26.1.0/src/attr/validators.py",
+    715,
+    "B112"
+   ]
+  ],
+  "pylint": [
+   [
+    "/tmp/x1/control_trees/attrs-26.1.0/src/attr/validators.py",
+    715,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/attrs-26.1.0/src/attr/validators.py",
+    715,
+    "W0718"
+   ]
+  ],
+  "flake8": []
+ },
+ "httpx": {
+  "root": "/tmp/x1/control_trees/httpx-0.28.1/httpx",
+  "ruff": [],
+  "bandit": [],
+  "pylint": [
+   [
+    "/tmp/x1/control_trees/httpx-0.28.1/httpx/_utils.py",
+    232,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/httpx-0.28.1/httpx/_utils.py",
+    240,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/httpx-0.28.1/httpx/_transports/asgi.py",
+    171,
+    "W0718"
+   ]
+  ],
+  "flake8": []
+ },
+ "requests": {
+  "root": "/tmp/x1/control_trees/requests-2.34.2/src/requests",
+  "ruff": [],
+  "bandit": [],
+  "pylint": [],
+  "flake8": []
+ },
+ "urllib3": {
+  "root": "/tmp/x1/control_trees/urllib3-2.7.0/src/urllib3",
+  "ruff": [
+   [
+    "/tmp/x1/control_trees/urllib3-2.7.0/src/urllib3/http2/connection.py",
+    313,
+    "S110"
+   ],
+   [
+    "/tmp/x1/control_trees/urllib3-2.7.0/src/urllib3/util/connection.py",
+    129,
+    "S110"
+   ]
+  ],
+  "bandit": [
+   [
+    "/tmp/x1/control_trees/urllib3-2.7.0/src/urllib3/http2/connection.py",
+    313,
+    "B110"
+   ],
+   [
+    "/tmp/x1/control_trees/urllib3-2.7.0/src/urllib3/util/connection.py",
+    129,
+    "B110"
+   ]
+  ],
+  "pylint": [
+   [
+    "/tmp/x1/control_trees/urllib3-2.7.0/src/urllib3/util/connection.py",
+    129,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/urllib3-2.7.0/src/urllib3/http2/connection.py",
+    313,
+    "W0718"
+   ]
+  ],
+  "flake8": []
+ },
+ "click": {
+  "root": "/tmp/x1/control_trees/click-8.5.0/src/click",
+  "ruff": [
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    77,
+    "S110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    170,
+    "S110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    568,
+    "S110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_winconsole.py",
+    209,
+    "S110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/testing.py",
+    571,
+    "S110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/testing.py",
+    581,
+    "S110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/utils.py",
+    45,
+    "S110"
+   ]
+  ],
+  "bandit": [
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    77,
+    "B110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    170,
+    "B110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    568,
+    "B110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_winconsole.py",
+    209,
+    "B110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/testing.py",
+    571,
+    "B110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/testing.py",
+    581,
+    "B110"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/utils.py",
+    45,
+    "B110"
+   ]
+  ],
+  "pylint": [
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_winconsole.py",
+    209,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/core.py",
+    2779,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/utils.py",
+    45,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    77,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    124,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    136,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    139,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    149,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    157,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    166,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    170,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    543,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    561,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/_compat.py",
+    568,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/testing.py",
+    571,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/testing.py",
+    581,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/click-8.5.0/src/click/testing.py",
+    705,
+    "W0718"
+   ]
+  ],
+  "flake8": []
+ },
+ "anyio": {
+  "root": "/tmp/x1/control_trees/anyio-4.15.1/src/anyio",
+  "ruff": [],
+  "bandit": [],
+  "pylint": [
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/to_process.py",
+    81,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/to_process.py",
+    223,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/to_process.py",
+    230,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/to_process.py",
+    246,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/to_process.py",
+    255,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/from_thread.py",
+    271,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/from_thread.py",
+    541,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/to_interpreter.py",
+    33,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    494,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    508,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    532,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    580,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    593,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    609,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    626,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    633,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    647,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    654,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    669,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    676,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    692,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    699,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_trio.py",
+    1001,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_asyncio.py",
+    287,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_asyncio.py",
+    1101,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_asyncio.py",
+    2403,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_asyncio.py",
+    2476,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_backends/_asyncio.py",
+    2767,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/_core/_exceptions.py",
+    47,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/anyio-4.15.1/src/anyio/streams/tls.py",
+    375,
+    "W0718"
+   ]
+  ],
+  "flake8": []
+ },
+ "pydantic": {
+  "root": "/tmp/x1/control_trees/pydantic-2.13.5/pydantic",
+  "ruff": [],
+  "bandit": [],
+  "pylint": [
+   [
+    "/tmp/x1/control_trees/pydantic-2.13.5/pydantic/json_schema.py",
+    1201,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/pydantic-2.13.5/pydantic/v1/_hypothesis_plugin.py",
+    226,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/pydantic-2.13.5/pydantic/_internal/_core_utils.py",
+    85,
+    "W0718"
+   ],
+   [
+    "/tmp/x1/control_trees/pydantic-2.13.5/pydantic/_internal/_typing_extra.py",
+    356,
+    "W0718"
+   ]
+  ],
+  "flake8": []
+ },
+ "msgpack": {
+  "root": "/tmp/x1/control_trees/msgpack-1.2.2/msgpack",
+  "ruff": [],
+  "bandit": [],
+  "pylint": [],
+  "flake8": [
+   [
+    "/tmp/x1/control_trees/msgpack-1.2.2/msgpack/fallback.py",
+    812,
+    "B001"
+   ],
+   [
+    "/tmp/x1/control_trees/msgpack-1.2.2/msgpack/fallback.py",
+    812,
+    "E722"
+   ]
+  ]
+ }
+}

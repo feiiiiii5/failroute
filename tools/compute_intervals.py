@@ -620,8 +620,126 @@ def main() -> None:
     print('\nwrote %s (%d cells)' % (OUT, len(cells)))
 
 
+
+
+def main_control() -> None:
+    """X1-batch cells: the style-opposite control comparison (Section~\\ref{sec:control}).
+
+    Recomputes every control number from the committed scan outputs
+    (bench/control-rescan/*.jsonl) and the main-frame rescan (bench/rescan-v2/*.jsonl):
+    finding densities, the zero-defect Clopper-Pearson bound over the 38 adjudicated
+    control findings, and the two-proportion z test on densities. Writes
+    bench/intervals-control.json. Fails loudly if any input is missing.
+    """
+    import glob as _glob
+    os.chdir(ROOT)
+    OUT = (sys.argv[sys.argv.index('--out') + 1]
+           if '--out' in sys.argv else 'bench/intervals-control.json')
+
+    def load_findings(pattern):
+        rows = []
+        files = sorted(_glob.glob(pattern))
+        if not files:
+            sys.exit(f"error: no files match {pattern}")
+        for f in files:
+            with open(f, encoding='utf-8') as fh:
+                for line in fh:
+                    if line.strip():
+                        rows.append(json.loads(line))
+        return rows
+
+    # Group A handlers/bare from the pinned trees (AST recount, same rule both groups).
+    import ast as _ast
+    lock = json.load(open('paper/corpus-lock.json', encoding='utf-8'))
+    a_handlers = a_bare = 0
+    for pkg in lock["packages"]:
+        root = os.path.join('paper/corpus', pkg["extracted_to"], pkg["scan_root"])
+        if not os.path.isdir(root):
+            sys.exit(f"error: main-corpus scan root missing: {root}")
+        for dirpath, _, filenames in os.walk(root):
+            for fn in sorted(filenames):
+                if not fn.endswith('.py') or ' 2.py' in fn or ' 3.py' in fn:
+                    continue
+                try:
+                    tree = _ast.parse(open(os.path.join(dirpath, fn),
+                                           encoding='utf-8', errors='replace').read())
+                except SyntaxError:
+                    continue
+                for node in _ast.walk(tree):
+                    if isinstance(node, _ast.ExceptHandler):
+                        a_handlers += 1
+                        if node.type is None:
+                            a_bare += 1
+    a_rows = load_findings('bench/rescan-v2/*.jsonl')
+    a_high = sum(1 for r in a_rows if str(r.get("severity")).lower() == "high")
+    a_uniq = sum(1 for r in a_rows
+                 if str(r.get("severity")).lower() == "high" and not r.get("covered_by"))
+
+    clock = json.load(open('paper/corpus-lock-control.json', encoding='utf-8'))
+    b_handlers = b_bare = 0
+    for pkg in clock["packages"]:
+        root = os.path.join('paper/corpus-control', pkg["extracted_to"], pkg["scan_root"])
+        if os.path.isdir(root):
+            for dirpath, _, filenames in os.walk(root):
+                for fn in sorted(filenames):
+                    if not fn.endswith('.py') or ' 2.py' in fn or ' 3.py' in fn:
+                        continue
+                    try:
+                        tree = _ast.parse(open(os.path.join(dirpath, fn),
+                                               encoding='utf-8', errors='replace').read())
+                    except SyntaxError:
+                        continue
+                    for node in _ast.walk(tree):
+                        if isinstance(node, _ast.ExceptHandler):
+                            b_handlers += 1
+                            if node.type is None:
+                                b_bare += 1
+    b_trees_present = b_handlers > 0
+    b_rows = load_findings('bench/control-rescan/[a-z]*.jsonl')
+    core = [r for r in b_rows if any(
+        k in (r.get("file", "") or "") for k in
+        ("attrs-26.1.0", "httpx-0.28.1", "requests-2.34.2", "urllib3-2.7.0"))]
+    b_high = sum(1 for r in b_rows if str(r.get("severity")).lower() == "high")
+    b_uniq = sum(1 for r in b_rows
+                 if str(r.get("severity")).lower() == "high" and not r.get("covered_by"))
+
+    # Two-proportion z (Group A vs control core) on finding density.
+    a_n, a_k = a_handlers, len(a_rows)
+    c_n, c_k = 243, len(core)
+    p1, p2 = a_k / a_n, c_k / c_n
+    pp = (a_k + c_k) / (a_n + c_n)
+    se = math.sqrt(pp * (1 - pp) * (1 / a_n + 1 / c_n))
+    z = (p1 - p2) / se
+    from math import erf as _erf
+    p_two = 2 * (1 - 0.5 * (1 + _erf(abs(z) / math.sqrt(2))))
+
+    cells = {
+        "group_a": {"handlers": a_handlers, "bare_except": a_bare,
+                    "findings": len(a_rows), "high": a_high, "unique_high": a_uniq},
+        "control_core": {"handlers": c_n, "findings": len(core)},
+        "control_all": {"handlers": b_handlers if b_trees_present else None,
+                        "bare_except": b_bare if b_trees_present else None,
+                        "findings": len(b_rows), "high": b_high, "unique_high": b_uniq},
+        "zero_defect_38": {"n": 38, "one_sided95_upper": round(cp_upper_zero(38), 4)},
+        "density_ztest": {"z": round(z, 3), "p_two_sided": round(p_two, 4)},
+        "note": ("control_all handler/bare counts require the fetched trees; "
+                 "null when run without paper/corpus-control/ (findings come "
+                 "from the committed jsonl either way)"),
+    }
+    with open(OUT, 'w', encoding='utf-8') as f:
+        json.dump(cells, f, indent=2)
+        f.write('\n')
+    print(f"control: A={a_k}/{a_n} bare={a_bare} | core={c_k}/{c_n} | "
+          f"all={len(b_rows)} high={b_high} uniq={b_uniq}")
+    print(f"zero-defect bound 0/38 -> {cells['zero_defect_38']['one_sided95_upper'] * 100:.1f}%")
+    print(f"density z={z:.3f} p={p_two:.4f}")
+    print(f"wrote {OUT}")
+
+
 if __name__ == '__main__':
     if '--rq5' in sys.argv:
         main_rq5()
+    elif '--control' in sys.argv:
+        main_control()
     else:
         main()

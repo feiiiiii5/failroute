@@ -1,0 +1,29 @@
+{
+  "group_a": {
+    "handlers": 2270,
+    "bare_except": 134,
+    "findings": 476,
+    "high": 208,
+    "unique_high": 25
+  },
+  "control_core": {
+    "handlers": 243,
+    "findings": 38
+  },
+  "control_all": {
+    "handlers": 842,
+    "bare_except": 1,
+    "findings": 154,
+    "high": 21,
+    "unique_high": 5
+  },
+  "zero_defect_38": {
+    "n": 38,
+    "one_sided95_upper": 0.0758
+  },
+  "density_ztest": {
+    "z": 1.958,
+    "p_two_sided": 0.0502
+  },
+  "note": "control_all handler/bare counts require the fetched trees; null when run without paper/corpus-control/ (findings come from the committed jsonl either way)"
+}

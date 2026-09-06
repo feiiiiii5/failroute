@@ -1,0 +1,639 @@
+[
+ {
+  "file": "attrs-26.1.0/src/attr/_make.py",
+  "line": 1185,
+  "end": 1186,
+  "exc": "KeyError",
+  "body": "nval = val"
+ },
+ {
+  "file": "attrs-26.1.0/src/attr/_next_gen.py",
+  "line": 422,
+  "end": 423,
+  "exc": "UnannotatedAttributeError",
+  "body": "return do_it(cls, False)"
+ },
+ {
+  "file": "attrs-26.1.0/src/attr/_version_info.py",
+  "line": 73,
+  "end": 74,
+  "exc": "NotImplementedError",
+  "body": "return NotImplemented"
+ },
+ {
+  "file": "attrs-26.1.0/src/attr/_version_info.py",
+  "line": 81,
+  "end": 82,
+  "exc": "NotImplementedError",
+  "body": "return NotImplemented"
+ },
+ {
+  "file": "attrs-26.1.0/src/attr/validators.py",
+  "line": 702,
+  "end": 703,
+  "exc": "TypeError",
+  "body": "exc_types = (exc_types,)"
+ },
+ {
+  "file": "attrs-26.1.0/src/attr/validators.py",
+  "line": 715,
+  "end": 716,
+  "exc": "Exception",
+  "body": "continue"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/__init__.py",
+  "line": 16,
+  "end": 26,
+  "exc": "ImportError",
+  "body": "def main() -> None:\n    import sys\n    print(\"The httpx command line client could not run because the required dependencies were not installed.\\nMake sure you've installed everything with: pip install 'httpx[cli]'\")\n    sys.exit(1)"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_auth.py",
+  "line": 84,
+  "end": 85,
+  "exc": "StopIteration",
+  "body": "break"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_auth.py",
+  "line": 109,
+  "end": 110,
+  "exc": "StopIteration",
+  "body": "break"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_client.py",
+  "line": 950,
+  "end": 951,
+  "exc": "StopIteration",
+  "body": "return response"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_client.py",
+  "line": 1665,
+  "end": 1666,
+  "exc": "StopAsyncIteration",
+  "body": "return response"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_decoders.py",
+  "line": 20,
+  "end": 26,
+  "exc": "ImportError",
+  "body": "try:\n    import brotlicffi as brotli\nexcept ImportError:\n    brotli = None"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_decoders.py",
+  "line": 32,
+  "end": 33,
+  "exc": "ImportError",
+  "body": "zstandard = None"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_decoders.py",
+  "line": 25,
+  "end": 26,
+  "exc": "ImportError",
+  "body": "brotli = None"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_main.py",
+  "line": 501,
+  "end": 504,
+  "exc": "RequestError",
+  "body": "console = rich.console.Console()\nconsole.print(f'[red]{type(exc).__name__}[/red]: {exc}')\nsys.exit(1)"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_main.py",
+  "line": 111,
+  "end": 112,
+  "exc": "pygments.util.ClassNotFound",
+  "body": "pass"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_main.py",
+  "line": 178,
+  "end": 179,
+  "exc": "ValueError",
+  "body": "text = response.text"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_models.py",
+  "line": 62,
+  "end": 63,
+  "exc": "LookupError",
+  "body": "return False"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_models.py",
+  "line": 117,
+  "end": 118,
+  "exc": "ValueError",
+  "body": "url, params = (val, '')"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_models.py",
+  "line": 249,
+  "end": 250,
+  "exc": "KeyError",
+  "body": "return default"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_models.py",
+  "line": 359,
+  "end": 360,
+  "exc": "ValueError",
+  "body": "return False"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_models.py",
+  "line": 614,
+  "end": 615,
+  "exc": "KeyError",
+  "body": "return 'HTTP/1.1'"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_models.py",
+  "line": 623,
+  "end": 624,
+  "exc": "KeyError",
+  "body": "return codes.get_reason_phrase(self.status_code)"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_models.py",
+  "line": 123,
+  "end": 124,
+  "exc": "ValueError",
+  "body": "break"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_models.py",
+  "line": 712,
+  "end": 713,
+  "exc": "KeyError",
+  "body": "continue"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_models.py",
+  "line": 178,
+  "end": 179,
+  "exc": "UnicodeDecodeError",
+  "body": "break"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_transports/asgi.py",
+  "line": 38,
+  "end": 39,
+  "exc": "ImportError",
+  "body": "pass"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_transports/asgi.py",
+  "line": 143,
+  "end": 145,
+  "exc": "StopAsyncIteration",
+  "body": "request_complete = True\nreturn {'type': 'http.request', 'body': b'', 'more_body': False}"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_utils.py",
+  "line": 105,
+  "end": 115,
+  "exc": "(AttributeError, OSError)",
+  "body": "try:\n    offset = stream.tell()\n    length = stream.seek(0, os.SEEK_END)\n    stream.seek(offset)\nexcept (AttributeError, OSError):\n    return None"
+ },
+ {
+  "file": "httpx-0.28.1/httpx/_utils.py",
+  "line": 113,
+  "end": 115,
+  "exc": "(AttributeError, OSError)",
+  "body": "return None"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/__init__.py",
+  "line": 51,
+  "end": 52,
+  "exc": "ImportError",
+  "body": "charset_normalizer_version = None"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/__init__.py",
+  "line": 56,
+  "end": 57,
+  "exc": "ImportError",
+  "body": "chardet_version = None"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/__init__.py",
+  "line": 118,
+  "end": 124,
+  "exc": "(AssertionError, ValueError)",
+  "body": "warnings.warn(f\"urllib3 ({urllib3.__version__}) or chardet ({chardet_version})/charset_normalizer ({charset_normalizer_version}) doesn't match a supported version!\", RequestsDependencyWarning)"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/__init__.py",
+  "line": 103,
+  "end": 104,
+  "exc": "ValueError",
+  "body": "return"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/__init__.py",
+  "line": 132,
+  "end": 133,
+  "exc": "ImportError",
+  "body": "ssl = None"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/_internal_utils.py",
+  "line": 50,
+  "end": 51,
+  "exc": "UnicodeEncodeError",
+  "body": "return False"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/compat.py",
+  "line": 70,
+  "end": 71,
+  "exc": "ImportError",
+  "body": "import json"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/cookies.py",
+  "line": 226,
+  "end": 227,
+  "exc": "KeyError",
+  "body": "return default"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/cookies.py",
+  "line": 355,
+  "end": 356,
+  "exc": "CookieConflictError",
+  "body": "return True"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/help.py",
+  "line": 18,
+  "end": 19,
+  "exc": "ImportError",
+  "body": "charset_normalizer = None"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/help.py",
+  "line": 23,
+  "end": 24,
+  "exc": "ImportError",
+  "body": "chardet = None"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/help.py",
+  "line": 28,
+  "end": 31,
+  "exc": "ImportError",
+  "body": "pyopenssl = None\nOpenSSL = None\ncryptography = None"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/help.py",
+  "line": 76,
+  "end": 80,
+  "exc": "OSError",
+  "body": "platform_info = {'system': 'Unknown', 'release': 'Unknown'}"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/models.py",
+  "line": 279,
+  "end": 280,
+  "exc": "ValueError",
+  "body": "return False"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/models.py",
+  "line": 870,
+  "end": 871,
+  "exc": "HTTPError",
+  "body": "return False"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/models.py",
+  "line": 1076,
+  "end": 1083,
+  "exc": "(LookupError, TypeError)",
+  "body": "content = str(self.content, errors='replace')"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/models.py",
+  "line": 1151,
+  "end": 1152,
+  "exc": "UnicodeDecodeError",
+  "body": "reason = self.reason.decode('iso-8859-1')"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/models.py",
+  "line": 615,
+  "end": 618,
+  "exc": "OSError",
+  "body": "self._body_position = object()"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/sessions.py",
+  "line": 360,
+  "end": 361,
+  "exc": "KeyError",
+  "body": "username, password = (None, None)"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/sessions.py",
+  "line": 213,
+  "end": 214,
+  "exc": "(ChunkedEncodingError, ContentDecodingError, RuntimeError)",
+  "body": "resp.raw.read(decode_content=False)"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/sessions.py",
+  "line": 823,
+  "end": 824,
+  "exc": "StopIteration",
+  "body": "pass"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 670,
+  "end": 671,
+  "exc": "TypeError",
+  "body": "return r.content"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 719,
+  "end": 723,
+  "exc": "InvalidURL",
+  "body": "return quote(uri, safe=safe_without_percent)"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 758,
+  "end": 759,
+  "exc": "OSError",
+  "body": "return False"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 1081,
+  "end": 1082,
+  "exc": "(AttributeError, TypeError)",
+  "body": "auth = ('', '')"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 102,
+  "end": 103,
+  "exc": "ImportError",
+  "body": "return False"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 114,
+  "end": 115,
+  "exc": "(OSError, ValueError)",
+  "body": "return False"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 204,
+  "end": 210,
+  "exc": "OSError",
+  "body": "if total_length is not None:\n    current_position = total_length"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 664,
+  "end": 665,
+  "exc": "UnicodeError",
+  "body": "tried_encodings.append(encoding)"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 772,
+  "end": 773,
+  "exc": "ValueError",
+  "body": "return False"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 780,
+  "end": 781,
+  "exc": "OSError",
+  "body": "return False"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 864,
+  "end": 865,
+  "exc": "(TypeError, socket.gaierror)",
+  "body": "bypass = False"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 984,
+  "end": 985,
+  "exc": "ValueError",
+  "body": "url, params = (val, '')"
+ },
+ {
+  "file": "requests-2.34.2/src/requests/utils.py",
+  "line": 992,
+  "end": 993,
+  "exc": "ValueError",
+  "body": "break"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/__init__.py",
+  "line": 31,
+  "end": 32,
+  "exc": "ImportError",
+  "body": "pass"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/_collections.py",
+  "line": 110,
+  "end": 118,
+  "exc": "KeyError",
+  "body": "self._container[key] = value\nif len(self._container) > self._maxsize:\n    evicted_item = self._container.popitem(last=False)"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/connection.py",
+  "line": 34,
+  "end": 38,
+  "exc": "(ImportError, AttributeError)",
+  "body": "ssl = None\nclass BaseSSLError(BaseException):\n    pass"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/connection.py",
+  "line": 575,
+  "end": 581,
+  "exc": "(HeaderParsingError, TypeError)",
+  "body": "log.warning('Failed to parse headers (url=%s): %s', _url_from_connection(self, resp_options.request_url), hpe, exc_info=True)"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/contrib/emscripten/fetch.py",
+  "line": 695,
+  "end": 696,
+  "exc": "ImportError",
+  "body": "return False"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/contrib/emscripten/response.py",
+  "line": 121,
+  "end": 122,
+  "exc": "ValueError",
+  "body": "length = None"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/contrib/pyopenssl.py",
+  "line": 48,
+  "end": 51,
+  "exc": "ImportError",
+  "body": "class UnsupportedExtension(Exception):\n    pass"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/contrib/pyopenssl.py",
+  "line": 212,
+  "end": 213,
+  "exc": "idna.core.IDNAError",
+  "body": "return None"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/contrib/pyopenssl.py",
+  "line": 382,
+  "end": 383,
+  "exc": "OpenSSL.SSL.Error",
+  "body": "return"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/contrib/socks.py",
+  "line": 71,
+  "end": 72,
+  "exc": "ImportError",
+  "body": "ssl = None"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/http2/probe.py",
+  "line": 29,
+  "end": 31,
+  "exc": "KeyError",
+  "body": "self._cache_locks[key] = threading.RLock()\nself._cache_values[key] = None"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/response.py",
+  "line": 25,
+  "end": 26,
+  "exc": "ImportError",
+  "body": "brotli = None"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/response.py",
+  "line": 245,
+  "end": 246,
+  "exc": "ImportError",
+  "body": "HAS_ZSTD = False"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/response.py",
+  "line": 23,
+  "end": 24,
+  "exc": "ImportError",
+  "body": "import brotli"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/response.py",
+  "line": 105,
+  "end": 113,
+  "exc": "zlib.error",
+  "body": "self._first_try = False\nself._obj = zlib.decompressobj(-zlib.MAX_WBITS)\ntry:\n    return self.decompress(self._first_try_data, max_length=original_max_length)\nfinally:\n    self._first_try_data = b''"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/response.py",
+  "line": 218,
+  "end": 225,
+  "exc": "TypeError",
+  "body": "warnings.warn('Brotli >= 1.2.0 is required to prevent decompression bombs.', DependencyWarning)\nreturn self._decompress(data)"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/response.py",
+  "line": 231,
+  "end": 232,
+  "exc": "AttributeError",
+  "body": "return False"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/response.py",
+  "line": 870,
+  "end": 871,
+  "exc": "ValueError",
+  "body": "length = None"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/util/connection.py",
+  "line": 78,
+  "end": 81,
+  "exc": "OSError",
+  "body": "err = _\nif sock is not None:\n    sock.close()"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/util/request.py",
+  "line": 26,
+  "end": 27,
+  "exc": "ImportError",
+  "body": "import brotli as _unused_module_brotli"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/util/request.py",
+  "line": 154,
+  "end": 157,
+  "exc": "OSError",
+  "body": "pos = _FAILEDTELL"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/util/response.py",
+  "line": 21,
+  "end": 22,
+  "exc": "AttributeError",
+  "body": "pass"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/util/response.py",
+  "line": 27,
+  "end": 28,
+  "exc": "AttributeError",
+  "body": "pass"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/util/response.py",
+  "line": 34,
+  "end": 35,
+  "exc": "AttributeError",
+  "body": "pass"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/util/ssl_.py",
+  "line": 93,
+  "end": 101,
+  "exc": "ImportError",
+  "body": "OP_NO_COMPRESSION = 131072\nOP_NO_TICKET = 16384\nOP_NO_SSLv2 = 16777216\nOP_NO_SSLv3 = 33554432\nPROTOCOL_SSLv23 = PROTOCOL_TLS = 2\nPROTOCOL_TLS_CLIENT = 16\nVERIFY_X509_PARTIAL_CHAIN = 524288\nVERIFY_X509_STRICT = 32"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/util/ssl_.py",
+  "line": 89,
+  "end": 90,
+  "exc": "AttributeError",
+  "body": "continue"
+ },
+ {
+  "file": "urllib3-2.7.0/src/urllib3/util/wait.py",
+  "line": 89,
+  "end": 90,
+  "exc": "(AttributeError, OSError)",
+  "body": "return False"
+ }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "X1.findings_total",
+    "stmt": "X1 (2026-09-06): control-corpus findings recomputed from the committed per-package jsonl (bench/control-rescan), not quoted from the report. Scope: all 8 control packages, frozen 0.9.x build.",
+    "value": "154 findings over 8 control packages (38 core + 116 diversity)",
+    "cmd": "python3 -c \"import json,glob; rows=[json.loads(l) for f in sorted(glob.glob('bench/control-rescan/[a-z]*.jsonl')) for l in open(f) if l.strip()]; print('total', len(rows))\"",
+    "expect": "total 154"
+  },
+  {
+    "id": "X1.core38",
+    "stmt": "X1: the four zero-bare-except packages give 38 findings (4+4+8+22), recomputed from the committed jsonl.",
+    "value": "attrs 4, httpx 4, requests 8, urllib3 22 = 38",
+    "cmd": "python3 -c 'import json; print(\" \".join(n+\" \"+str(sum(1 for l in open(\"bench/control-rescan/\"+n+\".jsonl\") if l.strip())) for n in [\"attrs\",\"httpx\",\"requests\",\"urllib3\"]))'",
+    "expect": "attrs 4 httpx 4 requests 8 urllib3 22"
+  },
+  {
+    "id": "X1.high_unique",
+    "stmt": "X1: HIGH and uncovered-HIGH counts recomputed from committed jsonl (severity+covered_by fields).",
+    "value": "21 HIGH, 5 uncovered (attrs 1, urllib3 1, click 2, pydantic 1)",
+    "cmd": "python3 -c \"import json,glob; rows=[json.loads(l) for f in sorted(glob.glob('bench/control-rescan/[a-z]*.jsonl')) for l in open(f) if l.strip()]; h=[r for r in rows if str(r.get('severity')).lower()=='high']; u=[r for r in h if not r.get('covered_by')]; print('high', len(h), 'unique', len(u))\"",
+    "expect": "high 21 unique 5"
+  },
+  {
+    "id": "X1.silent91",
+    "stmt": "X1 recall side: 91 silent-and-unreported handlers in bench/control-rescan/recall-silent-91.json (= 243 total - 38 reported - 114 with-raise); this claim pins the count and row shape.",
+    "value": "91 rows, each with file/line/body",
+    "cmd": "python3 -c \"import json; r=json.load(open('bench/control-rescan/recall-silent-91.json')); print('silent', len(r), 'ok', all(x.get('file') and x.get('line') and x.get('body') for x in r))\"",
+    "expect": "silent 91 ok True"
+  },
+  {
+    "id": "X1.lock_consistent",
+    "stmt": "X1: corpus-lock-control.json is internally consistent (8 packages, totals equal per-package sums, every sha256 is 64 hex).",
+    "value": "8 packages, totals consistent, 8 valid sha256",
+    "cmd": "python3 -c \"import json,re; l=json.load(open('paper/corpus-lock-control.json')); p=l['packages']; print('pkgs', len(p), 'py', sum(x['py_files'] for x in p)==l['totals']['py_files'], 'lines', sum(x['total_lines'] for x in p)==l['totals']['total_lines'], 'sha', sum(bool(re.fullmatch(r'[0-9a-f]{64}', x['sha256'])) for x in p))\"",
+    "expect": "pkgs 8 py True lines True sha 8"
+  },
+  {
+    "id": "X1.intervals",
+    "stmt": "X1: control statistics recomputed by the canonical tool (tools/compute_intervals.py --control, Z=1.959963984540054): zero-defect bound 7.6%, density z=1.958 p=0.0502, written to bench/intervals-control.json.",
+    "value": "core=38/243, all=154, bound 7.6%, z=1.958 p=0.0502",
+    "cmd": ".venv/bin/python tools/compute_intervals.py --control --out /tmp/x1-claim-intervals.json",
+    "expect": "core=38/243[\\s\\S]*all=154[\\s\\S]*7\\.6%[\\s\\S]*z=1\\.958 p=0\\.0502"
+  },
+  {
+    "id": "X1.rebuild",
+    "stmt": "X1 end-to-end (slow): tools/control_rescan.py --check re-fetches every sdist (SHA-256 verified against the lock), re-extracts, and re-scans with the current build; committed bench/control-rescan jsonl must match finding-for-finding (package-relative identity).",
+    "value": "8/8 CHECK-OK",
+    "cmd": "PYTHONPATH=src .venv/bin/python tools/control_rescan.py --check",
+    "expect": "attrs: CHECK-OK 4 findings[\\s\\S]*httpx: CHECK-OK 4 findings[\\s\\S]*requests: CHECK-OK 8 findings[\\s\\S]*urllib3: CHECK-OK 22 findings[\\s\\S]*click: CHECK-OK 31 findings[\\s\\S]*anyio: CHECK-OK 45 findings[\\s\\S]*pydantic: CHECK-OK 40 findings[\\s\\S]*msgpack: CHECK-OK 0 findings",
+    "slow": true
+  }
+]
