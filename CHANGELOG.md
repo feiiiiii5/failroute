@@ -2,6 +2,35 @@
 
 All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.9.1] - 2026-09-06
+
+Study freeze. No behavioural change to the detector — this release exists so
+that the published package, the repository and the paper stop disagreeing about
+which version of the predicate they describe.
+
+### Changed
+
+- Version pins only. `0.9.0` was published to GitHub but never to PyPI, which
+  still served `0.8.0` — the pre-rewrite predicate. Anyone who `pip install`ed
+  failroute after reading the paper got the tool the paper argues against.
+
+### Note
+
+The detector is deliberately frozen here. Four known imprecisions are documented
+in the accompanying preprint rather than patched, because each is an instance of
+the same limit the paper is about — indistinguishability is not decidable inside
+a single function:
+
+- a specific-typed handler in a `-> bool` probe is excused even when the caught
+  exception is operational (`except DatabaseTimeout: return False`);
+- a short-circuit validation loop is reported (`for` + `except ValueError`);
+- a declared `Optional` return excuses a handler that hides an infrastructure
+  failure as a legitimate absence;
+- control-flow flags (`clean_exit = False`) are amplified as if they were values
+  substituted for a result.
+
+Patching these would weaken the evidence they constitute.
+
 ## [0.9.0] - 2026-09-06
 
 The predicate rewrite. Findings on the pinned eight-package corpus go 621 → 476.

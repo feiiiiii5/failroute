@@ -171,7 +171,7 @@ system temp dir; both produce findings identical to the serial scan.
 ```yaml
 repos:
   - repo: https://github.com/feiiiiii5/failroute
-    rev: v0.9.0
+    rev: v0.9.1
     hooks:
       - id: failroute
 ```
