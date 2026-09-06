@@ -1,0 +1,151 @@
+{
+  "families": {
+    "__init__": [
+      "29",
+      "30",
+      "34",
+      "35"
+    ],
+    "is_successful": [
+      "31",
+      "32",
+      "33",
+      "36",
+      "37"
+    ],
+    "is_vulnerable": [
+      "38",
+      "39",
+      "40"
+    ]
+  },
+  "base_rq2_obs": {
+    "k": 12,
+    "n": 80,
+    "point_pct": 15.0,
+    "low_pct": 8.8,
+    "high_pct": 24.4
+  },
+  "base_covered": {
+    "k": 12,
+    "n": 48,
+    "point_pct": 25.0,
+    "low_pct": 14.9,
+    "high_pct": 38.8
+  },
+  "base_novel": {
+    "k": 1,
+    "n": 56,
+    "point_pct": 1.8,
+    "low_pct": 0.3,
+    "high_pct": 9.4
+  },
+  "base_cluster_68": {
+    "k": 3,
+    "n": 68,
+    "point_pct": 4.4,
+    "low_pct": 1.5,
+    "high_pct": 12.2
+  },
+  "leave_one_family_out": {
+    "__init__": {
+      "dropped_defects": 4,
+      "rq2_obs": {
+        "k": 8,
+        "n": 76,
+        "point_pct": 10.5,
+        "low_pct": 5.4,
+        "high_pct": 19.4
+      },
+      "covered": {
+        "k": 8,
+        "n": 44,
+        "point_pct": 18.2,
+        "low_pct": 9.5,
+        "high_pct": 32.0
+      },
+      "disjoint_vs_novel": true
+    },
+    "is_successful": {
+      "dropped_defects": 5,
+      "rq2_obs": {
+        "k": 7,
+        "n": 75,
+        "point_pct": 9.3,
+        "low_pct": 4.6,
+        "high_pct": 18.0
+      },
+      "covered": {
+        "k": 7,
+        "n": 43,
+        "point_pct": 16.3,
+        "low_pct": 8.1,
+        "high_pct": 30.0
+      },
+      "disjoint_vs_novel": false
+    },
+    "is_vulnerable": {
+      "dropped_defects": 3,
+      "rq2_obs": {
+        "k": 9,
+        "n": 77,
+        "point_pct": 11.7,
+        "low_pct": 6.3,
+        "high_pct": 20.7
+      },
+      "covered": {
+        "k": 9,
+        "n": 45,
+        "point_pct": 20.0,
+        "low_pct": 10.9,
+        "high_pct": 33.8
+      },
+      "disjoint_vs_novel": true
+    }
+  },
+  "leave_one_cluster_out": {
+    "k": 2,
+    "n": 67,
+    "point_pct": 3.0,
+    "low_pct": 0.8,
+    "high_pct": 10.2
+  },
+  "novel_breakdown": {
+    "covered_lower_pct": 14.9,
+    "net_flips_to_break_disjointness": 3,
+    "cell_at_break": {
+      "k": 4,
+      "n": 56,
+      "point_pct": 7.1,
+      "low_pct": 2.8,
+      "high_pct": 17.0
+    }
+  },
+  "covered_breakdown": {
+    "novel_upper_pct": 9.4,
+    "flips_survived": 3,
+    "breaks_at_flips": 4,
+    "cell_at_break": {
+      "k": 8,
+      "n": 48,
+      "point_pct": 16.7,
+      "low_pct": 8.7,
+      "high_pct": 29.6
+    }
+  },
+  "control_one_flip": {
+    "k": 1,
+    "n": 38,
+    "point_pct": 2.6,
+    "low_pct": 0.5,
+    "high_pct": 13.5
+  },
+  "control_zero_base_cp_upper_pct": 7.6,
+  "cluster_140_one_dropped": {
+    "k": 3,
+    "n": 115,
+    "point_pct": 2.6,
+    "low_pct": 0.9,
+    "high_pct": 7.4
+  }
+}

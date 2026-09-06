@@ -1901,7 +1901,49 @@ study's other threats.
   The three constructed probes, the state-flag amplification
   (Section~\ref{sec:control}) and the \texttt{exception\_escapes} case
   (Section~\ref{sec:rq5}) are documented failure modes of the shipped 0.9.1
-  predicate. Any precision figure in this paper is net of them.
+  predicate, and the dead-comparison family of the next item is a fifth. Any
+  precision figure in this paper is net of the first four.
+\item \textbf{Dead-comparison family: the rule fired on the right site for the
+  wrong reason.} Section~\ref{sec:rq2} describes family 2 as a bare
+  \texttt{except:} assigning \texttt{self.success = False} around a \texttt{try}
+  body that holds the single discarded comparison \texttt{self.score == 1}. We
+  re-read all five of those sites in the pinned corpus
+  (\texttt{metrics/cross\_context\_retrieval},
+  \texttt{external\_system\_abuse}, \texttt{hijacking}, \texttt{rbac},
+  \texttt{shell\_injection}) and confirm the three facts the committed rationale
+  records. A discarded comparison has no side effect, and it raised nothing for
+  any value we placed in \texttt{self.score} --- \texttt{None}, \texttt{int},
+  \texttt{float}, \texttt{str}, \texttt{bool}, tuple, list, \texttt{ndarray} ---
+  so the handler is unreachable and \emph{no failure is converted at these five
+  sites}. \texttt{silent-fallback} fired anyway: it reads the handler's shape
+  (assigns a constant, does not re-raise) and carries no reachability gate, so it
+  located a genuinely broken function and attributed the wrong mechanism to it.
+  What is broken at the site is a missing assignment --- each of the five files
+  states the intended form twice, in \texttt{measure} and in \texttt{a\_measure},
+  which is why \texttt{is\_successful}'s \texttt{else} branch is a no-op that
+  returns whatever those two left behind. The DEFECT reading survives, because
+  the site is not a documented contract, but it survives on the missing
+  assignment: the ``converted failure produces a wrong caller-visible outcome''
+  half of the definition is not demonstrated for these five, and a reader who
+  requires the stated mechanism to hold should treat the mechanism as established
+  for the other seven and as unestablished for these. Unlike the four imprecisions
+  above, this one sits inside the labelled DEFECTs rather than outside them, so no
+  precision figure in this paper is net of it --- the five are counted as true
+  positives, and on the reading just described they are true positives about a
+  different defect than the rule names. Two further checks bound the impact
+  without resolving it. \texttt{is\_successful} has no caller anywhere in the
+  pinned sdist, so no in-package path exercises it; and the value
+  \texttt{self.success} holds before either \texttt{measure} runs is set by
+  \texttt{deepeval}'s \texttt{BaseMetric}, which is neither vendored in the corpus
+  nor installed in the reproduction environment, so the never-measured path is
+  unverified rather than benign. The other two families are unaffected: family 1's
+  handler guards \texttt{model.get\_system\_prompt()} on a parameter typed
+  \texttt{Optional}, and family 3's guards an attribute access and an ordering
+  comparison, \texttt{metric\_data.score < 1}; both raise \texttt{AttributeError}
+  for values those parameters accept, so in those seven the conversion mechanism is
+  the one the label states. We did not re-adjudicate the five: the labels and their
+  rationales are the committed artefact, and this item records the correction
+  instead of acting on it.
 \item \textbf{Version pinning is a snapshot.} All findings are relative to the
   pinned versions in \texttt{paper/\allowbreak corpus-lock.json};\allowbreak{} upstream may have fixed or
   introduced instances since.
