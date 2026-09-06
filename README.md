@@ -84,21 +84,45 @@ return await llm_judge(prompt)
 
 Findings are emitted as `file:line: mode: message`, or as JSON for CI.
 
-### Logging exemption (two tiers)
+### Severity, and why logging no longer exempts
 
-A handler that *records* the failure is informational, not silent — but what
-counts as a record depends on how wide the handler is:
+Every finding carries a `severity` (`high` / `medium` / `low` / `info`), an
+`isomorphism` verdict, a `covered_by` list, and a plain-language `verdict`
+string explaining the call.
 
-- **Catch-all handlers** (`except:` / `except Exception:`) must log at a
-  severity worth reading (`warning`+). A `debug` line or a bare `print(...)`
-  does not survive production triage, so it does not exempt.
-- **Typed handlers** name an anticipated failure mode; recording it at *any*
-  level (even `logger.info`) is enough.
+Up to v0.8.0 a handler that logged the failure was **exempt** — it was treated
+as informational and not reported at all. That was wrong, and the rewrite in
+0.9.0 removes it: `logger.warning("judge failed"); return 0.0` still hands the
+caller a score it cannot distinguish from a real one. **A log record makes a
+failure auditable after the fact; it does not make the returned value
+distinguishable.** Logging is now a *severity modifier* (one level down), not
+an exemption. What does clear a finding is the exception reaching the caller —
+`return Score(0.0, error=str(e))`, `self.errors.append(e)` — because then the
+consumer really can tell the two apart.
 
-Logger objects are recognised by a name heuristic (``logger``, ``LOG``,
-``audit_logger``, ``err_log``, ``self._log``, …), not a fixed five-name
-whitelist — exact-name matching silently misjudged every unconventional
-logger name into a false positive.
+Logger objects are recognised by a name heuristic (`logger`, `LOG`,
+`audit_logger`, `err_log`, `self._log`, …) rather than a fixed whitelist;
+exact-name matching misjudged every unconventional logger name.
+
+### The predicate: value-domain membership, then isomorphism
+
+0.9.0 replaces "the handler returned a constant from a fixed set" with two
+questions asked in order:
+
+1. **Is the value inside the function's success domain?** `-> Optional[Doc]`
+   returning `None` is a declared outcome — the caller *can* tell. `-> float`
+   returning `0.0` is not. Return annotations, other `return` statements in the
+   same function, and whether the handler substitutes a value the `try` body
+   computed all feed this.
+2. **Is the caught exception the answer to the question the function asks?**
+   `_is_serializable()` wrapping one `json.dumps` — the exception *is* the
+   answer, so returning `False` is a contract. `is_vulnerable()` wrapping a loop
+   over results — an arbitrary exception is not "not vulnerable", so returning
+   `False` claims a scan completed that never did.
+
+Handler bodies are walked path-sensitively, so `except: ...; if cond: return
+0.0 else: return 1.0` is reachable — v0.8.0 only inspected top-level statements
+and missed it.
 
 ## Usage
 
@@ -147,7 +171,7 @@ system temp dir; both produce findings identical to the serial scan.
 ```yaml
 repos:
   - repo: https://github.com/feiiiiii5/failroute
-    rev: v0.8.0
+    rev: v0.9.0
     hooks:
       - id: failroute
 ```
@@ -257,35 +281,32 @@ $ failroute --repo .     # expected: zero findings (self-hosting)
 All numbers below are reproducible from this checkout; nothing here is
 copy-pasted from a run that cannot be re-executed.
 
-### Labelled corpus (precision / recall)
+### Test corpora
 
-`tests/corpus/` holds **68 hand-labelled samples** (36 positives across all six
-modes, 32 negatives covering re-raise, log-and-raise, derived values, dead
-code, opt-out markers, non-fallback constants, non-suppress context managers,
-same-name-different-origin imports, idiomatic control-flow suppression, enum
-and named sentinels, and terminal `os._exit` handlers). Ground truth lives in
-`tests/corpus/manifest.json` and was written from the *semantics* of each
-fixture, independently of tool output.
+Two, with different jobs:
 
-```
-corpus v6   TP=36  FP=0  FN=0  TN=32
-precision=1.0  recall=1.0
-```
+- **`tests/corpus/`** — 68 hand-written fixtures (36 positive / 32 negative),
+  ground truth in `manifest.json`, written from each fixture's *semantics*
+  rather than from tool output. It is a **regression gate**, not evidence of
+  real-world precision: it was written by the same person as the detector, with
+  the same blind spot, and it never caught the top-level-only bug that a
+  labelling pass over real code found immediately.
+- **`bench/realworld/`** — 87 cases anchored to real coordinates in the pinned
+  corpus, including the 80 human-labelled findings behind the paper and seven
+  discriminating probes. This is the gate that has external validity.
 
-`tests/corpus/match_case_cases.py` uses PEP 634 (`match`/`case`) syntax, so it
-is only parseable on Python 3.10+. `tools/benchmark.py` reports it as a
-*skipped* corpus file on older interpreters instead of scoring its labels as
-misses, and `pytest` asserts that nothing is skipped on 3.10+ — CI covers
-3.9–3.13, so every label is enforced somewhere in the matrix.
-
-Re-run: `python tools/benchmark.py` (also enforced by `pytest`).
+The full suite is **221 tests** across a 3 OS × Python 3.9–3.13 matrix, plus
+`mypy --strict`.
 
 ### What syntactic linters miss
 
 Measured against **eight pinned PyPI releases** (garak, inspect_ai, pydantic-ai,
 uqlm, trl, smolagents, deepteam, fickling — 2,354 files, 563,270 lines), locked by
 URL, SHA-256 and tree hash in `paper/corpus-lock.json` so the corpus is
-byte-reproducible. failroute reports **621 findings** (v0.8.0). The v0.7.0
+byte-reproducible. failroute reports **476 findings** (v0.9.0). The v0.8.0
+detector reported 621 on this same corpus; the drop is the predicate rewrite
+described above, not a change of corpus. The paper freezes the v0.8.0 frame at
+621 deliberately, so its numbers and this README's will differ. The v0.7.0
 detector reported 28 more on this same corpus; all 28 were precision fixes
 (this CHANGELOG's 0.8.0 entry), each one individually attributed in
 `docs/f-batch-report.md`.
@@ -295,25 +316,40 @@ Compared against **four standard linters** at their default configurations
 
 | | Findings co-located | Share |
 | --- | --- | --- |
-| Union of all four linters | **250** | 40.3% |
-| **failroute only** | **371** | **59.7%** |
+| Union of all four linters | **252** | 52.9% |
+| **failroute only** | **224** | **47.1%** |
 
-Per mode, and which tool (if any) reaches it:
+Per rule, and which tool (if any) reaches it:
 
-| Mode | Total | Covered by the four | Notes |
-| --- | --- | --- | --- |
-| `silent-fallback` | 386 | 176 (pylint 175) | the defect is what the handler *returns*, not its shape |
-| `no-action` | 213 | 72 (ruff 72 / pylint 67 / bandit 63) | the one family syntactic rules do reach |
-| `silent-suppress` | 19 | **0** | `contextlib.suppress` is a call expression, not an `ExceptHandler`; ruff's SIM105 actively *recommends* rewriting `try-except-pass` into it |
-| `masked-exception` | 3 | 3 (pylint) | branch-dependent outcome |
+| Rule | Total | Covered | Novel | Severity spread |
+| --- | --- | --- | --- | --- |
+| `silent-fallback` | 248 | 177 | 71 | high 160 / medium 78 / low 10 |
+| `no-action` | 209 | 72 | 137 | high 32 / medium 48 / info 129 |
+| `silent-suppress` | 16 | **0** | **16** | high 16 |
+| `masked-exception` | 3 | 3 | 0 | low 3 |
+
+Of the 208 `high` findings, **25 are reported by no shipped linter**.
+
+> **`covered_by` was wrong until 0.9.0.** It inferred lint coverage from the
+> handler's *body shape* and never looked at the caught type, so every narrow
+> `except X: pass` was credited to `S110`/`B110` — rules that only fire on broad
+> handlers. 146 findings were over-attributed; correcting it moved the novel
+> share from 18.3% to 47.1%. The mapping is now verified by running all four
+> linters over a 68-cell probe matrix (`tools/lint_mapping_probe.py`) rather
+> than asserted statically.
 
 > **A note on baselines.** Earlier versions of this README compared only against
 > ruff's `S110`/`S112`. That is not a fair baseline: **pylint is much stronger**
-> (175 + 67 on its own), and a ruff-only comparison overstates the gap by roughly
-> 3.4×. The numbers above use the union of four linters. A hand-written semgrep
-> ruleset targeting these patterns raises the union to 269 (43.3%) — mostly by
-> covering 18 of the 19 `silent-suppress` findings — so "no shipped linter reaches
-> this" is a statement about *default configurations*, not about what is expressible.
+> (much stronger than ruff alone), and a ruff-only comparison overstates the gap
+> by roughly 3.4×. The numbers above use the union of four linters. A hand-written
+> semgrep ruleset targeting these patterns covers most of the `silent-suppress`
+> findings — so "no shipped linter reaches this" is a statement about *default
+> configurations*, not about what is expressible.
+>
+> **And a blunter one.** All 12 confirmed defects in the labelled sample sit on
+> bare `except:`. `flake8 --select E722` flags 134 sites in this corpus and
+> contains all 12. On this corpus a rule from 1979 is a 4.6× tighter
+> search-space reducer than failroute at equal recall. The paper is about why.
 
 Re-run: see `paper/ARTIFACT.md`. Results are checked into `bench/`.
 

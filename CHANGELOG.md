@@ -2,7 +2,54 @@
 
 All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased] — V1 predicate refactor (2026-09-04)
+## [0.9.0] - 2026-09-06
+
+The predicate rewrite. Findings on the pinned eight-package corpus go 621 → 476.
+
+### Changed
+
+- **The core predicate.** "The handler returned a constant from a fixed set" is
+  replaced by two ordered questions: is the value inside the function's success
+  domain (`-> Optional[X]` returning `None` is a declared outcome; `-> float`
+  returning `0.0` is not), and is the caught exception the answer to the question
+  the function asks. The second is what separates `_is_serializable()` returning
+  `False` (a contract) from `is_vulnerable()` returning `False` (a claim that a
+  scan completed).
+- **Logging no longer exempts.** It is a severity modifier, one level down. A
+  logged `return 0.0` still hands the caller an indistinguishable score; the log
+  makes the failure auditable, not the value distinguishable. What does clear a
+  finding is the exception reaching the caller.
+- **Handler bodies are walked path-sensitively.** `except: if c: return 0.0 else:
+  return 1.0` was invisible to 0.8.0, which only inspected top-level statements.
+- **`covered_by` is verified, not inferred.** It read the handler's body shape and
+  never the caught type, so every narrow `except X: pass` was credited to
+  `S110`/`B110` — rules that only fire on broad handlers. 146 findings were
+  over-attributed; the novel share moves from 18.3% to 47.1%. The mapping is now
+  checked by running all four linters over a 68-cell probe matrix.
+- `silent-suppress` reports only broad suppressions; a specific type is the
+  explicit contract `SIM105` asks for.
+
+### Added
+
+- `severity`, `isomorphism`, `covered_by` and a plain-language `verdict` on every
+  finding, in text, JSON and SARIF.
+- `--only-novel`, `--fail-on`, `--exit-zero`. Exit codes are now 0 / 1 / 2 rather
+  than "any finding is 1", which in CI made success look like failure.
+- `bench/realworld/` — 87 cases anchored to real coordinates in the pinned corpus.
+- `tools/lint_mapping_probe.py`, `tools/pinned_rescan.py`, `tools/refix_replay.py`.
+
+### Fixed
+
+- `except*` (PEP 654) handlers were entirely invisible: the walk matched only
+  `ast.Try`.
+- Non-deterministic key order in `tools/rq5_refactor_delta.py` (a set fed into a
+  `Counter`), which made "byte-reproducible" untrue for that artifact.
+
+### Note on the paper
+
+The accompanying preprint freezes the **v0.8.0** frame at 621 findings on
+purpose, and pins its claims to a v0.8.0 worktree. Its numbers and this
+README's are expected to differ.
 
 > Not yet released: the version stays at 0.8.0 because a release moves five
 > pointers at once (`pyproject.toml`, `__init__.py`, `action/action.yml`,
