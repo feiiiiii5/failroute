@@ -298,9 +298,11 @@ def _detector_has_severity() -> bool:
             return True
     try:
         from failroute.ir import Finding  # noqa: F401
-        return "severity" in Finding.__dataclass_fields__
-    except Exception:
+    except ImportError:
+        # The absence of the module *is* the answer to "does Finding carry a
+        # severity field": the exception is isomorphic with the predicate.
         return False
+    return "severity" in Finding.__dataclass_fields__
 
 
 if __name__ == "__main__":

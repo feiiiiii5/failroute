@@ -380,7 +380,10 @@ def test_symlinked_file_is_scanned(tmp_path: Path):
     assert len(scan_path(link)) == 1
 
 
-@pytest.mark.skipif(os.geteuid() == 0, reason="root bypasses file permissions")
+@pytest.mark.skipif(
+    os.name != "posix" or os.geteuid() == 0,
+    reason="POSIX permission bits; Windows has no geteuid and root bypasses them",
+)
 def test_unreadable_file_is_skipped_not_raised(tmp_path: Path):
     target = tmp_path / "noperm.py"
     target.write_text("try:\n    g()\nexcept Exception:\n    pass\n", encoding="utf-8")
