@@ -15,7 +15,15 @@ Usage (from the repo root):
     PYTHONPATH=src .venv/bin/python tools/control_rescan.py --check   # verify only
 """
 from __future__ import annotations
-import argparse, hashlib, json, os, subprocess, sys, tarfile, tempfile, urllib.request
+
+import argparse
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import tarfile
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
