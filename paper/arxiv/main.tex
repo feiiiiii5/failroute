@@ -457,8 +457,11 @@ union from 250 to 255 of 621 and \texttt{failroute}-only from 371 to 366 --- it
 self-inflicted error should be reported in. The other three baselines have no
 equivalent blind spot: \texttt{ruff}, \texttt{bandit} and \texttt{flake8} are
 filesystem walkers, and over those same 152 files their directory and
-explicit-file invocations return identical hit sets (6{,}879, 104 and 2{,}375
-messages respectively, both ways). The control corpus of
+explicit-file invocations return identical hit sets --- 6{,}879 messages under
+\texttt{ruff\ --select\ ALL}, 104 under \texttt{bandit} with every test enabled,
+and 2{,}375 under \texttt{flake8}'s default selection, identical both ways. Under
+RQ1's own narrow selections those same files yield 5, 0 and 0, which is why the
+blind spot cost only \texttt{pylint} anything. The control corpus of
 Section~\ref{sec:control} contains no \texttt{\_\_init\_\_}-less directory at all
 (0 of 263 files), so it was never exposed. \texttt{--recursive=y} and
 \texttt{--init-hook} were both tested; neither recovers a single message.
@@ -488,14 +491,25 @@ users get by default. $+19$ is the number of \texttt{failroute} findings newly
 co-located once \texttt{semgrep} is added to the union (mostly the
 \texttt{contextlib.suppress} shape: 18 of 19). Versions are those installed in the
 reproduction environment and are the versions that produced the committed
-artefacts. Two provenance notes. \texttt{pyproject.toml} pins \texttt{ruff==0.16.5},
-one patch above the 0.16.4 measured here; we could not test 0.16.5, but 0.16.0 and
-0.16.4 produce \emph{set-identical} hits for both rule selections (76 findings for
-S110/S112 and 410 for S110/S112/BLE001), so the row is stable across the patch
-releases we could compare. And \texttt{semgrep} does not appear in
+artefacts. Three provenance notes. \texttt{pyproject.toml} pins
+\texttt{ruff==0.16.5}, one patch above the 0.16.4 that produced the committed
+artefact; 0.16.0, 0.16.4 and 0.16.5 all produce \emph{set-identical} hits for both
+rule selections (76 findings and 72 co-located for S110/S112; 410 and 127 for
+S110/S112/BLE001), so the row is stable across every patch release we can install.
+The \texttt{pylint} \emph{Findings} cell is the one number in this table that
+depends on the analysis environment rather than on the corpus: \texttt{pylint}
+resolves imported names, so a handler that re-raises before a later
+\texttt{except Exception} is correctly left alone when the caught type is
+importable and reported as \texttt{W0706} when it is not. With \texttt{click}
+present the cell is 563; under the install this paper documents, which does not
+bring \texttt{click}, it is 564 and the hidden-file count above reads 35 across 21.
+Co-location is unaffected --- 255, and identical rule by rule, either way --- so no
+figure in this paper moves. And \texttt{semgrep} does not appear in
 \texttt{pyproject.toml} at all: the five-tool row is a frozen artefact
 (\texttt{bench/corpus-coverage-union-5tool.json}), not a step the documented
-install reproduces.}
+install reproduces. Its generator, \texttt{tools/run\_semgrep\_baseline.py}, reads
+the v0.7.0 frame and writes over that artefact, so it reproduces neither the row
+nor the file: do not run it against the committed export.}
 \label{tab:tools}
 \begin{tabular}{@{}lllrr@{}}
 \toprule
