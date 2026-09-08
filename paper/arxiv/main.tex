@@ -2173,19 +2173,19 @@ set the tables are computed from, however --- the arm-2 dataset
 \texttt{paper/arm2-tracked-sites.csv}, the \texttt{rebase*} cells of
 \texttt{tools/compute\_intervals.py}, and the symmetric-baseline variant of
 \texttt{coverage\_union.py} --- postdates that tag, so the reproduction below
-checks out a pinned commit instead: \texttt{d14e020}, the first commit that
+checks out a pinned commit instead: \texttt{3b4c567}, the first commit that
 contains the complete set. A reproducer who checks out \texttt{v0.8.0} still
 regenerates the 621 findings and the 158 tests, but \texttt{compute\_intervals.py}
 at that tag exits 0 while silently writing a 41-cell ledger that contains no
 triangulation group at all, and the symmetric-baseline command below fails there
 with an unrecognised-argument error --- so the tag alone under-reproduces this
-paper without warning. \texttt{coverage\_union.py} at that commit under-reproduces
-it in a second, subtler way: it still passes each scan root to \texttt{pylint} as a
-directory, which is the blind spot Section~\ref{sec:rq1} describes, so it returns
-the superseded 250/621 union rather than the 255/621 this paper reports. The
-corrected invocation is in the working tree and the difference is confined to one
-function; a reproducer who wants the paper's numbers must run that one. The 250/621
-figure is recorded here so that the two readings are not mistaken for a
+paper without warning. Two earlier commits under-reproduce it in a second,
+subtler way: through \texttt{d14e020}, \texttt{coverage\_union.py} still passed
+each scan root to \texttt{pylint} as a directory, which is the blind spot
+Section~\ref{sec:rq1} describes, so it returned the superseded 250/621 union
+rather than the 255/621 this paper reports. \texttt{3b4c567} carries the
+corrected invocation, and the difference is confined to one function. The
+250/621 figure is recorded here so that the two readings are not mistaken for a
 disagreement about the corpus.
 
 Section~\ref{sec:rq5}'s detector is a second release rather than a gap. It is
@@ -2235,7 +2235,7 @@ of Tables~\ref{tab:tools} and~\ref{tab:coverage}.
 
 \begin{verbatim}
 git clone https://github.com/feiiiiii5/failroute && cd failroute
-git checkout d14e020                # pinned commit: every artefact the tables use
+git checkout 3b4c567                # pinned commit: every artefact the tables use
 python -m venv .venv && . .venv/bin/activate
 pip install '.[test,paper]'   # pytest + matplotlib + 4 linters + bugbear
 python tools/fetch_corpus.py         # pinned sdists -> paper/corpus/
@@ -2243,16 +2243,19 @@ python tools/fetch_corpus.py         # pinned sdists -> paper/corpus/
     # archive against paper/corpus-lock.json and exits non-zero on mismatch
     # (it rewrites only the lock's generated_at_utc timestamp; the eight
     # archive digests are what must match)
-PYTHONPATH=src python -m pytest                   # 158 tests
-PYTHONPATH=src python tools/rescan_corpus.py --out bench/rescan-paper
-    # rescan with the current detector (total 621). Writes to bench/; do NOT
-    # re-export over paper/scan/, which is the frozen v0.7.0 baseline
+PYTHONPATH=src python -m pytest                   # 221 tests (0.9.1 suite)
+PYTHONPATH=src python tools/rescan_corpus.py --out bench/rescan-paper --with-context
+    # The detector at this commit is 0.9.1, so a fresh rescan reproduces the
+    # RQ5 frame (total 476), not RQ1's 621: the 621 frame belongs to the
+    # v0.8.0 detector and is committed as bench/rescan-f2. Writes to bench/;
+    # do NOT re-export over paper/scan/, the frozen v0.7.0 baseline.
 python tools/coverage_union.py --findings-dir bench/rescan-f2
     # -> bench/corpus-coverage-union.json ; union 255/621 = 41.1%
-    # bench/rescan-f2 is the committed 621-finding export the paper's figure
-    # was computed from; --findings-dir bench/rescan-paper (your own rescan)
-    # gives the same number. The default --findings-dir paper/scan is the
-    # frozen v0.7.0 set, whose union figure is deprecated.
+    # bench/rescan-f2 is the committed 621-finding v0.8.0 export every RQ1
+    # figure is read from. To reproduce RQ5's frame instead, point the same
+    # command at bench/rescan-v2 (or your own --out above): union 252/476 =
+    # 52.9%. The default --findings-dir paper/scan is the frozen v0.7.0 set,
+    # whose union figure is deprecated.
 python tools/coverage_union.py --ruff-select S110,S112,BLE001 \
     --findings-dir bench/rescan-f2 --out /tmp/union-symmetric.json
     # the symmetric baseline variant quoted in RQ1 (ruff also gets its
