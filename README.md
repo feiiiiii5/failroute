@@ -285,7 +285,7 @@ copy-pasted from a run that cannot be re-executed.
 
 Two, with different jobs:
 
-- **`tests/corpus/`** — 68 hand-written fixtures (36 positive / 32 negative),
+- **`tests/corpus/`** — 68 hand-written fixtures (34 positive / 34 negative, corpus v7),
   ground truth in `manifest.json`, written from each fixture's *semantics*
   rather than from tool output. It is a **regression gate**, not evidence of
   real-world precision: it was written by the same person as the detector, with
@@ -303,7 +303,7 @@ The full suite is **221 tests** across a 3 OS × Python 3.9–3.13 matrix, plus
 Measured against **eight pinned PyPI releases** (garak, inspect_ai, pydantic-ai,
 uqlm, trl, smolagents, deepteam, fickling — 2,354 files, 563,270 lines), locked by
 URL, SHA-256 and tree hash in `paper/corpus-lock.json` so the corpus is
-byte-reproducible. failroute reports **476 findings** (v0.9.0). The v0.8.0
+byte-reproducible. failroute reports **476 findings** (v0.9.1). The v0.8.0
 detector reported 621 on this same corpus; the drop is the predicate rewrite
 described above, not a change of corpus. The paper freezes the v0.8.0 frame at
 621 deliberately, so its numbers and this README's will differ. The v0.7.0

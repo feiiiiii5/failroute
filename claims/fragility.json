@@ -1,16 +1,16 @@
 [
-  {
-    "id": "Y1.fragility_base",
-    "stmt": "Fragility audit base cells recomputed by the canonical tool (tools/compute_intervals.py --fragility, Z=1.959963984540054): family structure 4+5+3, RQ2 12/80 [8.8--24.4], covered 12/48 [14.9--38.8], novel 1/56 [0.3--9.4]. Must match the paper's printed intervals exactly.",
-    "value": "families 4+5+3; base intervals reproduce the paper",
-    "cmd": ".venv/bin/python tools/compute_intervals.py --fragility --out /tmp/fragility-claim.json",
-    "expect": "families=\\{'__init__': 4, 'is_successful': 5, 'is_vulnerable': 3\\}[\\s\\S]*rq2 12/80 \\[8\\.8--24\\.4\\][\\s\\S]*covered 12/48 \\[14\\.9--38\\.8\\][\\s\\S]*novel 1/56 \\[0\\.3--9\\.4\\]"
-  },
-  {
-    "id": "Y1.fragility_breakdown",
-    "stmt": "Breakdown points: novel cell needs +3 net flips (1->4/56, upper 17.0) to reach the covered lower bound; covered cell survives 3 flips and breaks at 4 (8/48, lower 8.7); LOFO dropping is_successful breaks disjointness (7/43 lower 8.1 < novel upper 9.4) while the other two families keep it; control 1/38 gives 0.5--13.5.",
-    "value": "novel +3; covered 3 survive/4 break; lofo is_successful breaks disjointness; control 1/38 upper 13.5",
-    "cmd": ".venv/bin/python tools/compute_intervals.py --fragility --out /tmp/fragility-claim.json",
-    "expect": "lofo is_successful[\\s\\S]*disjoint=False[\\s\\S]*novel breakdown: \\+3 net flips[\\s\\S]*covered breakdown: survives 3 flips, breaks at 4[\\s\\S]*control 1/38: \\[0\\.5--13\\.5\\]"
-  }
+ {
+  "id": "Y1.fragility_base",
+  "stmt": "Fragility audit base cells recomputed by the canonical tool (tools/compute_intervals.py --fragility, Z=1.959963984540054): family structure 4+5+3, RQ2 12/80 [8.8--24.4], covered 12/48 [14.9--38.8], novel 1/56 [0.3--9.4]. Must match the paper's printed intervals exactly.",
+  "value": "families 4+5+3; base intervals reproduce the paper",
+  "cmd": ".venv/bin/python tools/compute_intervals.py --fragility --out /tmp/fragility-claim.json",
+  "expect": "families=\\{'__init__': 4, 'is_successful': 5, 'is_vulnerable': 3\\}[\\s\\S]*rq2 12/80 \\[8\\.8--24\\.4\\][\\s\\S]*covered 12/48 \\[14\\.9--38\\.8\\][\\s\\S]*novel 1/56 \\[0\\.3--9\\.4\\]"
+ },
+ {
+  "id": "Y1.fragility_breakdown",
+  "stmt": "Breakdown points: novel cell needs +3 net flips (1->4/56, upper 17.0) to reach the covered lower bound; covered cell survives 3 flips and breaks at 4 (8/48, lower 8.7); LOFO dropping is_successful breaks disjointness (7/43 lower 8.1 < novel upper 9.4) while the other two families keep it; control 1/38 gives 0.5--13.5.",
+  "value": "novel +3; covered 3 survive/4 break; lofo is_successful breaks disjointness; control 1/38 upper 13.5",
+  "cmd": ".venv/bin/python tools/compute_intervals.py --fragility --out /tmp/fragility-claim.json",
+  "expect": "lofo is_successful[\\s\\S]*disjoint=False[\\s\\S]*novel breakdown: \\+3 net flips[\\s\\S]*covered breakdown: survives 3 flips, breaks at 4[\\s\\S]*control 1/38: \\[0\\.5--13\\.5\\]"
+ }
 ]

@@ -289,7 +289,7 @@ def main():
           % (x['static_novel_pre'], x['static_novel_post'],
              x['static_novel_pct_pre'], x['static_novel_pct_post']))
     print('  HIGH and uncovered       : %d -> %d' % (x['high_uncovered_pre'], x['high_uncovered_post']))
-    print('  co-location novel        : %d -> %d (empirical; the fix cannot change it)'
+    print('  co-location novel        : %d -> %d (empirical; the covered_by fix cannot change it -- any move here is the AA1 pylint-invocation correction, not this fix)'
           % (x['coloc_novel_pre'], x['coloc_novel_post']))
     print('  over-credited findings   : %d, of which %d became novel and %d stayed covered'
           % (x['over_credited_findings'], x['over_credited_that_became_novel'],

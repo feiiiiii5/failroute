@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-04T04:15:41Z",
+  "generated_at_utc": "2026-09-07T15:08:42Z",
   "findings_dir": "bench/rescan-f2",
   "tools": [
     "ruff",
@@ -55,8 +55,8 @@
     },
     "pylint": {
       "masked-exception": 3,
-      "no-action": 67,
-      "silent-fallback": 175
+      "no-action": 72,
+      "silent-fallback": 180
     },
     "flake8+bugbear": {
       "no-action": 3,

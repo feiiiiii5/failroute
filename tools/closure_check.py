@@ -78,12 +78,24 @@ def check_self_scan() -> tuple[bool, str]:
 def check_readme_numbers() -> tuple[bool, str]:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     stale = []
-    for token in ("649", "253", "39.0%", "61.0%", "43.0%", "396", "279"):
+    # 🔴 AA-integration (2026-09-08): the second row is the v0.8.0-frame coverage
+    # this README used to carry. AA1 corrected the pylint invocation (it was handed
+    # a directory and silently skipped 152 files under __init__-less directories),
+    # which moved that frame's union 250 -> 255 and failroute-only 371 -> 366, and
+    # the five-tool union 269 -> 274. Those superseded values are forbidden here so
+    # they cannot drift back in unnoticed. The third row is the pre-AA1 v0.9.x frame
+    # (247/51.9%/229), superseded by 252/52.9%/224 for the same reason.
+    for token in ("649", "253", "39.0%", "61.0%", "43.0%", "396", "279",
+                  "**250**", "40.3%", "**371**", "59.7%", "269 (43.3%)",
+                  "**247**", "51.9%", "**229**"):
         if token in readme:
             stale.append(token)
-    # 269 is the five-tool union figure; it appears in the baseline-note
-    # prose, not in the bold four-linter table.
-    required = ["621 findings", "**250**", "40.3%", "269 (43.3%)", "**371**", "59.7%"]
+    # This README documents the *shipped* detector (0.9.1, the 476 frame), not the
+    # paper's frozen v0.8.0 frame -- the prose says so explicitly. The required set
+    # therefore pins the 476-frame figures. Same strictness as before, current
+    # caliber: every value here is recomputed by
+    #   tools/coverage_union.py --findings-dir bench/rescan-v2
+    required = ["476 findings", "**252**", "52.9%", "**224**", "47.1%"]
     missing = [t for t in required if t not in readme]
     ok = not stale and not missing
     return (ok, f"stale={stale or 'none'} missing={missing or 'none'}")

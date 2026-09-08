@@ -62,21 +62,48 @@ def run_bandit(root):
     return hits
 
 
-def run_pylint(root):
-    r = sh([PY, '-m', 'pylint', '--disable=all',
-            '--enable=W0702,W0703,W0705,W0706', '--output-format=json',
-            '--persistent=n', '--jobs=4', root])
-    hits = []
-    try:
-        for d in json.loads(r.stdout or '[]'):
-            hits.append((os.path.abspath(d['path']), d['line'], d.get('message-id')))
-    except Exception as e:
-        # pylint is the strongest baseline in this comparison (178 + 67 of the 253).
-        # If its output fails to parse and we return [], the headline coverage number
-        # collapses without anyone noticing. Fail loudly instead.
+def _pylint_targets(root):
+    """Sorted .py files under root, for handing to pylint explicitly.
+
+    🔴 AA1 (2026-09-07): pylint walks a directory argument as a *package* and does not
+    descend into a directory with no __init__.py (PEP 420 namespace layout), so every
+    module under one is silently never analysed. 152 of the corpus's 2,124 scanned
+    files are under such a directory and carry 34 messages under RQ1's selection that
+    directory mode reports as zero. This must match tools/coverage_union.py exactly, or
+    this artifact's pylint findings count and the union artifact's pylint co-location
+    would be computed over different file sets. ruff/bandit/flake8 are filesystem
+    walkers and are unaffected (measured: identical hit sets either way).
+    """
+    if os.path.isfile(root):
+        return [root]
+    out = []
+    for dp, _, fns in os.walk(root):
+        out.extend(os.path.join(dp, f) for f in fns if f.endswith('.py'))
+    if not out:
         raise RuntimeError(
-            f"pylint: could not parse output; the comparison would be wrong. "
-            f"stderr={(r.stderr or '')[:300]!r}") from e
+            f"pylint: no .py files under {root!r}; an empty target list makes pylint "
+            f"emit nothing and exit 0, which this comparison would read as the baseline "
+            f"covering zero findings.")
+    return sorted(out)
+
+
+def run_pylint(root):
+    hits = []
+    files = _pylint_targets(root)
+    for i in range(0, len(files), 500):
+        r = sh([PY, '-m', 'pylint', '--disable=all',
+                '--enable=W0702,W0703,W0705,W0706', '--output-format=json',
+                '--persistent=n', '--jobs=4', *files[i:i + 500]])
+        try:
+            for d in json.loads(r.stdout or '[]'):
+                hits.append((os.path.abspath(d['path']), d['line'], d.get('message-id')))
+        except Exception as e:
+            # pylint is the strongest baseline in this comparison (178 + 67 of the 253).
+            # If its output fails to parse and we return [], the headline coverage number
+            # collapses without anyone noticing. Fail loudly instead.
+            raise RuntimeError(
+                f"pylint: could not parse output; the comparison would be wrong. "
+                f"stderr={(r.stderr or '')[:300]!r}") from e
     return hits
 
 

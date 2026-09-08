@@ -736,10 +736,124 @@ def main_control() -> None:
     print(f"wrote {OUT}")
 
 
+
+
+def main_fragility() -> None:
+    """Fragility audit: breakdown points of every label-dependent headline number.
+
+    Reads only committed raw inputs (paper/annotations.csv for the 80-sample
+    frame and family structure; the crosstab/control cells are paper cells that
+    this mode recomputes the intervals for, never copies). For each qualitative
+    conclusion it reports the minimum number of label flips that would overturn
+    it, plus leave-one-family-out recomputations. Writes
+    bench/intervals-fragility.json. Fails loudly on missing inputs.
+    """
+    import csv as _csv
+    import re as _re
+    os.chdir(ROOT)
+    OUT = (sys.argv[sys.argv.index('--out') + 1]
+           if '--out' in sys.argv else 'bench/intervals-fragility.json')
+    try:
+        rows = list(_csv.DictReader(open('paper/annotations.csv', encoding='utf-8')))
+    except FileNotFoundError:
+        sys.exit('error: paper/annotations.csv missing')
+    if len(rows) != 80:
+        sys.exit(f'error: expected 80 annotation rows, got {len(rows)}')
+    defects = [r for r in rows if r['label'] == 'DEFECT']
+    if len(defects) != 12:
+        sys.exit(f'error: expected 12 DEFECT rows, got {len(defects)}')
+
+    def _fname(sig):
+        m = _re.match(r'def (\w+)', sig or '')
+        return m.group(1) if m else '?'
+
+    fams = {}
+    for r in defects:
+        fams.setdefault(_fname(r.get('function_signature')), []).append(r['sample_index'])
+    if sorted(len(v) for v in fams.values()) != [3, 4, 5]:
+        sys.exit(f'error: family structure drifted: { {k: len(v) for k, v in fams.items()} }')
+
+    def _cell(k, n):
+        lo, hi = wilson(k, n)
+        return {'k': k, 'n': n, 'point_pct': round(100 * k / n, 1),
+                'low_pct': round(100 * lo, 1), 'high_pct': round(100 * hi, 1)}
+
+    out = {'families': {k: sorted(v) for k, v in fams.items()}}
+
+    # Base cells recomputed (must match the paper's printed intervals).
+    out['base_rq2_obs'] = _cell(12, 80)
+    out['base_covered'] = _cell(12, 48)
+    out['base_novel'] = _cell(1, 56)
+    out['base_cluster_68'] = _cell(3, 68)
+
+    # 1. Leave-one-family-out on the RQ2 observation table and the covered cell.
+    lofo = {}
+    for fam, members in sorted(fams.items()):
+        k = len(members)
+        lofo[fam] = {'dropped_defects': k,
+                     'rq2_obs': _cell(12 - k, 80 - k),
+                     'covered': _cell(12 - k, 48 - k),
+                     # novel cell untouched (different package); disjointness rechecked.
+                     'disjoint_vs_novel': _cell(12 - k, 48 - k)['low_pct'] > _cell(1, 56)['high_pct']}
+    out['leave_one_family_out'] = lofo
+
+    # 2. Leave-one-cluster-out on the cluster table: 2/67 either way.
+    out['leave_one_cluster_out'] = _cell(2, 67)
+
+    # 3. Novel-cell breakdown: net additional novel defects m needed so the novel
+    # upper bound reaches the covered lower bound (14.9) — i.e. disjointness breaks.
+    target = _cell(12, 48)['low_pct']
+    m_break = next(m for m in range(0, 57) if _cell(1 + m, 56)['high_pct'] >= target)
+    out['novel_breakdown'] = {'covered_lower_pct': target,
+                              'net_flips_to_break_disjointness': m_break,
+                              'cell_at_break': _cell(1 + m_break, 56)}
+
+    # 4. Reverse: defects that must flip to CONTRACT before the covered lower
+    # bound falls to the novel upper bound (9.4).
+    nup = _cell(1, 56)['high_pct']
+    r_survive = max(r for r in range(0, 13) if _cell(12 - r, 48)['low_pct'] > nup)
+    out['covered_breakdown'] = {'novel_upper_pct': nup,
+                                'flips_survived': r_survive,
+                                'breaks_at_flips': r_survive + 1,
+                                'cell_at_break': _cell(12 - (r_survive + 1), 48)}
+
+    # 5. Control sentence fragility: 0/38 -> 1/38 (sentence flips at k=1; bound moves).
+    out['control_one_flip'] = _cell(1, 38)
+    out['control_zero_base_cp_upper_pct'] = round(100 * cp_upper_zero(38), 1)
+
+    # 6. 140-level cluster table under one dropped cluster: 3/115.
+    out['cluster_140_one_dropped'] = _cell(3, 115)
+
+    with open(OUT, 'w', encoding='utf-8') as f:
+        json.dump(out, f, indent=2)
+        f.write('\n')
+    print('fragility: families=%s' % ({k: len(v) for k, v in fams.items()}))
+    print('base: rq2 12/80 [%s--%s] covered 12/48 [%s--%s] novel 1/56 [%s--%s]' % (
+        out['base_rq2_obs']['low_pct'], out['base_rq2_obs']['high_pct'],
+        out['base_covered']['low_pct'], out['base_covered']['high_pct'],
+        out['base_novel']['low_pct'], out['base_novel']['high_pct']))
+    for fam, s in lofo.items():
+        print('lofo %-14s rq2 %d/%d [%s--%s] covered %d/48->%s [%s--%s] disjoint=%s' % (
+            fam, 12 - s['dropped_defects'], 80 - s['dropped_defects'],
+            s['rq2_obs']['low_pct'], s['rq2_obs']['high_pct'],
+            12 - s['dropped_defects'], 48 - s['dropped_defects'],
+            s['covered']['low_pct'], s['covered']['high_pct'], s['disjoint_vs_novel']))
+    print('novel breakdown: +%d net flips to reach covered lower %s%% -> %s' % (
+        m_break, target, out['novel_breakdown']['cell_at_break']))
+    print('covered breakdown: survives %d flips, breaks at %d -> %s' % (
+        r_survive, r_survive + 1, out['covered_breakdown']['cell_at_break']))
+    print('control 1/38: [%s--%s] (zero base CP upper %s%%)' % (
+        out['control_one_flip']['low_pct'], out['control_one_flip']['high_pct'],
+        out['control_zero_base_cp_upper_pct']))
+    print('wrote %s' % OUT)
+
+
 if __name__ == '__main__':
     if '--rq5' in sys.argv:
         main_rq5()
     elif '--control' in sys.argv:
         main_control()
+    elif '--fragility' in sys.argv:
+        main_fragility()
     else:
         main()

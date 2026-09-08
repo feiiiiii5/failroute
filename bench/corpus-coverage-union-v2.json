@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-05T04:47:07Z",
+  "generated_at_utc": "2026-09-07T15:04:55Z",
   "findings_dir": "bench/rescan-v2",
   "tools": [
     "ruff",
@@ -10,17 +10,17 @@
   "ruff_select": "S110,S112",
   "line_tolerance": 1,
   "failroute_total": 476,
-  "union_covered": 247,
-  "failroute_only": 229,
-  "union_covered_4tool_recheck": 247,
-  "union_covered_5tool": 247,
+  "union_covered": 252,
+  "failroute_only": 224,
+  "union_covered_4tool_recheck": 252,
+  "union_covered_5tool": 252,
   "by_rule": {
     "silent-fallback": {
       "total": 248,
-      "covered": 172,
-      "covered_4": 172,
-      "covered_5": 172,
-      "only": 76
+      "covered": 177,
+      "covered_4": 177,
+      "covered_5": 177,
+      "only": 71
     },
     "masked-exception": {
       "total": 3,
@@ -53,8 +53,8 @@
     },
     "pylint": {
       "masked-exception": 3,
-      "no-action": 67,
-      "silent-fallback": 172
+      "no-action": 72,
+      "silent-fallback": 177
     },
     "flake8+bugbear": {
       "no-action": 3,
@@ -71,8 +71,8 @@
     {
       "name": "inspect_ai",
       "failroute": 202,
-      "covered": 74,
-      "only": 128
+      "covered": 79,
+      "only": 123
     },
     {
       "name": "pydantic_ai_slim",

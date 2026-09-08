@@ -41,10 +41,36 @@ def bandit(r):
             for d in json.loads(o or '{}').get('results', [])]
 
 
+def _pylint_targets(r):
+    """Sorted .py files under r, for handing to pylint explicitly.
+
+    🔴 AA1 (2026-09-07): pylint walks a directory argument as a *package* and does not
+    descend into a directory with no __init__.py, silently analysing nothing there --
+    152 of the corpus's 2,124 scanned files, carrying 34 messages under RQ1's
+    selection. Kept identical to tools/coverage_union.py and
+    tools/compare_linters_corpus.py so the three cannot disagree about the file set.
+    """
+    if os.path.isfile(r):
+        return [r]
+    out = []
+    for dp, _, fns in os.walk(r):
+        out.extend(os.path.join(dp, f) for f in fns if f.endswith('.py'))
+    if not out:
+        raise RuntimeError('pylint: no .py files under %r; an empty target list makes '
+                           'pylint emit nothing and exit 0, which reads as zero '
+                           'baseline coverage.' % (r,))
+    return sorted(out)
+
+
 def pylint(r):
-    o = sh([PY, '-m', 'pylint', '--disable=all', '--enable=W0702,W0703,W0705,W0706',
-            '--output-format=json', '--persistent=n', '--jobs=4', r]).stdout
-    return [(os.path.abspath(d['path']), d['line']) for d in json.loads(o or '[]')]
+    hits = []
+    files = _pylint_targets(r)
+    for i in range(0, len(files), 500):
+        o = sh([PY, '-m', 'pylint', '--disable=all', '--enable=W0702,W0703,W0705,W0706',
+                '--output-format=json', '--persistent=n', '--jobs=4',
+                *files[i:i + 500]]).stdout
+        hits.extend((os.path.abspath(d['path']), d['line']) for d in json.loads(o or '[]'))
+    return hits
 
 
 def flake8(r):

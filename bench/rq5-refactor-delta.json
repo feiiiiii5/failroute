@@ -17,8 +17,8 @@
     "old": {
       "findings": 621,
       "distinct_sites": 617,
-      "linter_covered": 250,
-      "failroute_only": 371,
+      "linter_covered": 255,
+      "failroute_only": 366,
       "by_rule": {
         "masked-exception": 3,
         "no-action": 213,
@@ -29,8 +29,8 @@
     "new": {
       "findings": 476,
       "distinct_sites": 472,
-      "linter_covered": 247,
-      "failroute_only": 229,
+      "linter_covered": 252,
+      "failroute_only": 224,
       "by_rule": {
         "masked-exception": 3,
         "no-action": 209,
@@ -58,9 +58,9 @@
     "is_a_subset": false,
     "dropped": {
       "sites": 184,
-      "failroute_only": 156,
-      "linter_covered": 28,
-      "failroute_only_pct": 84.8
+      "failroute_only": 155,
+      "linter_covered": 29,
+      "failroute_only_pct": 84.2
     },
     "added": {
       "sites": 39,
@@ -70,9 +70,9 @@
     },
     "kept": {
       "sites": 433,
-      "failroute_only": 212,
-      "linter_covered": 221,
-      "failroute_only_pct": 49.0
+      "failroute_only": 208,
+      "linter_covered": 225,
+      "failroute_only_pct": 48.0
     },
     "dropped_by_rule": {
       "no-action": 4,
@@ -130,7 +130,7 @@
     "high_uncovered_pre": 20,
     "high_uncovered_post": 25,
     "coloc_novel_pre": 229,
-    "coloc_novel_post": 229,
+    "coloc_novel_post": 224,
     "over_credited_findings": 146,
     "over_credited_that_became_novel": 137,
     "over_credited_but_still_covered": 9,

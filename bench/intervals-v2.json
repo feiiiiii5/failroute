@@ -1,5 +1,5 @@
 {
-  "generated_at_utc8": "2026-09-05 12:47:07",
+  "generated_at_utc8": "2026-09-07 23:11:11",
   "method": "Wilson score interval, z=1.959963985; zero numerators also get the exact one-sided Clopper-Pearson upper bound. Same functions as the default mode -- no second implementation.",
   "frame": {
     "findings": 472,
@@ -18,13 +18,13 @@
   "coverage": {
     "frame_v080": {
       "total": 621,
-      "covered": 250,
-      "only": 371
+      "covered": 255,
+      "only": 366
     },
     "frame_refactored": {
       "total": 476,
-      "covered": 247,
-      "only": 229
+      "covered": 252,
+      "only": 224
     }
   },
   "e722_baseline": {
@@ -348,15 +348,15 @@
     {
       "group": "rq5-coverage",
       "label": "v0.8.0 frame: union of four linters covers findings",
-      "numerator": 250,
+      "numerator": 255,
       "denominator": 621,
-      "point": 0.4026,
-      "wilson95_low": 0.3647,
-      "wilson95_high": 0.4416,
-      "wilson95_low_pct": 36.5,
-      "wilson95_high_pct": 44.2,
-      "wilson95_low_pct2": 36.47,
-      "wilson95_high_pct2": 44.16,
+      "point": 0.4106,
+      "wilson95_low": 0.3726,
+      "wilson95_high": 0.4498,
+      "wilson95_low_pct": 37.3,
+      "wilson95_high_pct": 45.0,
+      "wilson95_low_pct2": 37.26,
+      "wilson95_high_pct2": 44.98,
       "width_pct": 7.7,
       "one_sided95_upper_pct": null,
       "note": "co-location, TOL=1; frozen frame"
@@ -364,15 +364,15 @@
     {
       "group": "rq5-coverage",
       "label": "refactored frame: union of four linters covers findings",
-      "numerator": 247,
+      "numerator": 252,
       "denominator": 476,
-      "point": 0.5189,
-      "wilson95_low": 0.4741,
-      "wilson95_high": 0.5635,
-      "wilson95_low_pct": 47.4,
-      "wilson95_high_pct": 56.3,
-      "wilson95_low_pct2": 47.41,
-      "wilson95_high_pct2": 56.35,
+      "point": 0.5294,
+      "wilson95_low": 0.4845,
+      "wilson95_high": 0.5738,
+      "wilson95_low_pct": 48.5,
+      "wilson95_high_pct": 57.4,
+      "wilson95_low_pct2": 48.45,
+      "wilson95_high_pct2": 57.38,
       "width_pct": 8.9,
       "one_sided95_upper_pct": null,
       "note": "co-location, TOL=1; V2 frame"
@@ -380,15 +380,15 @@
     {
       "group": "rq5-coverage",
       "label": "refactored frame: findings NO linter reaches",
-      "numerator": 229,
+      "numerator": 224,
       "denominator": 476,
-      "point": 0.4811,
-      "wilson95_low": 0.4365,
-      "wilson95_high": 0.5259,
-      "wilson95_low_pct": 43.7,
-      "wilson95_high_pct": 52.6,
-      "wilson95_low_pct2": 43.65,
-      "wilson95_high_pct2": 52.59,
+      "point": 0.4706,
+      "wilson95_low": 0.4262,
+      "wilson95_high": 0.5155,
+      "wilson95_low_pct": 42.6,
+      "wilson95_high_pct": 51.5,
+      "wilson95_low_pct2": 42.62,
+      "wilson95_high_pct2": 51.55,
       "width_pct": 8.9,
       "one_sided95_upper_pct": null,
       "note": "complement of the cell above"

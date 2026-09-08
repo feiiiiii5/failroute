@@ -278,7 +278,7 @@ def probe_pylint_alias(path):
 
     RQ1's baseline invokes pylint with ``W0702,W0703,W0705,W0706``. A reproducer who
     counts W0703 messages finds zero and would reasonably conclude the broad-except
-    rule never ran. Over the corpus that exact selection emits 389 W0718 messages and
+    rule never ran. Over the corpus that exact selection emits 423 W0718 messages and
     no W0703: pylint 4.x accepts W0703 as an alias and reports under the renamed id.
     W0718 is deliberately NOT enabled here, so whatever comes out can only have come
     from the alias.
@@ -430,8 +430,35 @@ def main():
         "detector_parity": parity,
     }
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
-    with open(args.out, "w", encoding="utf-8") as fh:
-        json.dump(out, fh, indent=2, ensure_ascii=False)
+    # 🔴 AA3 (2026-09-07): every run used to rewrite this file with a fresh
+    # generated_at_utc8, so the --check-parity gate -- whose whole purpose is to be a
+    # read-only assertion that the shipped table still matches the linters -- left the
+    # working tree dirty on a timestamp alone. Under `git status` that is
+    # indistinguishable from a real measurement change, and contractlens' J4.scope_guard
+    # counts uncommitted files, so a verification command could turn a gate red.
+    # Write only when the payload differs ignoring the timestamp; when it does differ,
+    # keep the new timestamp so it still records when the content last changed.
+    stamp = out.pop("generated_at_utc8")
+    new_body = json.dumps(out, indent=2, ensure_ascii=False)
+    unchanged = False
+    if os.path.isfile(args.out):
+        try:
+            with open(args.out, encoding="utf-8") as fh:
+                prior = json.load(fh)
+            prior_stamp = prior.pop("generated_at_utc8", None)
+            unchanged = json.dumps(prior, indent=2, ensure_ascii=False) == new_body
+            if unchanged:
+                stamp = prior_stamp or stamp
+        except (ValueError, OSError):
+            unchanged = False  # unreadable or corrupt: rewrite it
+    out = {"generated_at_utc8": stamp, **out}
+    if unchanged:
+        print("wrote %s: unchanged since %s -- left as is (no timestamp-only diff)"
+              % (args.out, stamp))
+    else:
+        with open(args.out, "w", encoding="utf-8") as fh:
+            json.dump(out, fh, indent=2, ensure_ascii=False)
+        print("wrote %s" % args.out)
 
     print("probe: %d cases, %d functions" % (len(spans), len(spans)))
     print("linter exit codes: %s" % rcs)
@@ -470,7 +497,8 @@ def main():
         print("  OVER  %-32s claims %s but nothing fired" % (p["case"], p["over_credit"]))
     for p in under[:10]:
         print("  UNDER %-32s missing %s" % (p["case"], p["under_credit"]))
-    print("\nwrote %s" % args.out)
+    print("\nartifact %s: %s" % (args.out, "left unchanged (payload identical, not written)"
+                                 if unchanged else "rewritten"))
 
     if not args.keep:
         shutil.rmtree(tmp, ignore_errors=True)

@@ -69,10 +69,50 @@ def ruff(r):
 def bandit(r):
     o = sh([PY,'-m','bandit','-r',r,'-f','json','-t','B110,B112','-q']).stdout
     return [(os.path.abspath(d['filename']), d['line_number']) for d in json.loads(o or '{}').get('results',[])]
+def _pylint_targets(r):
+    """The .py files pylint must be handed explicitly, sorted for determinism.
+
+    🔴 AA1 (2026-09-07): pylint walks a *directory* argument as a package and does
+    not descend into a directory with no __init__.py (PEP 420 namespace layout), so
+    every module under one is silently never analysed -- no message, no error, exit 0.
+    Measured over the pinned corpus: 152 of 2,124 scanned files sit under such a
+    directory (inspect_ai 123, deepteam 20, garak 9), and RQ1's exact selection emits
+    34 messages there (over 20 files) that directory mode reports as zero. Handed the
+    files explicitly, pylint's readings on the *reachable* files are unchanged --
+    0 messages lost, 0 gained, per package -- so this is a pure addition to the
+    baseline and cannot perturb any figure that was already right.
+    ruff, bandit and flake8 are filesystem walkers, not package walkers: directory
+    mode and explicit-file mode give identical hit sets on all 152 hidden files
+    (ruff 6879 = 6879, flake8 2375 = 2375, bandit 104 = 104), so they need no
+    equivalent treatment. --recursive=y and --init-hook were both tested and neither
+    recovers a single message (208 -> 208 on inspect_ai); enumerating files is the
+    only candidate that works.
+    """
+    if os.path.isfile(r):
+        return [r]
+    out = []
+    for dp, _, fns in os.walk(r):
+        out.extend(os.path.join(dp, f) for f in fns if f.endswith('.py'))
+    if not out:
+        # An empty target list would make pylint emit nothing and exit 0, which every
+        # caller reads as "this baseline covered zero findings" -- the silent-zero
+        # failure mode sh() above exists to prevent. Fail loudly instead.
+        sys.exit('error: no .py files under %r; pylint would silently report zero '
+                 'coverage for this scan root.' % (r,))
+    return sorted(out)
+
+
 def pylint(r):
-    o = sh([PY,'-m','pylint','--disable=all','--enable=W0702,W0703,W0705,W0706',
-            '--output-format=json','--persistent=n','--jobs=4',r], t=1800).stdout
-    return [(os.path.abspath(d['path']), d['line']) for d in json.loads(o or '[]')]
+    files = _pylint_targets(r)
+    hits = []
+    # Chunked so the argument list stays well under ARG_MAX on every platform; the
+    # per-chunk union is the same set pylint would return for one long invocation.
+    for i in range(0, len(files), 500):
+        o = sh([PY,'-m','pylint','--disable=all','--enable=W0702,W0703,W0705,W0706',
+                '--output-format=json','--persistent=n','--jobs=4',
+                *files[i:i + 500]], t=1800).stdout
+        hits.extend((os.path.abspath(d['path']), d['line']) for d in json.loads(o or '[]'))
+    return hits
 def flake8(r):
     o = sh([PY,'-m','flake8','--select','E722,B001,B017','--format','%(path)s\t%(row)d',r]).stdout
     out=[]
