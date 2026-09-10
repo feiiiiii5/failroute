@@ -27,12 +27,26 @@ quick: $(MAIN).tex
 	$(LATEX) $(LATEXFLAGS) $(MAIN).tex
 
 # Bundle only what arXiv needs; refuses to run if the build has errors.
+# COPYFILE_DISABLE=1 is required, not cosmetic: without it macOS tar stores an
+# AppleDouble "._x" member beside every file. They stay invisible here, because
+# bsdtar folds them back into extended attributes on extraction -- but arXiv
+# runs GNU tar on Linux, which materialises all six as real files, and
+# "._main.tex" is a binary blob rather than TeX. Verified 2026-09-09: a bundle
+# built without this variable carried six such members.
 submission: all
 	@test -s $(MAIN).pdf || (echo "no PDF produced"; exit 1)
 	@if /usr/bin/grep -q '^!' $(MAIN).log; then \
 	  echo "LaTeX errors present in $(MAIN).log -- refusing to bundle"; exit 1; \
 	fi
-	tar -czf $(MAIN).tar.gz $(MAIN).tex refs.bib figures/*.pdf $(MAIN).bbl
+	COPYFILE_DISABLE=1 tar -czf $(MAIN).tar.gz \
+	  $(MAIN).tex refs.bib figures/*.pdf $(MAIN).bbl
+	@strays=$$(python3 -c "import tarfile; \
+	  print(sum(1 for n in tarfile.open('$(MAIN).tar.gz').getnames() \
+	  if n.rsplit('/',1)[-1].startswith('._')))"); \
+	 if [ "$$strays" != "0" ]; then \
+	   echo "$(MAIN).tar.gz carries $$strays AppleDouble member(s) -- refusing"; \
+	   rm -f $(MAIN).tar.gz; exit 1; \
+	 fi
 	@echo "wrote $(MAIN).tar.gz"
 
 clean:

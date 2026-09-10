@@ -707,8 +707,27 @@ would break the day someone edits it.
 
 `paper/arxiv/main.tar.gz` is **`.gitignore`d** (line 27), so it is a local submission
 artefact, not a repository artefact: a clone will not have it and cannot check it.
-Rebuilt 2026-09-05 by the V4 batch — **111,526 B**, sha256 `f6d8edff83af77946800c74c48029574e360f37e9dcfe77959fc65ebceba5865`,
-containing `main.tex`, `refs.bib`, `main.bbl` and `figures/` (3 PDFs).
+Rebuilt 2026-09-09 — **119,489 B**, sha256 `9dc8ad263fff0f89523c8d2690a4491c060e75b9d989b9506408a099485806bf`,
+containing `main.tex`, `refs.bib`, `main.bbl` and `figures/` (3 PDFs), and nothing else.
+Superseded the V4 build of 2026-09-05 (111,526 B, sha256 `f6d8edff…`).
+
+🔴 **The V4 package carried six AppleDouble members** — `._main.tex`, `._refs.bib`,
+`._main.bbl` and one per figure — because it was packed with a bare `tar -czf`. macOS
+tar writes one beside every file with extended attributes, and `bsdtar` folds them back
+into attributes on extraction, so they are **invisible to `tar xzf` on this machine**.
+arXiv runs GNU tar on Linux, which materialises all six as real files; `._main.tex` is a
+binary blob, not TeX. `make submission` now exports `COPYFILE_DISABLE=1` and refuses to
+emit a bundle that contains any such member (reverse-tested 2026-09-09: packing without
+the variable yields 6 members, the check exits 1 and deletes the bundle).
+
+🔴 **This is also a verification-method finding.** The `tar xzf` recipe below cannot see
+AppleDouble members, so §7.7 reported a clean package for four days while the defect was
+present. Extract with Linux semantics to check:
+
+```
+$ python3 -c "import tarfile; tarfile.open('paper/arxiv/main.tar.gz').extractall('/tmp/tbchk')"
+$ find /tmp/tbchk -name '._*' | wc -l      # must be 0
+```
 
 🔴 The previous package (**88,140 B, 2026-09-03 20:21**, sha256 `792203cb…`) was stale and
 **would have failed on arXiv**: it contained `figures/fig3_recall.pdf`, a file that no
