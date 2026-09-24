@@ -2,6 +2,22 @@
 
 All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.9.2] - 2026-09-24
+
+Documentation only. No behavioural change to the detector: findings, severities
+and exit statuses are identical to 0.9.1, so the preprint's RQ5 results, measured
+on 0.9.1, describe this release as well.
+
+### Changed
+
+- The package description shown on PyPI is the corrected README. The real-code
+  labels behind the study are stated as LLM-agent labels, not human labels; the
+  retired 3.4x ruff-only ratio is gone; finding counts are stated over the
+  2,124-file scan root; and the manuscript is linked, with the note that it has
+  not yet been posted to arXiv.
+- `docs/process.md` and the README's "How this project is built" describe an
+  author-led, AI-assisted project.
+
 ## [0.9.1] - 2026-09-06
 
 Study freeze. No behavioural change to the detector — this release exists so
