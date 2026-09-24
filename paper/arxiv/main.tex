@@ -110,16 +110,18 @@ requiring adjudication.
 \section{Introduction}
 
 Many software failures announce themselves. An exception propagates, a process
-exits, a stack trace reaches a log. The failures this paper studies do none of
-this. A handler catches a timeout from a model API and returns \texttt{0.0}, and
+exits, a stack trace reaches a log. Some failures do none of this. A handler
+catches a timeout from a model API and returns \texttt{0.0}, and
 the caller cannot distinguish that from a model that genuinely scored zero. A
 decode error is caught and an empty string returned, and the code downstream sees
 a document with no content rather than one that failed to load. Execution
 continues, the caller receives a value of the expected type, and a wrong answer
 proceeds in the shape of a right one. We call this \emph{failure-routing}: the
 handler does not merely swallow the failure, it routes it into the success path.
-This paper studies the subfamily a syntactic tool can see --- failures routed
-inside an \texttt{except} handler.
+This paper studies local exception-handling code: primarily failures routed
+inside an \texttt{except} handler, plus the adjacent
+\texttt{contextlib.suppress} form. One registered rule concerns exception
+masking rather than a success-shaped result; we distinguish it below.
 
 The consequence is that the usual evidence of a defect may be missing by
 construction. A crash can produce a bug report; a plausible wrong number may
@@ -136,9 +138,11 @@ detection scope of the selected lint rules studied here.
 
 \paragraph{The \texttt{SIM105} observation.}
 \begin{itemize}[nosep,leftmargin=*]
-\item \texttt{ruff}'s \texttt{SIM105} rule recommends rewriting
-  \texttt{try/except/pass} into \texttt{contextlib.suppress(...)}. The two forms
-  are semantically identical.
+\item \texttt{ruff}'s \texttt{SIM105} rule recommends rewriting a simple
+  \texttt{try/except/pass} block with
+  \texttt{contextlib.\allowbreak suppress(...)}. In a straightforward rewrite the two
+  forms suppress the same specified exception; their behaviour need not be
+  identical in every surrounding context.
 \item After the rewrite, the construct is out of reach of the linters we tested,
   and not only of the rule sets we happened to select: in our corpus all 19
   \texttt{contextlib.\allowbreak suppress} findings are invisible
@@ -148,14 +152,14 @@ detection scope of the selected lint rules studied here.
   set, adds no rule that reports it (Section~\ref{sec:rq1}). A \texttt{semgrep}
   project's supplementary rule covers 18 of the 19; citing it requires stating the rule is
   ours.
-\item The specific refactoring recommended by \texttt{SIM105} preserves runtime
-  semantics while placing the rewritten construct outside the rule sets observed
-  here; whether a given instance is defective remains a separate question.
+\item The direct refactoring can preserve the intended suppression behaviour
+  while placing the rewritten construct outside the rule sets observed here;
+  whether a given instance is defective remains a separate question.
 \end{itemize}
 
 \paragraph{Research questions.}
 \begin{itemize}[nosep,leftmargin=*]
-\item \textbf{RQ1} How many except-handler failure-routing candidates occur in
+\item \textbf{RQ1} How many local exception-handling candidates occur in
   the eight pinned AI/ML Python packages, and how often are they co-located with
   findings from the selected syntactic lint rules? (Section~\ref{sec:rq1})
 \item \textbf{RQ2} What labels do two LLM-based rounds assign to sampled
@@ -172,7 +176,8 @@ detection scope of the selected lint rules studied here.
 \end{itemize}
 \paragraph{Contributions.}
 \begin{enumerate}[nosep,leftmargin=*]
-\item A taxonomy of six failure-routing shapes and an AST detector for them
+\item A taxonomy of five silent-continuation or failure-to-value shapes and
+  one adjacent exception-masking shape, with an AST detector for them
   (Section~\ref{sec:family}).
 \item A reproducible count and cross-tool co-location measurement over eight
   pinned packages (Section~\ref{sec:rq1}).
@@ -203,9 +208,13 @@ detection scope of the selected lint rules studied here.
 \section{The pattern family}
 \label{sec:family}
 
-Six shapes, all reducible to \emph{``a failure became a value the caller cannot
-distinguish from success''}, are listed in Table~\ref{tab:shapes}. The taxonomy
-is defined by the semantics of the Python constructs involved rather than fitted
+The six registered shapes are listed in Table~\ref{tab:shapes}. Five concern a
+caught failure that is suppressed or routed into a normal-looking value or
+continuation. \texttt{name-shadowing} is different: it can replace the original
+exception with a \texttt{NameError}, masking the cause without producing a
+success-shaped value. We include it as an adjacent exception-handling hazard,
+not as evidence of silent success. The taxonomy is defined by the semantics of
+the Python constructs involved rather than fitted
 to the corpus studied here: four of the six shapes account for all 621 findings
 reported in Section~\ref{sec:rq1}, and the two that never fire on this corpus are
 retained because a shape's absence from one corpus is not evidence that the shape
@@ -213,26 +222,27 @@ does not occur. Both are exercised by the tool's unit corpus.
 
 \begin{table}[htbp]
 \centering\small
-\caption{The six failure-routing shapes.}
+\caption{Five silent-continuation or failure-to-value shapes and one adjacent
+exception-masking shape.}
 \label{tab:shapes}
 \begin{tabular}{@{}P{3.0cm}P{5.3cm}P{6.0cm}@{}}
 \toprule
 Rule & Shape & Consequence \\
 \midrule
-\texttt{no-action} & \texttt{except ...: pass} & caller never learns the
-operation failed \\
+\texttt{no-action} & \texttt{except ...: pass} & handler emits no direct
+failure signal \\
 \texttt{silent-fallback} & handler returns/assigns a constant without re-raising
 & judge outage becomes a legitimate \texttt{0.0} \\
 \texttt{masked-exception} & catch-all conditionally re-raises \emph{and} falls
 back to a constant & outcome depends on which branch ran \\
-\texttt{silent-suppress} & \texttt{with contextlib.suppress(...)} & same
-semantics as \texttt{except}+discard; invisible to the linters we tested \\
+\texttt{silent-suppress} & \texttt{with contextlib.suppress(...)} & suppresses
+specified exceptions; invisible to the linters we tested \\
 \texttt{implicit-fallback} & handler neither re-raises, returns, nor records ---
 falls through to implicit \texttt{None} & ``did nothing'' becomes a legitimate
 \texttt{None} \\
 \texttt{name-shadowing} & \texttt{except E as e:} rebinds \texttt{e} inside the
-handler & Python deletes the binding on exit $\rightarrow$ \texttt{NameError};
-original exception lost \\
+handler & Python deletes the binding on exit; a later use can raise
+\texttt{NameError} or \texttt{UnboundLocalError} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -252,8 +262,8 @@ statement --- reported at the line where it starts. Findings are sorted by line,
 with a stable per-handler registry order for findings that share a line, so the
 output order is deterministic.
 
-\paragraph{What counts as silence.} A handler is treated as \emph{recording} the
-failure, and therefore as not routing it, if its body re-raises; calls
+\paragraph{What counts as silence.} The tool treats a failure as explicitly
+signalled, rather than silently routed, if its handler re-raises; calls
 \texttt{exit} or \texttt{\_exit}; calls \texttt{warnings.warn} or
 \texttt{warnings.warn\_explicit}; or calls a logger-like name. Two properties of
 that test matter for reading Section~\ref{sec:rq2}.
@@ -265,13 +275,13 @@ handler qualifies on \emph{any} method of a logger-like object, \texttt{debug} a
 \texttt{info} included --- and, because the test matches the object rather than the
 method's meaning, on method names that are not logging calls at all.
 \texttt{capture\_exception} on a logger-like object also qualifies. A bare
-\texttt{print()} never does. Thus \texttt{logger.debug()} silences a typed
-handler under this syntactic test but not a catch-all handler. The asymmetry is
-deliberate: a
-caught type is itself a record of the failure its author anticipated.
-Section~\ref{sec:rq5} shows the asymmetry is load-bearing, because every defect in
-the frozen sample sits in a bare handler --- it falls through the strict half of
-this test, not the lenient half.
+\texttt{print()} never does. Thus \texttt{logger.debug()} prevents a finding
+for a typed handler under this syntactic test but not for a catch-all handler. The asymmetry is
+deliberate: a typed clause documents the failure its author anticipated. It
+does not establish that a debug message reaches the caller.
+Section~\ref{sec:rq5} shows the asymmetry matters in this sample: every
+original LLM DEFECT label sits on a bare handler, which falls through the
+strict half of this test rather than the lenient half.
 
 Second, the test is not global. Only \texttt{silent-fallback} and
 \texttt{implicit-fallback} consult it; \texttt{no-action},
@@ -296,12 +306,15 @@ legitimate in boolean scorers, plus namespace-qualified sentinels such as
 \texttt{return result} can never fire.
 
 \paragraph{Exemptions.} Three gates remove a site before any rule runs. The
-first is the caught type: absorbing \texttt{KeyboardInterrupt},
-\texttt{SystemExit} or \texttt{GeneratorExit} is how a process is meant to end,
-and absorbing \texttt{StopIteration}, \texttt{StopAsyncIteration} or
-\texttt{CancelledError} is the documented iterator and cancellation idiom, so a
-handler catching only those is exempt --- and a tuple handler is exempt only when
-every member is. The second is an opt-out marker in the handler's own lines:
+first is the caught type. A handler catching only \texttt{KeyboardInterrupt},
+\texttt{SystemExit} or \texttt{GeneratorExit} is exempt. The same applies to
+\texttt{StopIteration}, \texttt{StopAsyncIteration} or
+\texttt{CancelledError}; a tuple handler is exempt only when every member is.
+These exceptions can occur in
+shutdown, iteration and cancellation handling, where suppression may be
+intentional; the tool does not determine whether it is appropriate at a given
+site. The exemption can therefore also hide a genuine mistake. The second gate
+is an opt-out marker in the handler's own lines:
 \texttt{\# failroute: ignore} or \texttt{\# pragma: no cover}. The third is
 configuration: a rule disabled under \texttt{[tool.failroute]} never fires. All
 three gates are applied once, in the dispatcher, rather than re-implemented per
@@ -801,10 +814,11 @@ estimate.
 Figure~\ref{fig:reference-matches} plots the split by defect family.
 
 This is the construct-scope result for the curated reference set. It shows that
-the failure-routing cases in that set include patterns outside the subfamily this
-tool and other except-handler detectors operationalise. We state this as a boundary
-\emph{and} a roadmap --- dataflow-shaped failure-routing is future work --- and
-we scope all claims in this paper to the except-handler subfamily accordingly.
+the failure-routing cases in that set include patterns outside the local
+exception-handling subfamily this tool operationalises. We state this as a
+boundary \emph{and} a roadmap --- dataflow-shaped failure-routing is future
+work --- and scope the detector's results to handlers and
+\texttt{contextlib.suppress} sites accordingly.
 
 \begin{figure}[htbp]
 \centering
@@ -996,21 +1010,24 @@ with no held-out set. The results below are therefore descriptive of this
 development corpus and do not establish performance on unseen data.
 
 \paragraph{What changed.} v0.8.0's \texttt{silent-fallback} rule asks whether the
-handler's body returns or assigns a member of a fixed constant set. That is a proxy
-for the definition in Section~\ref{sec:family}, which asks something narrower:
-whether the failure became a value the caller cannot distinguish from success,
-\emph{and} whether that conversion is the function's own contract. The refactor
-replaces the constant test with three layers. \textbf{(1) Value-range membership:}
-if the enclosing function's declared return type admits the substituted value, the
-substitution is distinguishable by declaration and the finding is downgraded ---
+handler's body returns or assigns a member of a fixed constant set. That is a
+syntactic proxy for the failure-to-value pattern in
+Section~\ref{sec:family}; it cannot tell whether the value is an intentional
+part of the function's contract. The refactor replaces the constant test with
+three further heuristics. \textbf{(1) Value-range membership:}
+if the enclosing function's declared return type admits the substituted value,
+the tool treats this as possible contract evidence and downgrades the finding ---
 applied only to the return channel and only to explicitly declared ranges, never to
-an assignment into object state. \textbf{(2) Exception--predicate isomorphism:}
+an assignment into object state. A type annotation alone neither establishes
+intent nor lets the caller distinguish a failed operation from a legitimate
+value of the same type. \textbf{(2) Exception--predicate isomorphism:}
 whether the handler's work is structurally the same as a \texttt{-> bool} predicate
 the codebase already declares. \textbf{(3) Data-flow consequence:} whether the
 substituted value escapes the call (returned) or outlives it (assigned to object
-state), which is what makes a substitution caller-visible. Every finding now also
+state), a proxy for possible caller-visible consequences rather than proof of
+them. Every finding now also
 carries a severity (INFO, LOW, MEDIUM, HIGH), an isomorphism class, and a static
-\texttt{covered\_by} list naming the lint rules that already flag this handler. That
+\texttt{covered\_by} list predicting which lint rules flag this handler. That
 list is a table derived by running the four baselines over generated probes rather than
 by reading rule names
 (\texttt{tools/lint\_mapping\_probe.py} $\rightarrow$
@@ -1069,7 +1086,7 @@ Because the labels are clustered and the 60 supplementary observations were
 purposively selected, the table describes this joined set only. It does not
 establish a population-level difference or incremental defect yield.
 
-paragraph{The static \texttt{covered\_by} field was unsound. We measured the whole
+\paragraph{The static \texttt{covered\_by} field was unsound. We measured the whole
 mapping and fixed it.}
 The inference credited \texttt{bandit:B110} and \texttt{ruff:S110} to every handler
 with an inert body, without looking at what the handler catches. Both rules are
@@ -1418,7 +1435,7 @@ during development; there is no held-out set, and the 60 supplementary labels
 were drawn precisely from sites whose status the refactor changed. Third, several
 counterexamples that changed the interpretation --- the constructed probes below,
 the state-flag mechanism of Section~\ref{sec:control}, and the mapping defects of
-Section~\ref{sec:rq5} --- were identified during external review. Fourth: callee-local analysis cannot
+Section~\ref{sec:rq5} --- were identified during subsequent review of this project. Fourth: callee-local analysis cannot
 define ``the caller cannot distinguish'' without caller intent, so its
 separation criterion is necessarily a syntactic proxy, and proxies fitted on one
 style fail on the next. In the selected control corpus, the single annotator
@@ -1454,9 +1471,8 @@ co-locates with 18 of the 19 findings.
 \section{Threats to validity}
 \label{sec:threats}
 
-The first five items are the limitations the triangulation verdict in
-Section~\ref{sec:tri} depends on, and are cited there by name; the rest are the
-study's other threats.
+The first five items are the limitations on which the triangulation verdict in
+Section~\ref{sec:tri} depends; the rest are the study's other threats.
 
 \begin{itemize}[nosep,leftmargin=*]
 \item \textbf{Limitation 1 --- the labelling arm is LLM-judged.} Both labelling
@@ -1522,15 +1538,17 @@ study's other threats.
   earlier title-only judgements were re-verified from diffs in a dedicated
   pass, with 3 corrections).
 \item \textbf{Co-location $\neq$ equivalent detection}
-  (Section~\ref{sec:rq1} caveat). Reported conservatively as an upper bound on
-  baseline coverage.
+  (Section~\ref{sec:rq1} caveat). A nearby warning may concern a different
+  property, while a warning farther than one line away may still be relevant.
+  The reported co-location count is neither a measured semantic coverage rate
+  nor a strict bound on one.
 \item \textbf{The fifth baseline tool is ours.} The semgrep rule counted in the
   five-tool union was developed within this project; coverage attributed to it is
   self-supplied.
 \item \textbf{Construct validity (Section~\ref{sec:rq3}).} The detector
-  operationalises the except-handler subfamily only; 64.3\% of fixes in the
-  curated reference set lie outside it. The corpus counts and reference-set
-  recall are scoped to the pinned records.
+  operationalises local handlers and \texttt{contextlib.\allowbreak suppress}; 64.3\% of
+  fixes in the curated reference set lie outside those shapes. The corpus
+  counts and reference-set recall are scoped to the pinned records.
 \item \textbf{Control scope is two styles, not the ecosystem.}
   The control comparison covers a zero-bare-\texttt{except} infrastructure style
   against the main AI/ML style; both are Python, both are PyPI. The conclusion
@@ -1544,7 +1562,7 @@ study's other threats.
   guarded read sites, explicit fallback comments, re-raise paths). Borderline
   CONTRACT-vs-DEFECT calls were resolved toward CONTRACT wherever a documented
   policy existed; the direction of that bias is stated so a re-adjudication
-  can test it.
+  can test it. These readings do not establish independent human adjudication.
 \item \textbf{Known predicate limits remain in the shipped version.}
   The three constructed probes, the state-flag amplification
   (Section~\ref{sec:control}) and the \texttt{exception\_escapes} case
@@ -1592,12 +1610,12 @@ rather than treating shape counts as defect counts.
 
 \paragraph{Why generic rules get muted.}
 A second body of work explains the reception of such numbers. Developers report
-false positives and noise as the leading reason they ignore or abandon static
+false positives and noise among the reasons they ignore or abandon static
 analysis~\cite{johnson2013}; Ruthruff et al.\ made \emph{actionability} an
 experimental target rather than a slogan~\cite{ruthruff2008}; Google's Tricorder
-and FindBugs-Fixit programmes showed that an analysis only survives at scale when
-it is filtered, prioritised and paired with a suppression
-path~\cite{sadowski2015,ayewah2010,sadowski2018}. User-centred and follow-up
+and FindBugs-Fixit programmes illustrate the value of filtering, prioritisation
+and a suppression path in deployed analysis
+tools~\cite{sadowski2015,ayewah2010,sadowski2018}. User-centred and follow-up
 studies reach the same ordering from the other side: what developers need is a
 warning they can act on~\cite{do2022,yedida2023}, and the mitigation of false
 positives remains an open problem rather than a solved one~\cite{guo2023}.
@@ -1605,10 +1623,10 @@ WarningsGuru operationalised relevance with statistical bug
 models~\cite{querel2018}, and Hu et al.\ recently measured the other end of the
 same pipe --- which warnings developers actually suppress, and on what
 grounds~\cite{hu2025suppressed}. Crisan and McNutt frame linting as a
-sociotechnical activity~\cite{crisan2025}. Our contribution is not another
-relevance filter: it is a \emph{semantic} account of why a particular family of
-syntactic matches is disproportionately non-actionable, so that a suppression
-decision can be justified by code shape rather than by developer fatigue.
+sociotechnical activity~\cite{crisan2025}. Our case study examines why some
+syntactic matches may reflect intentional fallback contracts, and where local
+code shape alone cannot settle that question. The available labels do not
+establish the relative actionability of this detector and its baselines.
 
 \paragraph{Silent failure in machine-learning systems.}
 The systems literature supplies the stakes. Sculley et al.\ named the pipeline
@@ -1616,9 +1634,8 @@ coupling and glue-code debt that makes ML behaviour brittle~\cite{sculley2015};
 Polyzotis et al.\ proposed continuous data validation as the corrective at the
 data boundary~\cite{polyzotis2019}; the ML Test Score encoded a rubric that tests
 the pipeline rather than the model alone~\cite{breck2017}; Amershi et al.\ and
-Paleyes et al.\
-documented that the failures arrive at integration and deployment time, not
-training time~\cite{amershi2019,paleyes2022}; Sambasivan et al.\ traced how a data
+Paleyes et al.\ documented challenges during integration and deployment as
+well as model development~\cite{amershi2019,paleyes2022}; Sambasivan et al.\ traced how a data
 problem cascades through a high-stakes system until it surfaces as an unexplained
 outcome~\cite{sambasivan2021}; and Dixit reported silent data corruption at scale
 in production hardware, where no exception is raised at all~\cite{dixit2023}.
@@ -1638,7 +1655,7 @@ the labels or estimate prevalence.
 \section{Conclusion}
 
 Across eight pinned AI/ML Python packages, the v0.8.0 detector reported 621
-except-handler candidates in 524{,}229 scanned lines. Four selected syntactic
+local exception-handling candidates in 524{,}229 scanned lines. Four selected syntactic
 linter rule sets were not co-located with 366 candidates under a $\pm$1-line
 criterion. This is a finite-corpus comparison; co-location does not establish
 equivalent detection, and the candidates are not confirmed defects.
@@ -1678,8 +1695,11 @@ relative to the root of the public repository
 \url{https://github.com/feiiiiii5/failroute} (MIT licence); the detector itself is
 released as \texttt{failroute} on PyPI,
 \url{https://pypi.org/project/failroute/}. RQ1--RQ4 analyze \texttt{failroute} 0.8.0; RQ5 analyzes 0.9.1. The pinned
-commit \texttt{3b4c567} contains the complete paper artefacts, including the
-post-release ledgers and corrected baseline invocation. The v0.8.0 release tag
+commit \texttt{3b4c567} contains the underlying datasets, exports and scripts
+for the reported numerical results, including the post-release ledgers and
+corrected baseline invocation. The figure PDFs in this submission have later
+layout edits but unchanged plotted counts; they are included in the arXiv
+source package. The v0.8.0 release tag
 alone does not reproduce every table. The committed \texttt{bench/rescan-f2/}
 export records the 621-finding frame; \texttt{bench/rescan-v2/} records the
 476-finding refactored frame (freshly reproduced 2026-09-07).
@@ -1721,7 +1741,8 @@ python tools/coverage_union.py --ruff-select S110,S112,BLE001 \
     # broad-except rule): ruff 127 co-located, union 255/621 = 41.1% ---
     # the same union the narrow selection gives, as RQ1 explains;
     # committed as bench/corpus-coverage-union-ruff-ble001.json
-python tools/make_figures.py                      # -> paper/figures/ (3 figures)
+python tools/make_figures.py                      # -> paper/figures/ (3 figures;
+    # pinned code uses earlier layout, with the same plotted counts)
 python tools/j1_adjudicate.py              # diff-read family adjudication
 \end{verbatim}
 
@@ -1741,7 +1762,11 @@ Key artefacts, and the thing each one pins down:
 \item \texttt{paper/annotations.csv} --- labels and rationale.
 \item \texttt{paper/annotations-second-pass.csv} --- second automated pass.
 \item \texttt{paper/merged-pr-recall.csv} --- curated merged-fix
-reference set (all rows diff-read).
+reference set (all rows diff-read). The repository and PR number, rather than
+the descriptive \texttt{pr\_title} field, identify each change: the stored
+titles for \texttt{agent-sweep\#197} and \texttt{inspect\_ai\#4908} do not match
+their final GitHub titles. The discrepancy does not alter classification or
+counts.
 \item \texttt{paper/j1-trulens2653-prefix.py} --- pre-fix evidence for the
 \texttt{trulens\#2653} detection.
 \item \texttt{bench/corpus-coverage-union-5tool.json} --- cross-tool coverage
