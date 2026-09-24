@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -28,6 +29,21 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def claim_environment(root: Path) -> dict[str, str]:
+    """Resolve checkout paths before commands enter historical worktrees.
+
+    CONTRACTLENS_ROOT may point to a separate clone; the default is its sibling
+    directory. Commands must quote these variables, including paths with spaces.
+    No fixed developer home directory is part of the reproduction contract.
+    """
+    env = os.environ.copy()
+    env["FAILROUTE_ROOT"] = str(root.resolve())
+    env["CONTRACTLENS_ROOT"] = str(Path(
+        env.get("CONTRACTLENS_ROOT", root.parent / "新项目-contractlens")
+    ).resolve())
+    return env
 
 
 def main() -> int:
@@ -46,6 +62,7 @@ def main() -> int:
         sys.exit("error: no claims files found under claims/")
 
     failures = 0
+    env = claim_environment(ROOT)
     for path in paths:
         claims = json.loads(path.read_text(encoding="utf-8"))
         print(f"\n=== {path.name} ({len(claims)} claims) ===")
@@ -60,6 +77,7 @@ def main() -> int:
                     claim["cmd"],
                     shell=True,
                     cwd=ROOT,
+                    env=env,
                     capture_output=True,
                     text=True,
                     timeout=2400,

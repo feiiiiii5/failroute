@@ -1,14 +1,9 @@
 # `bench/realworld/` — external regression bench for the failroute predicate
 
-Built **before** the V1 predicate refactor was touched, so that the refactor is
-measured against expectations that did not come from the person writing the
-detector. The paper's own RQ4 records why this ordering matters: the
-hand-written fixture corpus under `tests/corpus/` failed to catch the
-detector's `for stmt in handler.body` blind spot, because the fixtures and the
-detector shared an author and therefore a blind spot.
-
-Per 委外任务清单.md §V1.2 step 1 and §V1.5, this directory is the only place the
-V1 batch is authorised to create files.
+The cases were assembled before the predicate refactor and provide fixed
+regression expectations for the before/after comparison. They belong to the
+same AI-assisted project as the detector; their ordering does not establish
+independent authorship or independent label validity.
 
 ## Contents
 
@@ -22,16 +17,16 @@ V1 batch is authorised to create files.
 
 **80 corpus cases** — one per row of `paper/annotations.csv` (read-only; never
 modified by this bench). Each carries the coordinate `(file, lineno)` inside the
-SHA256-locked corpus (`paper/corpus-lock.json`), the human label
+SHA256-locked corpus (`paper/corpus-lock.json`), the label
 (`DEFECT` / `CONTRACT` / `FALSE_POSITIVE`), the annotator's rationale, and the
 structural facts read back out of the corpus source at generation time:
 enclosing function name, return annotation and its bucket, handler exception
 expression, whether the handler is bare / catch-all, the number of statements in
 the guarded `try` body, and whether that body contains a loop or comprehension.
 
-Labels were written twice, independently (`paper/annotations.csv` and
-`paper/annotations-second-pass.csv`); all 87 cases record
-`second_pass_agrees`, which is `true` for 80/80.
+Labels were produced in two LLM-agent rounds (`paper/annotations.csv` and
+`paper/annotations-second-pass.csv`). The 80 corpus cases agree across rounds;
+this does not establish independence, human annotation, or label correctness.
 
 Labels are bound to the **coordinate**, not to a tool version. A coordinate that
 the refactored detector no longer reports keeps its label; that is what makes
@@ -64,7 +59,7 @@ Severity lattice, ascending: `NONE` (not reported) < `INFO` < `LOW` < `MEDIUM`
 The 24 ungated cases are the honest part of this bench. Gating only the
 expectations that follow from the design would let the implementation be tuned
 until green; recording the rest means the report can show where the new
-predicate disagrees with a human label without that disagreement being hidden.
+predicate disagrees with a recorded label without that disagreement being hidden.
 
 ## Running
 

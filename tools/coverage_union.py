@@ -182,7 +182,7 @@ parser.add_argument('--with-semgrep', action='store_true',
 parser.add_argument('--emit-per-finding', default=None, metavar='JSONL',
                     help='also write one row per failroute finding with the list of '
                          'baseline tools co-located on it. V2 (2026-09-05): the paper '
-                         'needs a (failroute-only x human-label) crosstab, which the '
+                         'needs a (failroute-only x label) crosstab, which the '
                          'aggregate counters cannot express. Without this the crosstab '
                          'would have to be transcribed by hand, which the '
                          '"数字禁止跨文档复制" red line forbids.')

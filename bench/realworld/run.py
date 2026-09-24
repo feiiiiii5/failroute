@@ -2,7 +2,7 @@
 """External regression bench for the failroute predicate refactor (V1 batch).
 
 Runs the detector against ``cases.jsonl`` — 80 real-world coordinates carrying
-human labels that were written for the arXiv paper, plus the seven probe shapes
+labels that two rounds of LLM agents wrote for the arXiv paper, plus the seven probe shapes
 from 委外任务清单.md §V1.0-A — and reports each acceptance gate as pass/fail.
 
 Why this exists before the predicate was touched

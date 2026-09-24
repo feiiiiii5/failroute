@@ -48,10 +48,12 @@ family kept recurring: an LLM judge outage becoming a legitimate-looking `0.0`
 score, a network error becoming "no results", a red-team metric reporting
 success from a judge that never ran. Existing linters reason about the *shape*
 of an exception handler; the defect lives in what the handler *returns*.
-`failroute` is a detector for that semantic gap, built around three principles:
+`failroute` is an attempt to detect it at the level of the return value; its own evaluation below shows how far syntax alone gets. It is built around three principles:
 
-- **Precision over volume** — every rule is validated against a hand-labelled
-  corpus whose ground truth was written independently of tool output.
+- **Precision over volume** — every rule has positive and negative fixtures in
+  `tests/corpus/`, whose expected results (`manifest.json`) are specified from each
+  fixture's intended semantics; that corpus is a regression gate, and the
+  real-code labels are a separate set (see "Test corpora" below).
 - **Honest triage** — findings without a production consequence chain are
   benchmark material, not issues (see `docs/process.md` for a worked example).
 - **Everything reproducible** — every number in this README can be re-run from
@@ -285,15 +287,18 @@ copy-pasted from a run that cannot be re-executed.
 
 Two, with different jobs:
 
-- **`tests/corpus/`** — 68 hand-written fixtures (34 positive / 34 negative, corpus v7),
+- **`tests/corpus/`** — 68 explicit fixtures (34 positive / 34 negative, corpus v7),
   ground truth in `manifest.json`, written from each fixture's *semantics*
   rather than from tool output. It is a **regression gate**, not evidence of
-  real-world precision: it was written by the same person as the detector, with
-  the same blind spot, and it never caught the top-level-only bug that a
+  real-world precision: it was developed within the same project as the detector, sharing
+  its blind spots, and it never caught the top-level-only bug that a
   labelling pass over real code found immediately.
 - **`bench/realworld/`** — 87 cases anchored to real coordinates in the pinned
-  corpus, including the 80 human-labelled findings behind the paper and seven
-  discriminating probes. This is the gate that has external validity.
+  corpus, including the 80 findings behind the paper's labelling sample and seven
+  discriminating probes. Those labels were written by two rounds of LLM agents, not
+  by humans (the paper's Limitation 1); no human labelling pass has been run. This
+  adds real-code regression coverage; it does not establish independently
+  validated defect labels or accuracy on unseen packages.
 
 The full suite is **221 tests** across a 3 OS × Python 3.9–3.13 matrix, plus
 `mypy --strict`.
@@ -301,15 +306,17 @@ The full suite is **221 tests** across a 3 OS × Python 3.9–3.13 matrix, plus
 ### What syntactic linters miss
 
 Measured against **eight pinned PyPI releases** (garak, inspect_ai, pydantic-ai,
-uqlm, trl, smolagents, deepteam, fickling — 2,354 files, 563,270 lines), locked by
-URL, SHA-256 and tree hash in `paper/corpus-lock.json` so the corpus is
-byte-reproducible. failroute reports **476 findings** (v0.9.1). The v0.8.0
-detector reported 621 on this same corpus; the drop is the predicate rewrite
-described above, not a change of corpus. The paper freezes the v0.8.0 frame at
-621 deliberately, so its numbers and this README's will differ. The v0.7.0
-detector reported 28 more on this same corpus; all 28 were precision fixes
-(this CHANGELOG's 0.8.0 entry), each one individually attributed in
-`docs/f-batch-report.md`.
+uqlm, trl, smolagents, deepteam, fickling). The pinned corpus is 2,354 `.py` files
+and 563,270 lines, locked by URL, SHA-256 and tree hash in `paper/corpus-lock.json`
+so it is byte-reproducible. The **scan root** the detector actually opens is 2,124
+`.py` files and 524,229 lines; the 230-file, 39,041-line difference is tests,
+examples and vendored code that failroute never reads. Every finding count below is
+over that scan root. failroute reports **476 findings** (v0.9.1). The v0.8.0
+detector reported 621; the drop is the predicate rewrite described above, not a
+change of corpus. The paper freezes the v0.8.0 frame at 621 deliberately, so its
+numbers and this README's will differ. The v0.7.0 detector reported 28 more; all 28
+were precision fixes (this CHANGELOG's 0.8.0 entry), each one individually
+attributed in `docs/f-batch-report.md`.
 
 Compared against **four standard linters** at their default configurations
 (ruff, bandit, pylint, flake8 + bugbear), matching on ±1 line:
@@ -341,15 +348,16 @@ Of the 208 `high` findings, **25 are reported by no shipped linter**.
 > **A note on baselines.** Earlier versions of this README compared only against
 > ruff's `S110`/`S112`. That is not a fair baseline: **pylint is much stronger**
 > (much stronger than ruff alone), and a ruff-only comparison overstates the gap
-> by roughly 3.4×. The numbers above use the union of four linters. A hand-written
+> relative to the four-tool union. The table above uses that union rather than
+> a ruff-only comparison. A project-authored
 > semgrep ruleset targeting these patterns covers most of the `silent-suppress`
 > findings — so "no shipped linter reaches this" is a statement about *default
 > configurations*, not about what is expressible.
 >
-> **And a blunter one.** All 12 confirmed defects in the labelled sample sit on
+> **And a blunter one.** All 12 sites labelled DEFECT in the original sample sit on
 > bare `except:`. `flake8 --select E722` flags 134 sites in this corpus and
-> contains all 12. On this corpus a rule from 1979 is a 4.6× tighter
-> search-space reducer than failroute at equal recall. The paper is about why.
+> contains all 12. On this corpus E722 is a 4.6× tighter
+> search-space reducer than failroute's v0.8.0 frame at equal recall on those labels. The paper is about why.
 
 Re-run: see `paper/ARTIFACT.md`. Results are checked into `bench/`.
 
@@ -358,20 +366,23 @@ Re-run: see `paper/ARTIFACT.md`. Results are checked into `bench/`.
 **Mostly, it is not — and that is the most useful thing this project measured.**
 
 On a stratified random sample of **80** findings drawn from the *v0.7.0*
-finding set (by rule × package, fixed seed, reproducible), independently
-labelled twice. 🔴 **Provenance caveat (since v0.8.0):** both labelling
-rounds were performed by LLM agents, and the v0.8 precision fixes changed
+finding set (by rule × package, fixed seed), labelled in two LLM-agent rounds.
+Their agreement establishes neither independence nor label accuracy. The v0.8
+precision fixes changed
 the sampling frame, so these labels describe the v0.7.0 finding set only;
 see `paper/ARTIFACT.md` before citing them.
 
 | Verdict | Count | Share |
 | --- | --- | --- |
 | **Deliberate design contract** | 64 | **80%** |
-| Genuine defect | 12 | 15% |
+| LLM DEFECT label | 12 | 15% |
 | False positive | 4 | 5% |
 
-Every one of the 12 defects fell inside a **single, young package**; the other
-seven mature packages contributed **0 defects out of 66 sampled findings**.
+All 12 DEFECT labels fall inside a **single, young package**; the other
+seven packages have **0 DEFECT labels out of 66 sampled findings**. Five of
+those 12 concern missing assignments whose failure-conversion mechanism is
+unestablished. These are label counts, not confirmed failure-routing defect
+rates; the paper reports the corresponding family sensitivity analysis.
 
 The conclusion is not flattering to this tool, and it is the point: **a syntactic
 detector cannot distinguish an intentional fallback from a bug.** failroute
@@ -382,8 +393,10 @@ The internal `tests/corpus/` fixtures (68 samples, precision = recall = 1.0 in C
 are a **regression gate on the rules themselves** — construct validity. They say
 nothing about how the tool behaves on code it has never seen; the table above does.
 
-Full study, including the recall measurement against upstream-merged fixes
-(1 of 10 in-family fixes detected): `paper/DRAFT.md`.
+The [current manuscript](paper/arxiv/main.pdf) reports the recall audit and
+its scope limits; [LaTeX source](paper/arxiv/main.tex) and
+[reproduction instructions](paper/ARTIFACT.md) accompany it. The manuscript
+has not yet been posted to arXiv.
 
 
 ### Throughput
@@ -407,14 +420,21 @@ $ ruff check .
 
 ## How this project is built
 
-`failroute` is developed with an **AI-assisted, human-audited workflow**:
-LLM tooling proposes code and analyses, but nothing lands without passing
-deterministic gates — a 118-test suite, a hand-labelled precision/recall
-corpus, `mypy --strict`, and a self-scan of the repository with the tool
-itself. Humans own every judgment call: rule semantics, corpus labels,
-upstream triage, and all external communication. A worked example of that
-triage discipline (including a case where we deliberately filed *nothing*)
-is in [`docs/process.md`](docs/process.md).
+The project idea originated with Yufeiyang Chen, who directs the work and
+makes the key decisions, including those made across successive manuscript
+revisions. Claude and other AI tools assist with implementation, tests,
+refactoring, analysis, and drafting. This is an author-led, AI-assisted project;
+the author is responsible for its claims and final manuscript. Pushes to `main` and pull requests run the
+deterministic gates in [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+the pytest suite on Linux, macOS and Windows with Python 3.9–3.13, `ruff`, `mypy`
+in strict mode (`pyproject.toml`), a coverage floor, a self-scan of the repository with the tool
+itself, and `tools/benchmark.py`, which fails unless precision and recall on the
+`tests/corpus/` fixtures stay at 1.0. These gates check behaviour against written
+expectations; they do not establish that a finding is a defect. The fixture
+expectations are a regression gate, and the real-code labels in
+`bench/realworld/` come from two rounds of LLM agents with no human labelling
+pass (see "Test corpora" above). The triage process, with a worked example that
+includes a case where nothing was filed, is in [`docs/process.md`](docs/process.md).
 
 ## License
 

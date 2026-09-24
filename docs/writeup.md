@@ -27,34 +27,24 @@ conclusion that was computed from a failure while looking like a result**.
 In red-teaming and eval frameworks this produces false-clean reports and
 flipped vulnerability verdicts, with nothing in the logs to explain them.
 
-## 2. Why existing linters don't see it
+## 2. Comparison with existing linters
 
-Syntactic rules reason about the *shape of the handler*, not about what the
-handler *returns*. ruff `S110` (try-except-pass) and `S112`
-(try-except-continue), Bandit `B110`/`B112`, flake8-bugbear `B001`, and
-pylint's bare/broad-except warnings all stop at the handler boundary.
-`except Exception: return 0.0` is invisible to every one of them — and it is
-the shape that corrupts scores.
+Some syntactic rules identify handlers that failroute also reports. Broad-except
+warnings can flag a handler containing a fallback return even if they do not
+explain the return's consequence. The paper therefore measures co-location
+with four tools, rather than interpreting a ruff-only comparison as a detection
+advantage. The extra candidates are mostly contracts under the recorded LLM
+labels; a larger candidate list is not evidence of better bug detection.
 
-Measured on the source packages of 8 real AI/eval repositories (garak,
-inspect_ai, pydantic-ai, uqlm, trl, smolagents, deepteam, fickling), failroute
-reports an order of magnitude more findings than ruff's exception rules, and
-the gap is not noise: the overwhelming majority of failroute-only findings are
-`silent-fallback`, `silent-suppress`, `implicit-fallback` and
-`masked-exception` — the classes syntactic rules cannot express by
-construction.
-
-The current dated totals and per-mode breakdown live in
-[`README.md` — "What syntactic linters miss"](../README.md#what-syntactic-linters-miss);
-raw per-repository results are checked into `bench/ruff-comparison.json` with
-the exact scanned paths, and re-run with `python tools/compare_ruff.py <repo>`.
-Keeping the numbers in one place is deliberate: an earlier revision of this
-document carried its own copy of the table and silently went stale.
+The current comparison and its limitations are in
+[the README](../README.md#what-syntactic-linters-miss) and the
+[current paper](../paper/arxiv/main.pdf). Use
+[ARTIFACT.md](../paper/ARTIFACT.md) to reproduce the versioned comparisons.
 
 ## 3. Precision discipline
 
-`tests/corpus/` holds the hand-labelled corpus; ground truth was written from
-fixture *semantics*, independently of tool output. The corpus is versioned in
+`tests/corpus/` holds explicit fixture expectations used as a regression gate.
+They do not establish independent annotation or real-world accuracy. The corpus is versioned in
 `tests/corpus/manifest.json`, its current size and score are printed by
 `python tools/benchmark.py`, and **precision = recall = 1.0** is enforced by
 CI on every push. Known,
@@ -64,7 +54,7 @@ back — a deliberate precision-over-recall choice for triage workflows).
 
 ## 4. Honest triage is part of the method
 
-Scanning Microsoft PyRIT produced 65 semantic findings. Manual review of a
+Scanning Microsoft PyRIT produced dozens of semantic findings. Manual review of a
 12-finding sample found **all of them intentional contracts**: malformed-cursor
 decoders returning `None` to restart pagination, capability probes,
 existence checks. Only one finding touched user-visible behaviour, and it was

@@ -1,5 +1,5 @@
 {
-  "generated_at_utc8": "2026-09-07 23:11:10",
+  "generated_at_utc8": "2026-09-24 10:12:29",
   "method": "Wilson score interval, z=1.959963985 (two-sided 95%); zero-numerator cells also given the exact one-sided Clopper-Pearson upper bound 1-alpha**(1/n)",
   "recall_csv_columns": [
     "repo",

@@ -149,7 +149,7 @@ function's contract?"*, decided in three layers:
   and **`--fail-on {high,medium,low,info}`** (default `high`) plus
   **`--exit-zero`**.
 - **`bench/realworld/`** — an external regression bench built *before* the
-  predicate was touched, from the 80 human-labelled coordinates in the
+  predicate was touched, from the 80 labelled coordinates in the
   SHA256-locked paper corpus plus the seven probe shapes. 87 cases, five gates.
   Run with `PYTHONPATH=src python3 bench/realworld/run.py`.
 
@@ -246,7 +246,7 @@ crosstab, not this table.
   because `.gitignore` was not among the paths it was authorised to touch.
   🔴 Note for `paper/ARTIFACT.md` §6.4, which tells a reviewer to expect
   `CLOSURE: CLOSED (8/8)`: as of this commit the honest output is `1 FAIL`.
-- One bench case disagrees with a human label and is left disagreeing:
+- One bench case disagrees with a recorded label and is left disagreeing:
   `pydantic_ai/models/fallback.py:478`, `with suppress(Exception):` inside a
   telemetry method declared `-> None`, labelled CONTRACT. The label rests on
   "telemetry is best-effort", which is domain knowledge the structure does not

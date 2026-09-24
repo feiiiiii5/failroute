@@ -1,5 +1,21 @@
 # ARTIFACT — reproduction notes for the failroute study
 
+The current manuscript is [`arxiv/main.pdf`](arxiv/main.pdf), with source in
+[`arxiv/main.tex`](arxiv/main.tex); `DRAFT.md` is superseded. Its author-contribution
+disclosure covers the author's project idea and key decisions, AI assistance,
+and the separate LLM-label provenance. Frozen DEFECT labels are not automatically
+confirmed failure-routing defects.
+
+`tools/verify_claims.py` resolves `FAILROUTE_ROOT` from its own checkout before
+entering historical worktrees. Companion-data claims default `CONTRACTLENS_ROOT`
+to the sibling `新项目-contractlens` checkout; set that environment variable to
+another clone when needed. These optional historical claims require that
+companion's pinned commit. They are separate from the paper's in-repository
+reproduction path. Paths with spaces are supported; claim expectations remain
+unchanged. Run `python tools/test_verify_claims.py` for relocation and missing-input
+checks. When running a claim command by hand, first export `FAILROUTE_ROOT` to
+the failroute checkout and `CONTRACTLENS_ROOT` to the companion checkout.
+
 Generated 2026-08-31 12:57 (UTC+8) by the outsourced P6 task.
 Second pass 2026-08-31 18:1x (UTC+8), task S3: §5 added from a clean-virtualenv
 reproduction; the §1 version-pointer discrepancy resolved; three reproducibility
@@ -575,7 +591,7 @@ as the gate: it reports 355 errors, almost all historical.
 | `bench/lint-rule-mapping.json` | the 68-cell measured matrix: which of four linters actually fires on which caught-type × body form | `lint_mapping_probe.py` | `V3.mapping_parity_exact` |
 | `bench/e722-baseline.json` | the trivial-linter baseline: E722 **134** / BLE001 **334**; DEFECT coverage **12/12** vs **0/12** | `e722_baseline.py` | `V2.e722_trivial_baseline` |
 | `bench/intervals-v2.json` | RQ5's Wilson intervals from the canonical tool (`Z = 1.959963984540054`); does **not** replace `paper/intervals.json` | `compute_intervals.py --rq5` | `V2.crosstab_is_the_result`, `V2.cluster_correction`, `V2.bare_typed_stratification` |
-| `bench/realworld/` (`cases.jsonl` 87 lines, `run.py`, `README.md`) | external regression bench built **before** the V1 refactor was touched, so the refactor is measured against expectations that did not come from the detector's author: 80 labelled real-world coordinates + 7 probe shapes. Gates `G0.probe-table` / `G1.no-regression` / `G2.distinguishable` / `G2.fail-closed-positive` / `G3.isomorphism-matrix`, with **24 cases deliberately not gated** so the bench cannot be tuned to them | hand-authored; run with `PYTHONPATH=src python3 bench/realworld/run.py` | **no claim** — see its own `README.md` |
+| `bench/realworld/` (`cases.jsonl` 87 lines, `run.py`, `README.md`) | external regression bench built **before** the V1 refactor was touched, providing fixed expectations within the same AI-assisted project, without establishing independent authorship: 80 labelled real-world coordinates + 7 probe shapes. Gates `G0.probe-table` / `G1.no-regression` / `G2.distinguishable` / `G2.fail-closed-positive` / `G3.isomorphism-matrix`, with **24 cases deliberately not gated** so the bench cannot be tuned to them | LLM-labelled corpus cases plus explicit probes; run with `PYTHONPATH=src python3 bench/realworld/run.py` | **no claim** — see its own `README.md` |
 
 🔴 **Artefact byte-stability, measured 09-05 by running each generator twice and hashing.**
 Two claims invoke `rq5_refactor_delta.py` and three invoke `lint_mapping_probe.py` **without
