@@ -1,27 +1,47 @@
 # Build the arXiv submission for the failroute study.
 #
-#   make            full build: pdflatex -> bibtex -> pdflatex -> pdflatex
-#   make quick      single pdflatex pass (fast feedback, stale citations)
+#   make            full build: Tectonic when available, otherwise TeX Live
+#   make quick      one compiler pass for fast layout feedback
 #   make submission build then bundle main.tar.gz for arXiv upload
 #   make clean      remove build products
 #
-# Requires a LaTeX toolchain (pdflatex + bibtex). If none is installed, see
-# paper/ARTIFACT.md for how this checkout was built instead.
+# Tectonic is preferred because it builds the bibliography in one command. If it
+# is unavailable, the Makefile falls back to the TeX Live pdflatex/BibTeX cycle.
 
 MAIN    := main
-LATEX   := pdflatex
-BIBTEX  := bibtex
-LATEXFLAGS := -interaction=nonstopmode -halt-on-error -file-line-error
+TEX_ENGINE ?= auto
+TECTONIC_AVAILABLE := $(shell command -v tectonic >/dev/null 2>&1 && echo yes)
+ifeq ($(TEX_ENGINE),auto)
+  ifeq ($(TECTONIC_AVAILABLE),yes)
+    TEX_ENGINE := tectonic
+  else
+    TEX_ENGINE := pdflatex
+  endif
+endif
 
-.PHONY: all quick bibtexonly submission clean
+ifeq ($(TEX_ENGINE),tectonic)
+  LATEX ?= tectonic
+  LATEXFLAGS ?= -X compile --keep-logs --keep-intermediates
+else
+  LATEX ?= pdflatex
+  BIBTEX ?= bibtex
+  LATEXFLAGS ?= -interaction=nonstopmode -halt-on-error -file-line-error
+endif
+
+.PHONY: all quick submission clean
 
 all: $(MAIN).pdf
 
+ifeq ($(TEX_ENGINE),tectonic)
+$(MAIN).pdf: $(MAIN).tex refs.bib $(wildcard figures/*.pdf)
+	$(LATEX) $(LATEXFLAGS) $(MAIN).tex
+else
 $(MAIN).pdf: $(MAIN).tex refs.bib $(wildcard figures/*.pdf)
 	$(LATEX) $(LATEXFLAGS) $(MAIN).tex
 	-$(BIBTEX) $(MAIN)
 	$(LATEX) $(LATEXFLAGS) $(MAIN).tex
 	$(LATEX) $(LATEXFLAGS) $(MAIN).tex
+endif
 
 quick: $(MAIN).tex
 	$(LATEX) $(LATEXFLAGS) $(MAIN).tex
@@ -50,5 +70,5 @@ submission: all
 	@echo "wrote $(MAIN).tar.gz"
 
 clean:
-	rm -f $(MAIN).aux $(MAIN).log $(MAIN).out $(MAIN).bbl $(MAIN).blg \
+	rm -f $(MAIN).pdf $(MAIN).aux $(MAIN).log $(MAIN).out $(MAIN).bbl $(MAIN).blg \
 	      $(MAIN).tar.gz

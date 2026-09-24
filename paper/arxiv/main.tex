@@ -561,10 +561,12 @@ Rule & Total & Covered by 4 & Covered by 5 & \texttt{failroute}-only vs 4-tool u
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_cross_tool_coverage.pdf}
-\caption{Per-rule coverage by tool, including the four-linter union and the
-five-tool union. \texttt{silent-suppress} is the one rule where the selected rule
-sets, \texttt{ruff}'s full 969-rule set and \texttt{pylint}'s full default set all
-return zero coverage.}
+\caption{Coverage of the 621 pinned findings by rule family and detector. Each
+cell gives covered findings / family total; shading encodes the coverage share.
+The four-linter union covers 255/621 findings; adding the project's supplementary
+\texttt{semgrep} rules covers 274/621. \texttt{silent-suppress} is the one family
+where the four linters, \texttt{ruff}'s full 969-rule set and \texttt{pylint}'s full
+default set all return zero coverage.}
 \label{fig:coverage}
 \end{figure}
 

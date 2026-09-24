@@ -9,14 +9,15 @@ Inputs (all produced by other scripts, never re-derived here):
 
 Outputs: paper/figures/fig{1,2,3}_*.{pdf,png}
 
-Design constraints: greyscale + hatch patterns only, so all three figures stay
-readable when printed in black and white.
+Design constraints: greyscale, direct labels, and no color-only distinctions,
+so the figures remain readable when printed in black and white.
 """
 from __future__ import annotations
 
 import csv
 import json
 import os
+import textwrap
 
 import matplotlib
 
@@ -26,17 +27,6 @@ import matplotlib.pyplot as plt  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'paper', 'figures')
 PPI = 200
-
-GREY = {
-    'ruff': '1.00', 'bandit': '0.82', 'pylint': '0.60', 'flake8+bugbear': '0.40',
-    'semgrep': '0.88', 'union4': '0.22', 'union5': '0.50',
-}
-HATCH = {
-    'ruff': '', 'bandit': '//', 'pylint': '\\\\', 'flake8+bugbear': '..',
-    'semgrep': '////', 'union4': '', 'union5': 'xx',
-}
-EDGE = '0.0'
-
 
 def load(path):
     with open(os.path.join(ROOT, path), encoding='utf-8') as f:
@@ -52,7 +42,7 @@ def save(fig, name):
 
 # ---------------------------------------------------------------- figure 1 ---
 def figure1(cells):
-    """Per-package defect rate with Wilson 95% score intervals."""
+    """Per-package LLM DEFECT-label share with Wilson 95% score intervals."""
 
     def pick(group, label):
         for r in cells:
@@ -95,7 +85,7 @@ def figure1(cells):
         ax.scatter([r['one_sided95_upper_pct'] for _, _, r in zs],
                    [yi for _, yi, _ in zs], marker='v', s=52, facecolor='none',
                    edgecolor='0.0', linewidth=1.2, zorder=4,
-                   label='one-sided 95% upper bound (zero-defect cells)')
+                   label='one-sided 95% upper bound (zero-label cells)')
 
     for p, yi, r, h in zip(pts, y, rows, hi):
         xpos = max(h, r['one_sided95_upper_pct'] or 0.0) + 2.0
@@ -106,9 +96,10 @@ def figure1(cells):
     ax.set_yticks(y)
     ax.set_yticklabels(names, fontsize=9)
     ax.set_xlim(-1.5, max(hi) * 1.18 + 9)
-    ax.set_xlabel('defect rate among sampled findings (%)')
-    ax.set_title('Annotated defect rate per package, 80 sampled findings\n'
-                 '(labels from pass 1; a second annotation pass agreed on every item)',
+    ax.set_xticks([0, 20, 40, 60, 80, 100])
+    ax.set_xlabel('LLM DEFECT-label share among sampled findings (%)')
+    ax.set_title('Frozen LLM labels by package, 80 sampled findings\n'
+                 '(five DEFECT labels have an unestablished failure-conversion mechanism)',
                  fontsize=10)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -120,60 +111,78 @@ def figure1(cells):
 
 # ---------------------------------------------------------------- figure 2 ---
 def figure2(u5):
-    """Coverage of failroute's 649 findings by existing linters, per rule."""
+    """Coverage of the pinned findings by baseline and failure-routing family."""
     total = u5['failroute_total']
     order = ['silent-fallback', 'no-action', 'silent-suppress', 'masked-exception']
-    tools = [('ruff', 'ruff'), ('bandit', 'bandit'), ('pylint', 'pylint'),
-             ('flake8+bugbear', 'flake8+bugbear'),
-             ('semgrep', 'semgrep (our rules)')]
+    columns = [
+        ('ruff', 'ruff'),
+        ('bandit', 'bandit'),
+        ('pylint', 'pylint'),
+        ('flake8+bugbear', 'flake8 +\nbugbear'),
+        ('semgrep', 'project\nSemgrep'),
+        ('union4', 'four-linter\nunion'),
+        ('union5', 'five-tool\nunion'),
+    ]
 
-    fig, ax = plt.subplots(figsize=(8.6, 4.2))
-    slot = 0
-    ticks, labels = [], []
+    if sum(u5['by_rule'][rule]['total'] for rule in order) != total:
+        raise ValueError('per-rule denominators do not sum to failroute_total')
+    if sum(u5['by_rule'][rule]['covered_4'] for rule in order) != u5['union_covered_4tool_recheck']:
+        raise ValueError('four-linter per-rule counts do not match the aggregate')
+    if sum(u5['by_rule'][rule]['covered_5'] for rule in order) != u5['union_covered_5tool']:
+        raise ValueError('five-tool per-rule counts do not match the aggregate')
+
+    shares, cell_labels = [], []
     for rule in order:
         n = u5['by_rule'][rule]['total']
-        bars = []
-        for key, _label in tools:
-            covered = u5['per_tool_by_rule'].get(key, {}).get(rule, 0)
-            bars.append((key, covered))
-        bars.append(('union4', u5['by_rule'][rule]['covered_4']))
-        bars.append(('union5', u5['by_rule'][rule]['covered_5']))
-        width = 0.78 / len(bars)
-        for i, (key, k) in enumerate(bars):
-            x = slot + i * width
-            h = 100.0 * k / n
-            ax.bar(x, h, width=width, color=GREY[key], edgecolor=EDGE,
-                   linewidth=0.7, hatch=HATCH[key], zorder=3)
-            ax.annotate('%d/%d' % (k, n), (x, h), textcoords='offset points',
-                        xytext=(0, 2.5), rotation=90, ha='center', va='bottom',
-                        fontsize=6.2)
-        ticks.append(slot + 0.78 / 2)
-        labels.append('%s\n%d of %d findings' % (rule, n, total))
-        slot += 1.0
+        counts = []
+        for key, _label in columns:
+            if key == 'union4':
+                covered = u5['by_rule'][rule]['covered_4']
+            elif key == 'union5':
+                covered = u5['by_rule'][rule]['covered_5']
+            else:
+                covered = u5['per_tool_by_rule'].get(key, {}).get(rule, 0)
+            if not 0 <= covered <= n:
+                raise ValueError('%s coverage for %s is outside its denominator' % (key, rule))
+            counts.append(covered)
+        shares.append([100.0 * count / n for count in counts])
+        cell_labels.append(['%d/%d' % (count, n) for count in counts])
 
-    ax.set_xticks(ticks)
-    ax.set_xticklabels(labels, fontsize=8.5)
-    ax.set_xlim(-0.1, slot - 0.1)
-    ax.set_ylim(0, 115)
-    ax.set_yticks([0, 20, 40, 60, 80, 100])
-    ax.set_ylabel('share of this rule\'s failroute findings covered (%)')
-    ax.set_title('Coverage of failroute findings by existing syntactic linters, by rule\n'
-                 'union4 = ruff+bandit+pylint+flake8-bugbear (%d/%d)   '
-                 'union5 = + semgrep (%d/%d)' % (
-                     u5['union_covered_4tool_recheck'], total,
-                     u5['union_covered_5tool'], total),
-                 fontsize=10)
-    handles = []
-    for key, label in tools + [('union4', 'union of the four linters'),
-                               ('union5', 'union incl. semgrep')]:
-        handles.append(plt.Rectangle((0, 0), 1, 1, facecolor=GREY[key],
-                                     edgecolor=EDGE, linewidth=0.7,
-                                     hatch=HATCH[key], label=label))
-    ax.legend(handles=handles, fontsize=7.5, ncol=4, frameon=False,
-              loc='upper center', bbox_to_anchor=(0.5, -0.16))
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    fig.tight_layout()
+    fig, ax = plt.subplots(figsize=(7.2, 3.4))
+    image = ax.imshow(shares, cmap='Greys', vmin=0, vmax=100,
+                      aspect='auto', interpolation='nearest')
+
+    for row, rule in enumerate(order):
+        for col, share in enumerate(shares[row]):
+            ax.text(col, row, cell_labels[row][col], ha='center', va='center',
+                    fontsize=8, color='white' if share >= 65 else 'black')
+
+    ax.set_xticks(range(len(columns)))
+    ax.set_xticklabels([label for _key, label in columns], fontsize=8)
+    ax.set_yticks(range(len(order)))
+    ax.set_yticklabels([
+        '%s (n=%d)' % (rule, u5['by_rule'][rule]['total']) for rule in order
+    ], fontsize=8.5)
+    ax.set_xticks([-0.5 + i for i in range(len(columns) + 1)], minor=True)
+    ax.set_yticks([-0.5 + i for i in range(len(order) + 1)], minor=True)
+    ax.grid(which='minor', color='white', linestyle='-', linewidth=1.5)
+    ax.tick_params(which='both', length=0)
+    ax.tick_params(axis='x', pad=7)
+    ax.set_xlabel('Detector or union', fontsize=8.5, labelpad=5)
+    ax.set_ylabel('Failure-routing family', fontsize=8.5, labelpad=7)
+
+    four = u5['union_covered_4tool_recheck']
+    five = u5['union_covered_5tool']
+    fig.suptitle('Baseline coverage by failure-routing family', fontsize=10.5, y=0.98)
+    fig.text(0.5, 0.91,
+             'Four-linter union: %d/%d (%.1f%%); with project Semgrep rules: %d/%d (%.1f%%)' % (
+                 four, total, 100.0 * four / total, five, total, 100.0 * five / total),
+             ha='center', fontsize=8.5)
+    fig.subplots_adjust(left=0.28, right=0.91, top=0.84, bottom=0.20)
+    colorbar = fig.colorbar(image, ax=ax, fraction=0.035, pad=0.02,
+                            ticks=[0, 25, 50, 75, 100])
+    colorbar.set_label('covered (%)', fontsize=8)
+    colorbar.ax.tick_params(labelsize=8, length=2)
     save(fig, 'fig2_cross_tool_coverage')
 
 
@@ -203,41 +212,37 @@ def figure3(cells):
         note = r.get('note', '').strip()
         if len(note) > 74:
             note = note[:71] + '...'
-        body.append([repo, '#' + r['pr_number'], r['pr_title'][:38],
-                     detected.upper(), rule, note])
+        body.append([textwrap.fill(repo, 15), '#' + r['pr_number'],
+                     detected.upper(), rule.replace('-', '-\n'),
+                     textwrap.fill(note, 42)])
 
-    fig, ax = plt.subplots(figsize=(11.4, 0.36 * (len(body) + 3.4)))
+    fig, ax = plt.subplots(figsize=(7.2, 0.43 * (len(body) + 2)))
     ax.axis('off')
     tbl = ax.table(cellText=body,
-                   colLabels=['repo', 'PR', 'fix title (truncated)',
-                              'detected', 'rule matched', 'note'],
-                   cellLoc='left', bbox=[0.0, 0.10, 1.0, 0.88],
-                   colWidths=[0.095, 0.045, 0.235, 0.065, 0.105, 0.455])
+                   colLabels=['Repository', 'PR', 'Detected', 'Rule', 'Note (abridged)'],
+                   cellLoc='left', bbox=[0.0, 0.08, 1.0, 0.89],
+                   colWidths=[0.18, 0.085, 0.105, 0.135, 0.495])
     tbl.auto_set_font_size(False)
-    tbl.set_fontsize(6.8)
+    tbl.set_fontsize(8.5)
     for (r, c), tex in tbl.get_celld().items():
         tex.set_edgecolor('0.75')
         if r == 0:
             tex.set_facecolor('0.82')
             tex.set_text_props(weight='bold')
-        elif body[r - 1][3] == 'YES':
+        elif body[r - 1][2] == 'YES':
             tex.set_facecolor('0.93')
-            tex.set_text_props(weight='bold' if c == 3 else 'normal')
+            tex.set_text_props(weight='bold' if c == 2 else 'normal')
 
-    fig.suptitle('Detection recall on merged fixes that belong to the failure-routing family',
-                 fontsize=11, y=1.0)
-    fig.text(0.012, 0.012,
-             'Recall %d/%d = %.1f%% (Wilson 95%%: %.1f-%.1f%%) against all %d family fixes; '
-             '%d/%d = %.1f%% (Wilson 95%%: %.1f-%.1f%%) against the %d in-scope subset '
-             '(out-of-scope rows carry detected=n/a). Denominators recounted from '
-             'paper/merged-pr-recall.csv by tools/compute_intervals.py.' % (
+    fig.suptitle('Detection on merged fixes in the failure-routing reference set',
+                 fontsize=10, y=0.995)
+    fig.text(0.02, 0.012,
+             'All family fixes: %d/%d = %.1f%% (Wilson 95%%: %.1f-%.1f%%)\n'
+             'In-scope subset: %d/%d = %.1f%% (Wilson 95%%: %.1f-%.1f%%)' % (
                  all_c['numerator'], all_c['denominator'], 100 * all_c['point'],
                  all_c['wilson95_low_pct'], all_c['wilson95_high_pct'],
-                 all_c['denominator'],
                  scope_c['numerator'], scope_c['denominator'], 100 * scope_c['point'],
                  scope_c['wilson95_low_pct'], scope_c['wilson95_high_pct'],
-                 scope_c['denominator']),
-             fontsize=6.8, va='bottom', ha='left')
+             ), fontsize=9, va='bottom', ha='left')
     fig.tight_layout()
     save(fig, 'fig3_recall_by_family')
 
