@@ -51,7 +51,7 @@
   \textbf{Author contribution.} The author originated the \texttt{failroute}
   idea and directed the study, including its research questions and key decisions.
   AI language tools assisted software development, testing, data analysis, and
-  editorial revision. The author takes responsibility for the final work.
+  the drafting and revision of the text. The author takes responsibility for the final work.
   The detector
   and supplementary \texttt{semgrep} rule were developed within this project;
   their evaluation includes results unfavourable to them.
@@ -149,9 +149,9 @@ detection scope of the selected lint rules studied here.
   to the union of \texttt{ruff}, \texttt{bandit}, \texttt{pylint} and
   \texttt{flake8}\allowbreak\texttt{+}\allowbreak\texttt{bugbear}, and enabling
   every one of \texttt{ruff}'s 969 rules, or \texttt{pylint}'s full default message
-  set, adds no rule that reports it (Section~\ref{sec:rq1}). A \texttt{semgrep}
-  project's supplementary rule covers 18 of the 19; citing it requires stating the rule is
-  ours.
+  set, adds no rule that reports it (Section~\ref{sec:rq1}). The project's
+  supplementary \texttt{semgrep} rule covers 18 of the 19; citing that figure requires
+  stating that the rule is ours.
 \item The direct refactoring can preserve the intended suppression behaviour
   while placing the rewritten construct outside the rule sets observed here;
   whether a given instance is defective remains a separate question.
@@ -389,7 +389,7 @@ fickling & 0.1.12 & \texttt{fickling} & 16 & 5{,}024 \\
 \end{tabular}
 \end{table}
 
-A second, style-opposite corpus tests whether the headline comparison survives outside bare-\texttt{except} code. Eight infrastructure packages were fetched as pinned PyPI sdists (URL, SHA-256, upload time and tree hash in \texttt{paper/corpus-lock-control.json}, same schema as above): \texttt{attrs} 26.1.0, \texttt{httpx} 0.28.1, \texttt{requests} 2.34.2 and \texttt{urllib3} 2.7.0 (the four zero-bare-\texttt{except} packages of Section~\ref{sec:control}), plus \texttt{click} 8.5.0 (CLI), \texttt{pydantic} 2.13.5 (validation), \texttt{anyio} 4.15.1 (concurrency) and \texttt{msgpack} 1.2.2 (serialization) --- chosen for domain diversity before any scan ran, explicitly avoiding the HTTP-client stack that three of the first four share. Only each package body is scanned (scan roots recorded in the lock file), the same definition as above. Section~\ref{sec:control} reports the comparison.
+A second, style-opposite corpus tests whether the headline comparison survives outside bare-\texttt{except} code. Eight infrastructure packages were fetched as pinned PyPI sdists (URL, SHA-256, upload time and tree hash in \texttt{paper/corpus-lock-control.json}, same schema as above): \texttt{attrs} 26.1.0, \texttt{httpx} 0.28.1, \texttt{requests} 2.34.2 and \texttt{urllib3} 2.7.0 (the four zero-bare-\texttt{except} packages of Section~\ref{sec:control}), plus \texttt{click} 8.5.0 (CLI), \texttt{pydantic} 2.13.5 (validation), \texttt{anyio} 4.15.1 (concurrency) and \texttt{msgpack} 1.2.2 (serialisation) --- chosen for domain diversity before any scan ran, explicitly avoiding the HTTP-client stack that three of the first four share. Only each package body is scanned (scan roots recorded in the lock file), the same definition as above. Section~\ref{sec:control} reports the comparison.
 
 \subsection{RQ1 --- Corpus counts and cross-tool co-location}
 \label{sec:rq1}
@@ -512,7 +512,7 @@ supplementary \texttt{semgrep} rule. The two zero-count families remain in the
 detector but do not occur in this corpus. For \texttt{silent-suppress}, none of
 the selected rules, nor the full \texttt{ruff} and \texttt{pylint} rule sets,
 reports a relevant warning on the 19 findings; the project rule co-locates with
-18.}\
+18.}
 \label{tab:coverage}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
@@ -606,7 +606,7 @@ representative of the current 621-finding set.
 The unweighted 12/80 share describes only the drawn sample. Each sampled finding
 was assigned one of three labels by reading nearby source in the pinned tree:
 \textbf{DEFECT} (the converted failure produces a wrong caller-visible outcome
-with no signal), \textbf{CONTRACT} (the behavior appears deliberate and is
+with no signal), \textbf{CONTRACT} (the behaviour appears deliberate and is
 documented, commented, or expressed in the return type), or \textbf{FALSE
 POSITIVE} (the detector is wrong about the code).
 
@@ -753,8 +753,6 @@ predicate functions whose \texttt{Optional}/\texttt{bool} return type is part
 of the contract. Some have comments that state the intended fallback; the label
 itself remains an LLM judgement.
 
-
-
 Two sampled \texttt{pydantic-ai} handlers illustrate why local shape alone is
 insufficient: one returns \texttt{True} for an unparseable address, while
 another places a caught exception on a queue for the consumer to re-raise.
@@ -839,7 +837,7 @@ That finding was not adjudicated as a defect in this recall audit.
 \label{sec:tri}
 
 The original sample contains many CONTRACT and FALSE POSITIVE labels, but
-those are LLM judgments rather than independent defect adjudications. The
+those are LLM judgements rather than independent defect adjudications. The
 remaining question is whether maintainer behaviour can distinguish deliberate
 contracts from defects that have not been noticed. We compare three evidence
 sources that measure different, non-commensurable populations. Table~\ref{tab:arms}
@@ -1209,7 +1207,7 @@ findings. The mapping repair changed coverage classifications but did not change
 the LLM-label join: none of the five disputed handlers carried an original
 DEFECT label. Among the original labels, no narrow-typed handler carried that
 label; one of 23 purposively selected supplementary labels on narrow-typed
-handlers did. This contrast does not support generalization.
+handlers did. This contrast does not support generalisation.
 
 \paragraph{Result 3: contribution of the isomorphism layer.} Of the 476 findings the
 isomorphism layer classified \textbf{none} as isomorphic: 254 non-isomorphic, 206
@@ -1347,20 +1345,22 @@ HIGH findings are contracts on reading: \texttt{click/core.py:161} is a
 \texttt{click/types.py:269} converts the user's \texttt{ValueError} via
 \texttt{self.fail}, which raises \texttt{UsageError} --- the exception escapes
 through a call rather than a \texttt{raise} statement, a shape no callee-local
-rule can see; \texttt{pydantic/v1/\_hypothesis\_plugin.py:125} is a
+rule can see (the detector's \texttt{exception\_escapes} check looks only for the
+exception object in a returned value or a side-channel call; we refer to this as
+the \texttt{exception\_escapes} case); \texttt{pydantic/v1/\_hypothesis\_plugin.py:125} is a
 \texttt{contextlib.suppress(Exception)} digit search in hypothesis test-support
 code, confirming the SIM105-adjacent blind spot of Section~\ref{sec:rq1} from the
 other side.
 
-\paragraph{A fourth intra-procedural undecidability instance.}
+\paragraph{Another case the handler-local view cannot decide.}
 \texttt{connectionpool.py:812} names a new false-positive mechanism:
 \textbf{state-flag amplification}. The finding is \texttt{clean\_exit = False} (set
 alongside \texttt{release\_this\_conn = False}), a control-flow flag consumed in
 \texttt{finally} and after the handler; the \texttt{amplifies} criterion (``the
 value outlives the call'') promotes it to HIGH exactly as it would a substituted
 return value. Telling the two apart requires knowing where the variable is
-consumed, which lies outside the handler. Like the three constructed
-counterexamples and the \texttt{exception\_escapes} case below, it is documented
+consumed, which lies outside the handler. Like the \texttt{exception\_escapes} case above and the three constructed
+probes in the Discussion, it is documented
 here and left in the code: each is an instance of the limit the paper argues,
 and patching them would weaken the evidence they constitute.
 
@@ -1457,7 +1457,8 @@ function returning \texttt{None} on a Redis error is likewise missed; and (3) a
 validation loop with the \texttt{try} outside the loop and a \texttt{return
 False} handler is reported at HIGH. The first two expose possible false negatives;
 the third exposes a possible false positive. Together with the
-\texttt{exception\_escapes} case and state-flag amplification, they document
+\texttt{exception\_escapes} case and state-flag amplification (both in
+Section~\ref{sec:control}), they document
 limits of the evaluated intra-procedural predicate. They were not changed in this
 study.
 
@@ -1564,9 +1565,9 @@ Section~\ref{sec:tri} depends; the rest are the study's other threats.
   policy existed; the direction of that bias is stated so a re-adjudication
   can test it. These readings do not establish independent human adjudication.
 \item \textbf{Known predicate limits remain in the shipped version.}
-  The three constructed probes, the state-flag amplification
-  (Section~\ref{sec:control}) and the \texttt{exception\_escapes} case
-  (Section~\ref{sec:rq5}) document false-negative and false-positive modes of
+  The three constructed probes of the Discussion, and the state-flag
+  amplification and \texttt{exception\_escapes} cases of
+  Section~\ref{sec:control}, document false-negative and false-positive modes of
   the 0.9.1 predicate. They are examples of its limits, not an exhaustive list.
 \item \textbf{Five DEFECT labels have an unestablished mechanism.}
   In five labelled sites, the \texttt{try} body contains the discarded comparison
@@ -1603,8 +1604,8 @@ is our closest neighbour: we inherit its premise that handling shape is
 measurable, and change the question. On a corpus of Python AI/ML packages, the
 same syntactic shapes can receive different readings in context. In our
 80-item sample, 64 observations received a CONTRACT label, 12 a DEFECT label,
-and 4 a FALSE POSITIVE label from LLM agents. These are judgments from one
-labeling process, not confirmed contracts or defects, and the sample does not
+and 4 a FALSE POSITIVE label from LLM agents. These are judgements from one
+labelling process, not confirmed contracts or defects, and the sample does not
 estimate their prevalence. The present study makes that uncertainty explicit
 rather than treating shape counts as defect counts.
 
@@ -1694,7 +1695,7 @@ manual adjudications are recorded in the accompanying ledgers. All paths below a
 relative to the root of the public repository
 \url{https://github.com/feiiiiii5/failroute} (MIT licence); the detector itself is
 released as \texttt{failroute} on PyPI,
-\url{https://pypi.org/project/failroute/}. RQ1--RQ4 analyze \texttt{failroute} 0.8.0; RQ5 analyzes 0.9.1. The pinned
+\url{https://pypi.org/project/failroute/}. RQ1--RQ4 analyse \texttt{failroute} 0.8.0; RQ5 analyses 0.9.1. The pinned
 commit \texttt{3b4c567} contains the underlying datasets, exports and scripts
 for the reported numerical results, including the post-release ledgers and
 corrected baseline invocation. The figure PDFs in this submission have later
