@@ -2,10 +2,10 @@
 """Build the three paper figures from artifacts that already exist on disk.
 
 Inputs (all produced by other scripts, never re-derived here):
-  paper/intervals.json                       -- P3, Wilson 95% score intervals
+  paper/intervals.json                       -- sample counts and label shares
   bench/corpus-coverage-union-5tool.json     -- P5, per-rule + per-tool coverage
                                                for the four linters and semgrep
-  paper/merged-pr-recall.csv                 -- recall ground truth (70 merged PRs)
+  paper/merged-pr-recall.csv                 -- curated merged-fix reference set
 
 Outputs: paper/figures/fig{1,2,3}_*.{pdf,png}
 
@@ -42,7 +42,7 @@ def save(fig, name):
 
 # ---------------------------------------------------------------- figure 1 ---
 def figure1(cells):
-    """Per-package LLM DEFECT-label share with Wilson 95% score intervals."""
+    """Descriptive LLM DEFECT-label shares in the 80-item sample."""
 
     def pick(group, label):
         for r in cells:
@@ -62,51 +62,34 @@ def figure1(cells):
         if r['group'] == 'overall[pass1]':
             names.append('all 8 packages (n=%d)' % r['denominator'])
         elif r['group'] == 'pooled[pass1]':
-            names.append('pooled, 7 mature pkgs (n=%d)' % r['denominator'])
+            names.append('other 7 packages (n=%d)' % r['denominator'])
         else:
             n = r['label'].replace(' defect rate', '')
             names.append('%s (n=%d)' % (n, r['denominator']))
 
     y = list(range(len(rows)))[::-1]
-    pts = [100.0 * r['point'] for r in rows]
-    lo = [100.0 * r['wilson95_low'] for r in rows]
-    hi = [100.0 * r['wilson95_high'] for r in rows]
-    low_err = [p - l for p, l in zip(pts, lo)]
-    high_err = [h - p for p, h in zip(pts, hi)]
+    pts = [100.0 * r['numerator'] / r['denominator'] for r in rows]
 
     fig, ax = plt.subplots(figsize=(7.2, 4.0))
-    ax.errorbar(pts, y, xerr=[low_err, high_err], fmt='o', ms=7,
-                color='0.0', ecolor='0.0', elinewidth=1.4, capsize=4,
-                label='point estimate, Wilson 95% interval', zorder=3)
+    ax.scatter(pts, y, s=38, marker='o', color='0.0', zorder=3)
     ax.axvline(0.0, color='0.4', lw=0.8, ls=':', zorder=1)
-
-    zs = [(p, yi, r) for p, yi, r in zip(pts, y, rows) if r['numerator'] == 0]
-    if zs:
-        ax.scatter([r['one_sided95_upper_pct'] for _, _, r in zs],
-                   [yi for _, yi, _ in zs], marker='v', s=52, facecolor='none',
-                   edgecolor='0.0', linewidth=1.2, zorder=4,
-                   label='one-sided 95% upper bound (zero-label cells)')
-
-    for p, yi, r, h in zip(pts, y, rows, hi):
-        xpos = max(h, r['one_sided95_upper_pct'] or 0.0) + 2.0
+    for p, yi, r in zip(pts, y, rows):
         ax.annotate('%d/%d' % (r['numerator'], r['denominator']),
-                    (xpos, yi), textcoords='data', ha='left', va='center',
-                    fontsize=8)
+                    (max(p, 0.0) + 1.8, yi), textcoords='data',
+                    ha='left', va='center', fontsize=8)
 
     ax.set_yticks(y)
     ax.set_yticklabels(names, fontsize=9)
-    ax.set_xlim(-1.5, max(hi) * 1.18 + 9)
+    ax.set_xlim(-1.5, 106)
     ax.set_xticks([0, 20, 40, 60, 80, 100])
     ax.set_xlabel('LLM DEFECT-label share among sampled findings (%)')
-    ax.set_title('Frozen LLM labels by package, 80 sampled findings\n'
-                 '(five DEFECT labels have an unestablished failure-conversion mechanism)',
+    ax.set_title('LLM-assigned DEFECT labels in the 80-item sample by package',
                  fontsize=10)
+    ax.grid(axis='x', color='0.85', linewidth=0.7, zorder=0)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.legend(fontsize=8, loc='upper center', bbox_to_anchor=(0.5, -0.14),
-              ncol=2, frameon=False)
     fig.tight_layout()
-    save(fig, 'fig1_defect_rate_by_package')
+    save(fig, 'fig1_llm_label_share_by_package')
 
 
 # ---------------------------------------------------------------- figure 2 ---
@@ -188,7 +171,7 @@ def figure2(u5):
 
 # ---------------------------------------------------------------- figure 3 ---
 def figure3(cells):
-    """Recall of the six-rule family against merged security-relevant fixes."""
+    """Matches of the six-rule detector in a curated merged-fix reference set."""
     path = os.path.join(ROOT, 'paper', 'merged-pr-recall.csv')
     with open(path, encoding='utf-8') as f:
         rows = list(csv.DictReader(f))
@@ -201,7 +184,6 @@ def figure3(cells):
                 return r
         return None
 
-    all_c = cell('recall', 'recall vs all family fixes')
     scope_c = cell('recall', 'recall vs in-scope family fixes')
 
     body = []
@@ -236,15 +218,12 @@ def figure3(cells):
     fig.suptitle('Detection on merged fixes in the failure-routing reference set',
                  fontsize=10, y=0.995)
     fig.text(0.02, 0.012,
-             'All family fixes: %d/%d = %.1f%% (Wilson 95%%: %.1f-%.1f%%)\n'
-             'In-scope subset: %d/%d = %.1f%% (Wilson 95%%: %.1f-%.1f%%)' % (
-                 all_c['numerator'], all_c['denominator'], 100 * all_c['point'],
-                 all_c['wilson95_low_pct'], all_c['wilson95_high_pct'],
-                 scope_c['numerator'], scope_c['denominator'], 100 * scope_c['point'],
-                 scope_c['wilson95_low_pct'], scope_c['wilson95_high_pct'],
+             'In-scope matches: %d/%d = %.1f%%; two cases are out of scope.' % (
+                 scope_c['numerator'], scope_c['denominator'],
+                 100 * scope_c['point'],
              ), fontsize=9, va='bottom', ha='left')
     fig.tight_layout()
-    save(fig, 'fig3_recall_by_family')
+    save(fig, 'fig3_reference_matches_by_family')
 
 
 def main():
