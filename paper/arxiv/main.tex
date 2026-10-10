@@ -57,12 +57,9 @@
   idea and directed the study, including its research questions and key decisions.
   AI language tools assisted software development, testing, data analysis, and
   the drafting and revision of the text. The author takes responsibility for the final work.
-  The detector
-  and supplementary \texttt{semgrep} rule were developed within this project;
-  their evaluation includes results unfavourable to them.
   Corpus labels were produced by LLM agents rather than human annotators; the paper states their provenance and limitations.}\\[2pt]
   School of Cyber Science and Technology, Sun Yat-sen University, Shenzhen, China\\
-  \texttt{fei76161@gmail.com}}
+  Correspondence: \texttt{fei76161@gmail.com}}
 % The date is deliberately empty: a submitted PDF must not carry a draft stamp,
 % and arXiv records the submission and announcement dates itself.
 \date{}
@@ -83,131 +80,110 @@
 % Do not spell the two environment markers literally in this comment -- a matcher
 % scanning for them finds the comment first and measures the wrong span.
 \begin{abstract}
-Exception handlers can turn operational failures into success-shaped values,
-such as an LLM judge outage becoming a legitimate \texttt{0.0}. We study this
-pattern in eight pinned AI/ML Python packages. \texttt{failroute} 0.8.0 reports
-621 candidates over 524,229 scanned lines; 366 are not co-located with the
-selected rules of four syntactic linters. Co-location does not establish
-equivalent detection, and candidates are not confirmed defects.
-
-A revised predicate reduces the list to 476 findings and raises four-linter
-co-location from 41.1\% to 52.9\%. In an exploratory join of 140 LLM-labelled
-observations, 104 match that frame: 12 of 48 co-located and 1 of 56
-non-co-located observations carry DEFECT labels. The supplementary 60 were
-purposively selected and labels are clustered, so this contrast is descriptive. The original 80 labels include
-12 DEFECT labels in three repeated function families in one package; five
-concern discarded comparisons whose failure-conversion mechanism is
-unestablished. All 12 original labels occur among the 134 candidates reported
-by \texttt{flake8}'s E722 rule, but this does not confirm the labels or estimate
-E722's precision.
-
-Two LLM labelling rounds agree completely, but their independence and accuracy
-are unestablished. Thirteen of 478 tracked sites were classified as fixed, and
-16 of 43 selected family-fix pull requests were merged. These sources describe
-different selected records and do not identify a common defect rate. In a
-curated merged-fix set, the detector matches 3 of 14 in-scope cases; nine route
-failure outside handlers. The study documents how predicate refinement changes
-candidate and co-location counts, while the available evidence does not
-establish a change in confirmed-defect yield. Its output is a review queue
-requiring adjudication.
+Exception handlers in AI/ML software can convert operational failures into
+ordinary return values, making a failed computation resemble a valid result.
+We present failroute, an AST-based detector and an auditable evaluation of
+six local failure-routing shapes in eight pinned Python packages. The
+detector identifies 621 candidates in 524,229 scanned lines. We establish
+a representation-sensitive coverage boundary: all 19 contextlib.suppress
+candidates escape the selected rules of four linters, including full-rule
+Ruff and Pylint checks; a supplementary Semgrep rule developed in this
+project reaches 18 of them. A systematic 68-probe calibration corrects
+cross-tool coverage predictions, which then agree with empirical
+co-location on all 476 findings in the refined detector frame.
+Predicate refinement changes the candidate set from 621 to 476 and lint
+co-location from 41.1\% to 52.9\%, demonstrating how detection and evaluation
+choices change the apparent incremental coverage. A curated reference set
+locates a complementary scope boundary: nine of 14 in-scope merged fixes
+route failure outside exception handlers. These measurements distinguish
+warning coverage, candidate selection and defect validation, and provide
+reproducible checks for evaluating failure-routing detectors. Candidates
+require contract adjudication; the available LLM-produced labels support
+exploratory analysis rather than independently confirmed defect rates.
 \end{abstract}
+
+\noindent\textbf{Keywords:} exception handling; silent failure; static analysis;
+empirical software engineering; machine learning systems.
 
 \section{Introduction}
 
-Many software failures announce themselves. An exception propagates, a process
-exits, a stack trace reaches a log. Some failures do none of this. A handler
-catches a timeout from a model API and returns \texttt{0.0}, and
-the caller cannot distinguish that from a model that genuinely scored zero. A
-decode error is caught and an empty string returned, and the code downstream sees
-a document with no content rather than one that failed to load. Execution
-continues, the caller receives a value of the expected type, and a wrong answer
-proceeds in the shape of a right one. We call this \emph{failure-routing}: the
-handler does not merely swallow the failure, it routes it into the success path.
-This paper studies local exception-handling code: primarily failures routed
-inside an \texttt{except} handler, plus the adjacent
-\texttt{contextlib.suppress} form. One registered rule concerns exception
-masking rather than a success-shaped result; we distinguish it below.
+An AI evaluator catches an API timeout and returns \texttt{0.0}. A document
+loader catches a decoding error and returns an empty string. In both cases,
+the caller receives a value it could also receive after a successful
+computation. The exception has been converted into an ordinary result, and
+downstream code must recover a distinction that the local return value no
+longer carries. We call this \emph{failure-routing}. Its consequences depend
+on the caller's contract: a fallback may be intentional, or it may corrupt
+a score, a security verdict or a later computation.
 
-The consequence is that the usual evidence of a defect may be missing by
-construction. A crash can produce a bug report; a plausible wrong number may
-not. An issue or regression test may never be filed, so the standard warrant for
-a static-analysis finding --- that a maintainer read and fixed it --- is least
-available for some of the failures this pattern is meant to describe.
-Detecting these handlers is the easy half of the problem. Establishing that what
-we detected are defects is the hard half, and it is the half we do not fully
-solve.
+Static analysis can locate candidate handlers, but evaluating such an
+analysis requires several distinct measurements. Does another tool flag
+the same site? Does a change in syntax alter warning coverage? Does a
+candidate violate its caller's contract? These questions use different
+evidence. Treating them as interchangeable can overstate a detector's
+incremental value or hide a gap in the comparison itself.
 
-This work began with a narrower observation about Ruff's \texttt{SIM105}
-rule: its recommended refactoring can move a handler pattern outside the
-detection scope of the selected lint rules studied here.
+This study examines those distinctions through a concrete detector and
+pinned software artefacts. \texttt{failroute} recognises five
+silent-continuation or failure-to-value shapes and one adjacent
+exception-masking shape, including both \texttt{except} handlers and
+\texttt{contextlib.suppress} sites. We compare its candidates with four
+selected lint baselines, test the coverage mapping with generated probes,
+and examine how predicate refinement changes the resulting frame. LLM
+labels and public maintainer records provide further evidence with stated
+provenance and selection boundaries.
 
-\paragraph{The \texttt{SIM105} observation.}
-\begin{itemize}[nosep,leftmargin=*]
-\item \texttt{ruff}'s \texttt{SIM105} rule recommends rewriting a simple
-  \texttt{try/except/pass} block with
-  \texttt{contextlib.\allowbreak suppress(...)}. In a straightforward rewrite the two
-  forms suppress the same specified exception; their behaviour need not be
-  identical in every surrounding context.
-\item After the rewrite, the construct is out of reach of the linters we tested,
-  and not only of the rule sets we happened to select: in our corpus all 19
-  \texttt{contextlib.\allowbreak suppress} findings are invisible
-  to the union of \texttt{ruff}, \texttt{bandit}, \texttt{pylint} and
-  \texttt{flake8}\allowbreak\texttt{+}\allowbreak\texttt{bugbear}, and enabling
-  every one of \texttt{ruff}'s 969 rules, or \texttt{pylint}'s full default message
-  set, adds no rule that reports it (Section~\ref{sec:rq1}). The project's
-  supplementary \texttt{semgrep} rule covers 18 of the 19; citing that figure requires
-  stating that the rule is ours.
-\item The direct refactoring can preserve the intended suppression behaviour
-  while placing the rewritten construct outside the rule sets observed here;
-  whether a given instance is defective remains a separate question.
-\end{itemize}
+\paragraph{A representation-sensitive coverage boundary.}
+Ruff's \texttt{SIM105} recommends replacing a simple
+\texttt{try/except/pass} block with \texttt{contextlib.suppress(...)}.
+A direct rewrite can preserve the intended suppression while changing
+which warnings a tool emits. In the frozen 0.8.0 frame, none of the 19
+\texttt{silent-suppress} candidates is reported by the four selected lint
+baselines. Enabling all 969 Ruff rules or Pylint's full default message
+set does not recover them. Our supplementary Semgrep rule reaches 18
+of the 19 (Section~\ref{sec:rq1}). This establishes a concrete gap in
+the tested configurations and shows that the shape can be expressed by a
+syntactic rule; deciding whether suppression is appropriate remains a
+contract question.
 
 \paragraph{Research questions.}
 \begin{itemize}[nosep,leftmargin=*]
-\item \textbf{RQ1} How many local exception-handling candidates occur in
-  the eight pinned AI/ML Python packages, and how often are they co-located with
-  findings from the selected syntactic lint rules? (Section~\ref{sec:rq1})
-\item \textbf{RQ2} What labels do two LLM-based rounds assign to sampled
-  findings, and what do those labels establish about defect status?
-  (Section~\ref{sec:rq2})
-\item \textbf{RQ3} How many fixes in the curated maintainer-merged reference
-  set match the detector, and how many route failure outside an except-handler?
-  (Section~\ref{sec:rq3})
-\item \textbf{RQ4} What detector change followed review of the sampled labels?
-  (Section~\ref{sec:rq4})
-\item \textbf{RQ5} How does a revised predicate change the findings and their
-  co-location with selected lint rules, and what can the available labels show?
+\item \textbf{RQ1} How many local failure-routing candidates occur in the
+  pinned corpus, and which selected lint rules are co-located with them?
+  (Section~\ref{sec:rq1})
+\item \textbf{RQ2} What do sampled LLM labels reveal, and what additional
+  evidence is needed to establish defect status? (Section~\ref{sec:rq2})
+\item \textbf{RQ3} Which curated maintainer-merged fixes fall within the
+  detector's local scope? (Section~\ref{sec:rq3})
+\item \textbf{RQ4} Which detector correction follows from reviewing
+  sampled candidates? (Section~\ref{sec:rq4})
+\item \textbf{RQ5} How do predicate refinement and calibrated lint
+  mappings change the candidate and coverage measurements?
   (Section~\ref{sec:rq5})
 \end{itemize}
+
 \paragraph{Contributions.}
 \begin{enumerate}[nosep,leftmargin=*]
-\item A taxonomy of five silent-continuation or failure-to-value shapes and
-  one adjacent exception-masking shape, with an AST detector for them
-  (Section~\ref{sec:family}).
-\item A reproducible count and cross-tool co-location measurement over eight
-  pinned packages (Section~\ref{sec:rq1}).
-\item A stratified sample ($n=80$) with LLM labels and an analysis of their
-  limitations (Section~\ref{sec:rq2}); the labels do not establish precision
-  against independently confirmed defects.
-\item A comparison of three differently selected evidence sources
-  (Section~\ref{sec:tri}) showing that these data do not identify a common
-  defect rate; we specify a future measurement that could address the gap.
-\item A comparison with a curated maintainer-merged reference set
-  (Section~\ref{sec:rq3}): the detector matches three of fourteen in-scope
-  fixes, while nine route failure outside an except-handler.
-\item Four sampled findings labelled FALSE POSITIVE shared a control-flow
-  shape; the resulting correction removed ten candidates emitted by one rule
-  on this corpus (Section~\ref{sec:rq4}).
-\item A finite-set comparison of predicate refinement (Section~\ref{sec:rq5}):
-  findings fell from 621 to 476, while four-linter co-location rose from 41.1\%
-  to 52.9\%. In 104 joined, selected observations, 12 of 48 co-located and 1
-  of 56 non-co-located records carried LLM DEFECT labels. The labels are
-  clustered and the supplementary records were purposively selected, so this
-  contrast does not establish which group contains more defects.
-\item A simple baseline comparison: \texttt{flake8 -{}-select E722} returns 134
-  candidates and includes all 12 original DEFECT-labelled observations in the
-  sample. This is a finite label-set comparison, not an estimate of E722's
-  precision or coverage of confirmed defects (Section~\ref{sec:rq1}).
+\item \textbf{A detector and reproducible measurement protocol.}
+  We operationalise six local shapes and compare 621 candidates across
+  eight pinned packages and 524,229 scanned lines. Fixed corpus manifests,
+  file-level coverage checks and explicit matching rules make the
+  comparison auditable (Sections~\ref{sec:family}--\ref{sec:rq1}).
+\item \textbf{Measured coverage boundaries and a calibrated mapping.}
+  We expose the suppression-form gap, construct 68 probes with positive
+  controls, and correct a static lint-coverage mapping to agree with
+  empirical co-location on all 476 refined-frame findings. The analysis
+  identifies both rule-semantic differences and file-discovery effects
+  that would otherwise distort cross-tool comparisons
+  (Sections~\ref{sec:rq1}, \ref{sec:rq5}).
+\item \textbf{An evaluation of candidate refinement and validation scope.}
+  Refinement changes the frame from 621 to 476 findings; curated merged
+  fixes locate non-handler routing as a major uncovered family in that
+  selected set. We combine these measurements with exploratory labels
+  and maintainer records to specify which conclusions each evidence
+  source supports, and derive an evaluation procedure that separates
+  warning coverage from independently adjudicated defects
+  (Sections~\ref{sec:rq2}--\ref{sec:rq5}).
 \end{enumerate}
 
 \section{The pattern family}
@@ -441,10 +417,9 @@ Section~\ref{sec:control} contains no \texttt{\_\_init\_\_}-less directory at al
 (0 of 263 files), so it was never exposed. \texttt{-{}-recursive=y} and
 \texttt{-{}-init-hook} were both tested; neither recovers a single message.
 
-One asymmetry in that rule list we disclose rather than defend: \texttt{pylint} is
-granted W0703 (broad \texttt{except}), whose direct \texttt{ruff} analogue BLE001
-was \emph{not} selected, so \texttt{ruff} was the only baseline denied its
-broad-except rule. Re-running with BLE001 added, \texttt{ruff}'s \emph{own}
+The baseline selection includes Pylint's W0703 (broad \texttt{except},
+reported as W0718) but excludes Ruff's direct analogue BLE001. We checked
+this asymmetry with an additional selection that includes BLE001. Re-running with BLE001 added, \texttt{ruff}'s \emph{own}
 co-located findings rise from 72 to 127 (410 findings in total rather than 76),
 but the four-tool union does not move: 255 of 621 and \texttt{failroute}-only 366
 under either selection, because every finding BLE001 newly reaches is one
@@ -465,7 +440,24 @@ is committed as \texttt{bench/corpus-coverage-union-ruff-ble001.json}.
 shows what a syntactic-pattern engine \emph{can} express given rules, not what
 users get by default. $+19$ is the number of \texttt{failroute} findings newly
 co-located once \texttt{semgrep} is added to the union (mostly the
-\texttt{contextlib.suppress} shape: 18 of 19). Versions are those installed in the
+\texttt{contextlib.suppress} shape: 18 of 19).}
+\label{tab:tools}
+\begin{tabular}{@{}lllrr@{}}
+\toprule
+Tool & Version & Rules & Findings & Co-located $\pm$1 line \\
+\midrule
+\textbf{\texttt{failroute}} & 0.8.0 & all six & \textbf{621} & --- \\
+\texttt{ruff} & 0.16.4 & S110, S112 & 76 & 72 \\
+\texttt{bandit} & 1.9.4 & B110, B112 & 67 & 63 \\
+\texttt{pylint} & 4.0.8 & W0702, W0703, W0705, W0706 & 563/564 & 255 \\
+\texttt{flake8}+\texttt{bugbear} & 7.3.0 / 25.11.29 & E722, B001, B017 & 268 & 124 \\
+\texttt{semgrep} (our rules) & 1.175.0 & hand-written, 6 shapes & --- & $+19$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Baseline version and environment provenance.}
+Versions are those installed in the
 reproduction environment and are the versions that produced the committed
 artefacts. Three provenance notes. \texttt{pyproject.toml} pins
 \texttt{ruff==0.16.5}, one patch above the 0.16.4 that produced the committed
@@ -486,21 +478,8 @@ figure in this paper moves. And \texttt{semgrep} does not appear in
 (\texttt{bench/corpus-coverage-union-5tool.json}), not a step the documented
 install reproduces. Its generator, \texttt{tools/run\_semgrep\_baseline.py}, reads
 the v0.7.0 frame and writes over that artefact, so it reproduces neither the row
-nor the file: do not run it against the committed export.}
-\label{tab:tools}
-\begin{tabular}{@{}lllrr@{}}
-\toprule
-Tool & Version & Rules & Findings & Co-located $\pm$1 line \\
-\midrule
-\textbf{\texttt{failroute}} & 0.8.0 & all six & \textbf{621} & --- \\
-\texttt{ruff} & 0.16.4 & S110, S112 & 76 & 72 \\
-\texttt{bandit} & 1.9.4 & B110, B112 & 67 & 63 \\
-\texttt{pylint} & 4.0.8 & W0702, W0703, W0705, W0706 & 563/564 & 255 \\
-\texttt{flake8}+\texttt{bugbear} & 7.3.0 / 25.11.29 & E722, B001, B017 & 268 & 124 \\
-\texttt{semgrep} (our rules) & 1.175.0 & hand-written, 6 shapes & --- & $+19$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+nor the file: do not run it against the committed export.
+
 
 \textbf{The four selected syntactic linter rule sets co-locate with 255 of 621
 findings (41.1\%); 366 (58.9\%) have no such co-location.} Adding our
@@ -895,59 +874,38 @@ substance with merged PR \#462, and two others duplicate separate submissions;
 therefore the 43 PRs are not 43 distinct candidate defects. These are descriptive
 outcomes in a project-selected set, not an acceptance-rate estimate.
 
-\paragraph{Verdict: directionally consistent, not established.}
-The three sources provide different kinds of evidence. The LLM labels describe
-consequences in a stratified sample but do not establish defect status. A site
-that persists without a recorded fix may be either a contract or an unnoticed
-defect. Maintainers accepted many surfaced, project-selected reports, while two
-outcomes were adverse on the merits. Their
-denominators and selection processes do not define a common estimand. We therefore
-report the finite-record counts and leave the defect rate unresolved.
+\paragraph{Evidence interpretation.}
+The arms distinguish three activities: labelling consequences, tracking
+maintainer changes, and evaluating submitted reports. Their denominators
+and selection processes define different questions. Arm 2's criterion is
+weaker than the detector's; 61.3\% of its rows have no \texttt{failroute}
+rule, and its package composition differs from the candidate frame.
+A SURVIVED site may be an intentional contract or an unnoticed defect.
+Transferring arm 1's labels onto this risk set would therefore assume both
+compatible sampling and defect adjudication that the records do not supply.
 
-\emph{The arms are not commensurable.} Arm 2's denominator is 478 tracked sites;
-arm 3's is 43 defect candidates pre-screened by the author, of whose 16 merged
-members 8 lie in packages outside the tracked eight. The counts answer different questions about different populations. The
-tracked-site criterion is also weaker than the detector's, so 61.3\% of arm 2's
-rows carry no \texttt{failroute} rule at all, while arm 1's labels are attached to
-findings. These records cannot support a population-level comparison.
+\paragraph{Correspondence and maintainer response.}
+None of the 16 merged family fixes maps to the 478 tracked sites (zero
+exact file matches). In \texttt{uqlm}, none of 12 tracked family sites was
+classified FIXED, while all five project-selected family-fix PRs were
+merged; these remain different selected sets. The PR record shows
+substantial, but uneven, maintainer engagement: among 24 non-self-closed
+outcomes, 16 merged, seven were maintainer-closed and one was bot-closed.
+Two additional closures accepted the substance: the gap in
+\texttt{Giskard-AI/giskard-oss}\#2614 was fixed through a third-party
+restatement, and \texttt{cvs-health/uqlm}\#427 was partially re-landed
+through merged \#462. Three closures did not reach the merits and two
+were adverse on the merits. Duplicate submissions also prevent treating
+all 43 PRs as distinct defects.
 
-\emph{Why we do not estimate a common rate.} Arm 2 tracks 2{,}128 sites,
-but only 478 were classified FIXED or SURVIVED; 1{,}650 were excluded as too
-young, vanished or mutated. The records do not establish which tracked sites were
-genuine defects, or which excluded sites belong in a risk set. Arm 1's stratified
-labels therefore cannot be transferred to arm 2 to estimate defect composition.
-
-\paragraph{No matched sample is available.}
-None of the 16 merged family fixes maps to the 478 tracked sites (zero exact file
-matches), so the records provide no matched site-level comparison. As context
-only, in \texttt{uqlm} none of 12 tracked family sites was classified FIXED,
-while all five project-selected family-fix PRs were merged. These are different
-sets and the PRs were selected by the project workflow; the counts do not estimate
-a common rate.
-
-\emph{What these records support.} Three limited observations.
-
-(i)~The itemised closure record
-(\texttt{paper/h1\_arm3\_classification.csv}) shows that maintainer engagement
-with surfaced family reports was mostly, but not uniformly, favourable. Of the
-24 non-self-closed outcomes, 16 merged, seven were maintainer-closed, and one
-was bot-closed. Two additional closures accepted the substance: the gap reported
-in \texttt{Giskard-AI/giskard-oss}\#2614 was fixed upstream in a third-party
-restatement, and \texttt{cvs-health/uqlm}\#427 was partially re-landed through
-merged \#462. Three closures never reached the merits, and two were adverse on
-the merits. All outcomes came from a project-selected set.
-
-(ii)~Thirteen of 478 tracked family sites were classified FIXED during the
-observation window. Because SURVIVED does not distinguish a contract from an
-unnoticed defect, this count cannot establish the underlying defect share.
-
-(iii)~A future study would need maintainer responses to a random sample of
-findings to distinguish unnoticed defects from false positives. Such a sample
-does not exist in these records and cannot be reconstructed retrospectively.
-
-The three arms describe different units and selection processes. Their counts
-cannot be combined into a common defect-rate estimate; the validity limitations
-are detailed in Section~\ref{sec:threats}.
+\paragraph{Implication for validation design.}
+The itemised records let readers audit selected classifications and
+maintainer responses, but cannot be combined into a common defect rate.
+A matched study would independently adjudicate contracts for a randomly
+selected set of detector and baseline findings, retain their identities
+through maintainer follow-up, and account for vanished and mutated sites.
+That study would address the specific correspondence and risk-set gaps
+identified here; it cannot be reconstructed from the present records.
 
 \subsection{RQ4 --- Sample review and a detector correction}
 \label{sec:rq4}
@@ -1101,11 +1059,10 @@ them is \texttt{garak/analyze/ci\_calculator.py:40}, whose handler is a literal
 \texttt{except (ValueError, TypeError): pass}. Running all four baselines on that
 single file returns \emph{nothing} --- \texttt{ruff} reports ``All checks passed!'',
 \texttt{bandit} and \texttt{flake8} return no rows, \texttt{pylint} scores the file
-10.00/10. This is a defect in our own mapping; it made the lint baselines appear to cover
-more findings than they actually did and understated failroute's measured novelty.
-We report the correction rather than silently changing the comparison.
+10.00/10. The incorrect mapping overestimated baseline coverage and understated
+failroute's incremental warning coverage. The preserved pre-fix export
+makes the correction auditable.
 
-We did not patch the witness; we measured the mapping.
 \texttt{tools/lint\_mapping\_probe.py} generates 68 probes --- eleven caught-type forms
 (bare; \texttt{Exception}; \texttt{BaseException}; \texttt{builtins.Exception}; a tuple
 of two narrow names; a tuple mixing \texttt{Exception} with a narrow name, with a dotted
@@ -1181,7 +1138,7 @@ re-derives the mapping and fails if the shipped inference drifts from it; and 36
 pin the same conditions, including the reverse direction (a narrow handler must lose the
 credit, and widening it to bare must restore it).
 
-\paragraph{A residual we had not eliminated --- and then did.}
+\paragraph{Resolving the remaining coverage discrepancy.}
 Five findings of the 476 disagreed with the empirical measure. All five are
 \texttt{except Exception:} handlers that return or assign a constant; the corrected
 inference credits \texttt{pylint:W0718} and \texttt{ruff:BLE001}, \texttt{BLE001}
@@ -1404,7 +1361,36 @@ PYTHONPATH=src .venv/bin/python tools/control_rescan.py --check
 
 \section{Discussion}
 
-\paragraph{The detector is a review queue, not an alarm.}
+\paragraph{What the coverage measurements establish.}
+The results isolate three sources of variation in a detector comparison.
+Representation changes can move equivalent suppression behaviour across a
+warning boundary. Rule semantics differ even for superficially similar
+broad-exception checks. File discovery can exclude code before a rule is
+ever applied. The suppression witnesses, 68-probe matrix and file-list
+correction make these effects inspectable rather than attributing every
+unmatched candidate to a stronger detector.
+
+\paragraph{A coverage percentage needs its numerator and frame.}
+The refined frame's co-location rises from 41.1\% to 52.9\%, although the
+co-located count falls from 255 to 252. The denominator changes from 621 to
+476, and the site-level comparison contains both deletions and additions.
+Thus a higher overlap percentage can accompany fewer co-located findings;
+it does not show that a baseline improved or that refinement found more
+defects. Reporting the two frames, their intersection and the absolute
+covered and uncovered counts resolves this ambiguity.
+
+\paragraph{An evaluation procedure for failure-routing detectors.}
+The evidence supports a practical sequence. First, lock the corpus and
+verify the actual files read by every tool. Second, run positive controls
+for each selected rule and calibrate any inferred coverage mapping against
+executed probes. Third, report candidate identities as well as counts when
+refining the predicate. Finally, adjudicate caller contracts independently
+and distinguish sampled findings from a separately selected set of merged
+fixes. This procedure addresses the comparison errors encountered here;
+its defect-validation step remains to be evaluated on an independent
+sample.
+
+\paragraph{Candidate review and simple baselines.}
 On these pinned trees, \texttt{flake8 -{}-select E722} returns 134 candidates and
 contains all twelve DEFECT-labelled sites in the original sample of 80. This is a
 shorter candidate list containing all twelve labels from the original sample, not
@@ -1432,7 +1418,7 @@ establish a causal effect of codebase maturity or rule design. It supports
 reporting package-level composition in future samples, rather than treating every
 finding as an independent bug.
 
-\paragraph{Four layers of overfitting, stated against ourselves.}
+\paragraph{Development-set reuse and proxy validity.}
 The refactor was assessed against data available during its development; it is
 in-sample engineering evidence, not out-of-sample validation. First, the acceptance gates demand no-regression on the same
 corpus the patches were developed against, so every patch is fitted to its own
@@ -1661,43 +1647,34 @@ the labels or estimate prevalence.
 
 \section{Conclusion}
 
-Across eight pinned AI/ML Python packages, the v0.8.0 detector reported 621
-local exception-handling candidates in 524{,}229 scanned lines. Four selected syntactic
-linter rule sets were not co-located with 366 candidates under a $\pm$1-line
-criterion. This is a finite-corpus comparison; co-location does not establish
-equivalent detection, and the candidates are not confirmed defects.
+This study provides a reproducible evaluation of local failure-routing
+analysis across eight pinned AI/ML Python packages. The 621-candidate
+frame exposes a suppression-form gap in the tested lint configurations;
+68 generated probes calibrate a corrected coverage mapping that agrees
+with executed baselines on the 476-finding refined frame. These results
+show how source representation, rule semantics and file discovery affect
+measured incremental warning coverage.
 
-In the original 80-finding sample, LLM agents assigned 12 DEFECT, 64 CONTRACT,
-and 4 FALSE POSITIVE labels. The DEFECT labels cluster in three repeated code
-families in one package, and five of the twelve have an unestablished
-failure-conversion mechanism. The labels are not independent adjudications.
-Against the curated merged-fix reference set, the detector matches three of 14
-in-scope cases; nine route failure outside an except-handler. This set does not
-estimate recall over the software ecosystem.
+Predicate refinement reduces the candidate count from 621 to 476 while
+co-location rises from 41.1\% to 52.9\%. The curated fix set complements
+this comparison by locating nine non-handler cases among 14 in-scope
+fixes, specifying a boundary for extending the analysis beyond local
+handlers. Together, the measurements provide concrete tests and an
+explicit evaluation procedure for future detectors.
 
-The refined predicate reduced the candidate count to 476 and increased
-four-linter co-location from 41.1\% to 52.9\%. Among 140 LLM-labelled
-observations, 104 joined the refined frame; 12 of 48 co-located and 1 of 56
-non-co-located observations carried DEFECT labels. The additional 60 observations
-were selected purposively, labels are clustered, and the refactor was developed
-against the same corpus and labels. The comparison is descriptive and does not
-establish incremental defect yield.
-
-The simple \texttt{flake8 -{}-select E722} rule produced 134 candidates and
-included all twelve original DEFECT-labelled sites. This is equal coverage of
-the twelve labels in a shorter candidate list, not evidence of equal coverage of
-confirmed defects or of E722's precision. The practical implication is to treat
-static-analysis output as a review queue, compare against simple baselines, and
-require independent adjudication before calling a candidate a defect. A stronger
-validation study would use independent contract adjudication, held-out packages,
-and a sampling design that draws from both detector and baseline findings.
+Defect yield remains a separate validation question. The available labels
+were produced by LLM agents and reused during development; the original
+DEFECT-labelled observations also occur within a simple E722 baseline.
+Independent contract adjudication on held-out packages, including findings
+from both the detector and simple baselines, is the next step needed to
+measure incremental defect detection.
 
 \section{Reproduction and artefacts}
 \label{sec:repro}
 
 The empirical counts and comparisons are generated from scripts in
 \texttt{tools/} against the pinned corpus in \texttt{paper/corpus-lock.json};
-manual adjudications are recorded in the accompanying ledgers. All paths below are
+label and classification records are retained in the accompanying ledgers. All paths below are
 relative to the root of the public repository
 \url{https://github.com/feiiiiii5/failroute} (MIT licence); the detector itself is
 released as \texttt{failroute} on PyPI,
@@ -1705,7 +1682,7 @@ released as \texttt{failroute} on PyPI,
 commit \texttt{3b4c567} contains the underlying datasets, exports and scripts
 for the reported numerical results, including the post-release ledgers and
 corrected baseline invocation. The figure PDFs in this submission have later
-layout edits but unchanged plotted counts; they are included in the arXiv
+layout edits but unchanged plotted counts; they are included in the manuscript
 source package. The v0.8.0 release tag
 alone does not reproduce every table. The committed \texttt{bench/rescan-f2/}
 export records the 621-finding frame; \texttt{bench/rescan-v2/} records the
@@ -1833,10 +1810,20 @@ issue and pull-request records, every one cited by its public number, and the tw
 datasets derived from them are committed to the public repository and itemised in
 the list above, so that the classification can be audited row by row. The study
 analyses publicly recorded artefacts of professional work on public repositories,
-and uses no non-public data about identifiable individuals. The author's conflict of
-interest --- leading the project that produced both the detector under evaluation and one of the five
-baselines --- is disclosed on the title page, and the results unfavourable to the
-tool are reported alongside the favourable ones.
+and uses no non-public data about identifiable individuals.
+
+\begin{samepage}
+\paragraph{Manuscript licence.} This manuscript is licensed under the Creative
+Commons Attribution 4.0 International licence
+(\href{https://creativecommons.org/licenses/by/4.0/}{CC BY 4.0}). The code licence
+and licences of third-party artefacts remain as stated above.
+
+\paragraph{Conflicts of Interest.} The author led the project that produced both
+the detector under evaluation and one of the five baselines. This relationship
+is disclosed on the title page, and results unfavourable to the tool are reported
+alongside favourable ones. The author declares no other conflicts of interest.
+\par
+\end{samepage}
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
