@@ -56,8 +56,8 @@ of an exception handler; the defect lives in what the handler *returns*.
   real-code labels are a separate set (see "Test corpora" below).
 - **Honest triage** — findings without a production consequence chain are
   benchmark material, not issues (see `docs/process.md` for a worked example).
-- **Everything reproducible** — every number in this README can be re-run from
-  this checkout with one command.
+- **Pinned numerical evidence** — reported counts can be checked against the
+  retained exports, labels and executable checks.
 
 Failure-routing is the root cause behind some of the most insidious correctness
 bugs in real LLM/eval/agent codebases:
@@ -280,8 +280,9 @@ $ failroute --repo .     # expected: zero findings (self-hosting)
 
 ## Benchmarks & validation
 
-All numbers below are reproducible from this checkout; nothing here is
-copy-pasted from a run that cannot be re-executed.
+The numerical summaries below can be recomputed from the pinned records.
+The original LLM labelling cannot be repeated because its model and prompt
+provenance was not retained; the labels support exploratory analysis.
 
 ### Test corpora
 
@@ -296,7 +297,7 @@ Two, with different jobs:
 - **`bench/realworld/`** — 87 cases anchored to real coordinates in the pinned
   corpus, including the 80 findings behind the paper's labelling sample and seven
   discriminating probes. Those labels were written by two rounds of LLM agents, not
-  by humans (the paper's Limitation 1); no human labelling pass has been run. This
+  by humans (see the paper's threats to validity); no human labelling pass has been run. This
   adds real-code regression coverage; it does not establish independently
   validated defect labels or accuracy on unseen packages.
 
@@ -393,8 +394,12 @@ The internal `tests/corpus/` fixtures (68 samples, precision = recall = 1.0 in C
 are a **regression gate on the rules themselves** — construct validity. They say
 nothing about how the tool behaves on code it has never seen; the table above does.
 
-The [current manuscript](paper/arxiv/main.pdf) reports the recall audit and
-its scope limits; [LaTeX source](paper/arxiv/main.tex) and
+The [current manuscript](paper/arxiv/main.pdf) separates three research
+questions: representation-sensitive warning coverage, sensitivity to detector
+refinement and evaluation calibration, and candidate validity and construct
+scope. It includes a paired ratio decomposition, a suppression-form example
+and comparisons with recent Python exception-handling studies.
+[LaTeX source](paper/arxiv/main.tex) and
 [reproduction instructions](paper/ARTIFACT.md) accompany it. The manuscript
 has not yet been posted to arXiv.
 

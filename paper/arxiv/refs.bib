@@ -1,10 +1,8 @@
 % refs.bib for the failroute arXiv submission.
 %
-% Every entry was built from the Crossref record of its DOI
-% (api.crossref.org/works/<DOI>). The two entries without a DOI carry the
-% official proceedings URL instead, because NeurIPS and MLSys proceedings are not
-% DOI-registered; those two pages were fetched 2026-08-31. The cabral2007 and
-% dixit2023 records were re-checked against Crossref on 2026-09-03.
+% Original DOI entries follow Crossref records. Additions on 2026-10-10
+% were checked against the author-hosted full papers and publisher metadata.
+% Proceedings, preprints and software documentation carry primary URLs.
 %
 % cabral2007: the Crossref record for 10.1007/978-3-540-73589-2_8 returns empty
 % `issued` date-parts, so the year is not in that field; year=2007 is taken from
@@ -244,3 +242,49 @@
 }
 
 
+
+@inproceedings{souza2024miner,
+  author = {Souza, Jairo and Alves, Tales and Oliveira, Robson and Teixeira, Leopoldo and Fonseca, Baldoino},
+  title = {Exception Miner: Multi-language Static Analysis Tool to Identify Exception Handling Anti-Patterns},
+  booktitle = {Proceedings of the XXXVIII Brazilian Symposium on Software Engineering},
+  year = {2024},
+  pages = {741--747},
+  doi = {10.5753/SBES.2024.3573},
+  url = {https://sol.sbc.org.br/index.php/sbes/article/view/30420}
+}
+
+@article{souza2026python,
+  author = {Souza, Jairo and Coelho, Eric and Correia, Jo{\~a}o and Lima, Rodrigo and Teixeira, Leopoldo and Fonseca, Baldoino},
+  title = {Exception handling bugs in Python: An empirical study of root causes, fix patterns, and anti-patterns},
+  journal = {Information and Software Technology},
+  volume = {199},
+  pages = {108264},
+  year = {2026},
+  doi = {10.1016/j.infsof.2026.108264},
+  url = {https://leopoldomt.github.io/assets/pdf/2026-ist.pdf}
+}
+
+@inproceedings{souza2026llm,
+  author = {Souza, Jairo and Alves, Tales and Lima, Rodrigo and Ara{\'u}jo, Ericlecio and Teixeira, Leopoldo and Fonseca, Baldoino},
+  title = {An Empirical Evaluation of Using Large Language Models to Recommend Exception Handling Tasks},
+  booktitle = {Proceedings of the XL Brazilian Symposium on Software Engineering},
+  year = {2026},
+  url = {https://leopoldomt.github.io/assets/pdf/2026-sbes-jairo.pdf}
+}
+
+@misc{ruffsim105,
+  author = {{Astral}},
+  title = {Ruff rule {SIM105}: suppressible-exception},
+  year = {2026},
+  url = {https://docs.astral.sh/ruff/rules/suppressible-exception/},
+  note = {Documentation read 10 October 2026}
+}
+
+@misc{masters2026rolloutcards,
+  title         = {Rollout Cards: A Reproducibility Standard for Agent Research},
+  author        = {Masters, Charlie and Liu, Ziyuan and Albrecht, Stefano V.},
+  year          = {2026},
+  eprint        = {2605.12131},
+  howpublished  = {arXiv:2605.12131},
+  archivePrefix = {arXiv},
+}

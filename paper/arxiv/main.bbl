@@ -1,4 +1,4 @@
-\begin{thebibliography}{23}
+\begin{thebibliography}{25}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -14,6 +14,12 @@ Saleema Amershi, Andrew Begel, Christian Bird, Robert DeLine, Harald Gall, Ece
   Engineering: Software Engineering in Practice (ICSE-SEIP)}, pages 291--300,
   2019.
 \newblock \doi{10.1109/ICSE-SEIP.2019.00042}.
+
+\bibitem[{Astral}(2026)]{ruffsim105}
+{Astral}.
+\newblock Ruff rule {SIM105}: suppressible-exception, 2026.
+\newblock URL \url{https://docs.astral.sh/ruff/rules/suppressible-exception/}.
+\newblock Documentation read 10 October 2026.
 
 \bibitem[Ayewah and Pugh(2010)]{ayewah2010}
 Nathaniel Ayewah and William Pugh.
@@ -53,23 +59,6 @@ Bruno Cabral and Paulo Marques.
   Heidelberg, 2007.
 \newblock \doi{10.1007/978-3-540-73589-2_8}.
 
-\bibitem[Crisan and McNutt(2025)]{crisan2025}
-Anamaria Crisan and Andrew~M McNutt.
-\newblock Linting is people! exploring the potential of human computation as a
-  sociotechnical linter of data visualizations.
-\newblock In \emph{Proceedings of the Extended Abstracts of the CHI Conference
-  on Human Factors in Computing Systems}, pages 1--10, 2025.
-\newblock \doi{10.1145/3706599.3716230}.
-
-\bibitem[Dixit(2023)]{dixit2023}
-Harish Dixit.
-\newblock Keytone: Silent data corruptions at scale.
-\newblock In \emph{2023 IEEE 29th International Symposium on On-Line Testing
-  and Robust System Design (IOLTS)}, pages 1--2, 2023.
-\newblock \doi{10.1109/IOLTS59296.2023.10224872}.
-\newblock Two-page keynote abstract; title reproduced exactly as registered by
-  IEEE, where ``Keytone'' is a typographical error for ``Keynote''.
-
 \bibitem[Do et~al.(2022)Do, Wright, and Ali]{do2022}
 Lisa Nguyen~Quang Do, James~R. Wright, and Karim Ali.
 \newblock Why do software developers use static analysis tools? a user-centered
@@ -102,6 +91,12 @@ Brittany Johnson, Yoonki Song, Emerson Murphy-Hill, and Robert Bowdidge.
 \newblock In \emph{2013 35th International Conference on Software Engineering
   (ICSE)}, pages 672--681, 2013.
 \newblock \doi{10.1109/ICSE.2013.6606613}.
+
+\bibitem[Masters et~al.(2026)Masters, Liu, and
+  Albrecht]{masters2026rolloutcards}
+Charlie Masters, Ziyuan Liu, and Stefano~V. Albrecht.
+\newblock Rollout cards: A reproducibility standard for agent research.
+\newblock arXiv:2605.12131, 2026.
 
 \bibitem[Paleyes et~al.(2022)Paleyes, Urma, and Lawrence]{paleyes2022}
 Andrei Paleyes, Raoul-Gabriel Urma, and Neil~D. Lawrence.
@@ -181,6 +176,39 @@ D.~Sculley, Gary Holt, Daniel Golovin, Eugene Davydov, Todd Phillips, Dietmar
 \newblock URL
   \url{https://proceedings.neurips.cc/paper_files/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html}.
 
+\bibitem[Souza et~al.(2024)Souza, Alves, Oliveira, Teixeira, and
+  Fonseca]{souza2024miner}
+Jairo Souza, Tales Alves, Robson Oliveira, Leopoldo Teixeira, and Baldoino
+  Fonseca.
+\newblock Exception miner: Multi-language static analysis tool to identify
+  exception handling anti-patterns.
+\newblock In \emph{Proceedings of the XXXVIII Brazilian Symposium on Software
+  Engineering}, pages 741--747, 2024.
+\newblock \doi{10.5753/SBES.2024.3573}.
+\newblock URL \url{https://sol.sbc.org.br/index.php/sbes/article/view/30420}.
+
+\bibitem[Souza et~al.(2026{\natexlab{a}})Souza, Alves, Lima, Ara{\'u}jo,
+  Teixeira, and Fonseca]{souza2026llm}
+Jairo Souza, Tales Alves, Rodrigo Lima, Ericlecio Ara{\'u}jo, Leopoldo
+  Teixeira, and Baldoino Fonseca.
+\newblock An empirical evaluation of using large language models to recommend
+  exception handling tasks.
+\newblock In \emph{Proceedings of the XL Brazilian Symposium on Software
+  Engineering}, 2026{\natexlab{a}}.
+\newblock URL
+  \url{https://leopoldomt.github.io/assets/pdf/2026-sbes-jairo.pdf}.
+
+\bibitem[Souza et~al.(2026{\natexlab{b}})Souza, Coelho, Correia, Lima,
+  Teixeira, and Fonseca]{souza2026python}
+Jairo Souza, Eric Coelho, Jo{\~a}o Correia, Rodrigo Lima, Leopoldo Teixeira,
+  and Baldoino Fonseca.
+\newblock Exception handling bugs in python: An empirical study of root causes,
+  fix patterns, and anti-patterns.
+\newblock \emph{Information and Software Technology}, 199:\penalty0 108264,
+  2026{\natexlab{b}}.
+\newblock \doi{10.1016/j.infsof.2026.108264}.
+\newblock URL \url{https://leopoldomt.github.io/assets/pdf/2026-ist.pdf}.
+
 \bibitem[Yedida et~al.(2023)Yedida, Kang, Tu, Yang, Lo, and
   Menzies]{yedida2023}
 Rahul Yedida, Hong~Jin Kang, Huy Tu, Xueqi Yang, David Lo, and Tim Menzies.
@@ -189,12 +217,5 @@ Rahul Yedida, Hong~Jin Kang, Huy Tu, Xueqi Yang, David Lo, and Tim Menzies.
 \newblock \emph{IEEE Transactions on Software Engineering}, 49:\penalty0
   2856--2872, 2023.
 \newblock \doi{10.1109/TSE.2023.3234206}.
-
-\bibitem[Zhang et~al.(2022)Zhang, Harman, Ma, and Liu]{zhang2022}
-Jie~M. Zhang, Mark Harman, Lei Ma, and Yang Liu.
-\newblock Machine learning testing: Survey, landscapes and horizons.
-\newblock \emph{IEEE Transactions on Software Engineering}, 48:\penalty0 1--36,
-  2022.
-\newblock \doi{10.1109/TSE.2019.2962027}.
 
 \end{thebibliography}

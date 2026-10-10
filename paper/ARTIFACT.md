@@ -6,6 +6,21 @@ disclosure covers the author's project idea and key decisions, AI assistance,
 and the separate LLM-label provenance. Frozen DEFECT labels are not automatically
 confirmed failure-routing defects.
 
+The 10 October 2026 manuscript revision has three research questions:
+warning coverage and representation; sensitivity to detector refinement and
+evaluation calibration; and candidate validity and construct scope. The
+baseline and refined frames remain 621/255/366 and 476/252/224 respectively.
+All twelve original result tables retain their numerical entries. The new
+ratio decomposition is an interpretation of those counts, not a new scan.
+Current TeX and the local source package produce the same 25-page manuscript.
+
+The dated sections below preserve earlier reproduction records, including
+superseded counts and manuscript layouts. Use the current manuscript's
+Reproduction section for the consolidated commands and current interpretations;
+do not regenerate over the frozen inputs to reproduce a historical paragraph.
+The LLM-label provenance remains incomplete, so recomputing a label summary
+does not replicate the original labelling process.
+
 `tools/verify_claims.py` resolves `FAILROUTE_ROOT` from its own checkout before
 entering historical worktrees. Companion-data claims default `CONTRACTLENS_ROOT`
 to the sibling `新项目-contractlens` checkout; set that environment variable to
@@ -809,4 +824,3 @@ Re-run for this section directly, with output quoted above: `lint_mapping_probe.
 `mypy --strict src`, `mypy --strict tools/lint_mapping_probe.py`, `check_abstract_len.py`
 (both conventions, on both the repository and the unpacked copy), the csv record count, and
 the whole of §7.7.
-
