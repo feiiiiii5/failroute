@@ -7,7 +7,7 @@
 %% in "Reproduction and artefacts". The paper reports descriptive counts.
 %%
 %% Build (TeX Live): pdflatex main && bibtex main && pdflatex main && pdflatex main
-%% Build (single binary, used for the submitted PDF):
+%% Build (single binary, used for the local manuscript PDF):
 %%       tectonic -X compile main.tex --keep-logs --keep-intermediates
 %%
 \documentclass[10pt,a4paper]{article}
@@ -60,9 +60,8 @@
   Corpus labels were produced by LLM agents rather than human annotators; the paper states their provenance and limitations.}\\[2pt]
   School of Cyber Science and Technology, Sun Yat-sen University, Shenzhen, China\\
   Correspondence: \texttt{fei76161@gmail.com}}
-% The date is deliberately empty: a submitted PDF must not carry a draft stamp,
-% and arXiv records the submission and announcement dates itself.
-\date{}
+% Use the same explicit manuscript revision date as the companion study.
+\date{10 October 2026}
 
 \begin{document}
 \maketitle
@@ -220,9 +219,10 @@ caught failure that is suppressed or routed into a normal-looking value or
 continuation. \texttt{name-shadowing} is different: it can replace the original
 exception with a \texttt{NameError}, masking the cause without producing a
 success-shaped value. We include it as an adjacent exception-handling hazard,
-not as evidence of silent success. The taxonomy is defined by the semantics of
-the Python constructs involved rather than fitted
-to the corpus studied here: four of the six shapes account for all 621 findings
+not as evidence of silent success. The categories describe local Python
+constructs; membership alone does not establish a contract violation.
+Their operational predicates were revised during development on this corpus.
+Four of the six shapes account for all 621 findings
 reported in Section~\ref{sec:rq1}, and the two that never fire on this corpus are
 retained because a shape's absence from one corpus is not evidence that the shape
 does not occur. Both are exercised by the tool's unit corpus.
