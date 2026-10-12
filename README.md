@@ -401,7 +401,9 @@ scope. It includes a paired ratio decomposition, a suppression-form example
 and comparisons with recent Python exception-handling studies.
 [LaTeX source](paper/arxiv/main.tex) and
 [reproduction instructions](paper/ARTIFACT.md) accompany it. The manuscript
-has not yet been posted to arXiv.
+is the 12 October 2026 revision, has not been peer reviewed, and has not
+been posted to arXiv. Its warning-coverage results are executable
+measurements; the exploratory labels are not a validated defect rate.
 
 
 ### Throughput

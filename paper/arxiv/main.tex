@@ -61,7 +61,7 @@
   School of Cyber Science and Technology, Sun Yat-sen University, Shenzhen, China\\
   Correspondence: \texttt{fei76161@gmail.com}}
 % Use the same explicit manuscript revision date as the companion study.
-\date{10 October 2026}
+\date{12 October 2026}
 
 \begin{document}
 \maketitle
@@ -79,25 +79,25 @@
 % Do not spell the two environment markers literally in this comment -- a matcher
 % scanning for them finds the comment first and measures the wrong span.
 \begin{abstract}
-Exception handlers can turn a failed operation into an ordinary result,
-but a static warning alone cannot establish a contract violation.
-We study how the evaluation of local failure-routing detectors changes
-with source representation, candidate selection and baseline calibration.
-An AST-based detector identifies 621 candidates across eight pinned AI/ML
-Python packages and 524,229 scanned lines. All 19 contextlib.suppress
-candidates escape four selected lint baselines, including full-rule Ruff
+Static detectors can identify exception handlers that turn a failed
+operation into an ordinary result. Establishing what those detectors add,
+however, requires separating warning coverage from actual contract
+violations. We examine that distinction through an AST-based detector,
+eight pinned AI/ML Python packages and paired evaluation checks.
+The initial frame contains 621 candidates. All 19 contextlib.suppress
+candidates escape four selected lint baselines, even under full-rule Ruff
 and default Pylint checks; a supplementary Semgrep rule reaches 18.
-A 68-probe calibration and a file-discovery check correct inferred
-unmatched coverage from 18.3\% to 47.1\% on the same 476-finding refined
-frame, without changing detector outputs. Predicate refinement separately
-changes the frame from 621 to 476 and measured lint overlap from 41.1\%
-to 52.9\%, even though the covered count falls from 255 to 252.
-Nine of 14 in-scope curated merged fixes route failure outside handlers,
-locating a complementary construct boundary. These paired measurements
-show how a detector's apparent increment can change through its evaluation
-rather than its ability to find defects. Pinned artefacts and executable
-checks support the coverage findings; LLM-produced labels remain
-exploratory contract evidence requiring independent adjudication.
+On a refined frame, 68 generated probes and an explicit file-discovery
+check correct the inferred unmatched share from 18.3\% to 47.1\%, with
+the detector outputs held fixed. A separate predicate change increases
+measured lint overlap from 41.1\% to 52.9\% while reducing the covered
+count from 255 to 252: the changing denominator explains the increase.
+Nine of 14 in-scope curated merged fixes fall outside handlers, exposing
+a further boundary of local analysis. These results provide reproducible
+tests for evaluation errors that can inflate or conceal a detector's
+apparent increment. Coverage measurements are supported by executed
+checks; the separate LLM-labelled observations do not establish defect
+precision and require independent contract adjudication.
 \end{abstract}
 
 \noindent\textbf{Keywords:} exception handling; silent failure; static analysis;
@@ -210,6 +210,18 @@ The study separates warning comparison from contract validation:
   what independent contract evidence a defect-detection claim would need
   (Section~\ref{sec:validation}).
 \end{enumerate}
+
+\paragraph{Study design.}
+The comparisons answer different validation questions. Syntax witnesses
+and baseline checks test warning reach; generated probes test the
+measurement instrument itself. The paired frames then distinguish a
+change in candidate selection from a change in how coverage is counted.
+Control packages and merged fixes test the limits of handler-local
+reasoning, while exploratory labels identify contract questions for
+further adjudication. The coverage claims rest on executed scans and
+probe outcomes, not on treating the LLM labels as ground truth. This
+separation makes it possible to report an instrument correction or a
+counterexample without converting either into a defect-detection claim.
 
 \section{The pattern family}
 \label{sec:family}
@@ -938,16 +950,17 @@ returns 134 candidates on the main corpus, including all 12 original
 DEFECT-labelled sites; on the control corpus it returns one candidate, which is
 a re-raise and carries no DEFECT label.
 
-\paragraph{Result: no misses were adjudicated in the read set.} Of the control
+\paragraph{Result: no misses were identified in the recorded read set.} Of the control
 corpus's 243 handlers the tool reports 38; 114 unreported handlers contain a
 \texttt{raise} and need no review; the remaining 91 silent-and-unreported
-handlers were each read. None was adjudicated a miss under the stated protocol:
+handlers were each read. None was classified as a miss under the stated protocol:
 the cases were optional-import and capability probes, \texttt{StopIteration}
 protocol handling, \texttt{dict.get} and \texttt{list.index} sentinels,
 documented best-effort fallbacks (\texttt{requote\_uri},
 \texttt{get\_unicode\_from\_response}), data-model protocol returns
 (\texttt{NotImplemented}), and CLI exit paths. This is an exhaustive review of
-that finite read set by one annotator, not proof of zero misses in related code.
+that finite read set in one recorded code-reading pass, not independent
+human adjudication or proof of zero misses in related code.
 
 \paragraph{The four diversity packages agree.} \texttt{click} (31 findings, 13
 HIGH), \texttt{anyio} (45 findings, 1 HIGH), \texttt{pydantic} (40 findings, 1
@@ -974,18 +987,22 @@ alongside \texttt{release\_this\_conn = False}), a control-flow flag consumed in
 \texttt{finally} and after the handler; the \texttt{amplifies} criterion (``the
 value outlives the call'') promotes it to HIGH exactly as it would a substituted
 return value. Telling the two apart requires knowing where the variable is
-consumed, which lies outside the handler. Like the \texttt{exception\_escapes} case above and the three constructed
-probes in the Discussion, it is documented
-here and left in the code: each is an instance of the limit the paper argues,
-and patching them would weaken the evidence they constitute.
+consumed, which lies outside the handler. Like the
+\texttt{exception\_escapes} case above and the three constructed probes in
+the Discussion, it is retained in the frozen evaluation so that the
+tested build's mistakes remain reproducible. These are limitations to
+address in later detector versions, not reasons to retain incorrect
+behaviour. A subsequent repair should be evaluated against this record
+without rewriting the original observations.
 
 \begin{table}[htbp]
 \centering\small
 \caption{Style-opposite corpora, same detector build and baseline selection.
 Densities are findings per handler inside the scan roots. The E722 row reports
 coverage of the original 80-item LLM-labelled sample only; one supplementary
-LLM DEFECT label lies outside E722. Control-corpus readings were made by one
-annotator and are not the same label process as Group~A.}
+LLM DEFECT label lies outside E722. Control-corpus classifications come
+from one recorded code-reading pass, not independent human adjudication,
+and use a different process from Group~A.}
 \label{tab:control}
 \begin{tabular}{@{}lrrr@{}}
 \toprule
@@ -1500,7 +1517,8 @@ held-out estimate of defect-detection performance.
 
 \paragraph{Control-corpus adjudication.}
 The main and control corpora represent two purposively selected Python
-styles. One annotator read the 38 core findings and 91 unreported handlers;
+styles. The 38 core findings and 91 unreported handlers received one
+recorded code-reading pass;
 history, issue and test evidence was collected only for the two unique
 HIGH findings. The remaining readings rely on source contracts,
 docstrings, guarded uses, fallback comments and re-raise paths.
@@ -1611,6 +1629,7 @@ Independent contract adjudication on held-out packages, including findings
 from both the detector and simple baselines, is the next step needed to
 measure incremental defect detection.
 
+\appendix
 \section{Reproduction and artefacts}
 \label{sec:repro}
 
