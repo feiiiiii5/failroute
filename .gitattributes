@@ -1,2 +1,8 @@
 paper/h1_arm3_classification.csv -text
 paper/arm2-tracked-sites.csv -text
+
+# Frozen research evidence: preserve Git blob bytes on every platform.
+paper/annotations.csv -text
+paper/annotations-second-pass.csv -text
+paper/annotations-v2-additions.csv -text
+paper/merged-pr-recall.csv -text

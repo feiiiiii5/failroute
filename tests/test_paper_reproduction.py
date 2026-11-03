@@ -6,6 +6,7 @@ import csv
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -145,3 +146,37 @@ def test_finding_export_preserves_context_and_verdict(tmp_path):
     assert record["severity"]
     assert record["verdict"]
     assert "        return 0.0" in record["context_after"]
+
+
+def test_frozen_evidence_survives_autocrlf_checkout(tmp_path):
+    """Exercise Git's Windows-style checkout, without normalizing evidence hashes."""
+    git = shutil.which("git")
+    if git is None:
+        pytest.skip("Git is required to exercise checkout conversion")
+    annotations = json.loads((ROOT / "paper/annotation-corrections.json").read_text())
+    audit = json.loads((ROOT / "paper/reference-audit.json").read_text())
+    expected = dict(annotations["frozen_sha256"])
+    expected[audit["historical_source"]] = audit["historical_sha256"]
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / ".gitattributes").write_bytes((ROOT / ".gitattributes").read_bytes())
+    for name in expected:
+        target = repository / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((ROOT / name).read_bytes())
+    # A control proves that checkout conversion really was active in this test.
+    (repository / "control.txt").write_bytes(b"first\nsecond\n")
+
+    def run(*args):
+        return subprocess.run([git, *args], cwd=repository, check=True,
+                              capture_output=True, text=True)
+
+    run("init")
+    run("-c", "core.autocrlf=false", "add", ".")
+    checkout = tmp_path / "checkout"
+    checkout.mkdir()
+    run("-c", "core.autocrlf=true", "-c", "core.eol=crlf", "checkout-index",
+        "--all", "--force", "--prefix=" + checkout.as_posix() + "/")
+    assert (checkout / "control.txt").read_bytes() == b"first\r\nsecond\r\n"
+    for name, digest in expected.items():
+        assert hashlib.sha256((checkout / name).read_bytes()).hexdigest() == digest
