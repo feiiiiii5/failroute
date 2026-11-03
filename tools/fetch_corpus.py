@@ -381,6 +381,11 @@ def main(argv: list[str] | None = None) -> int:
         help="write the resolved version + sha256 back into the manifest, so a later "
         "plain run on a clean machine reproduces exactly this corpus",
     )
+    ap.add_argument(
+        "--allow-overwrite-frozen",
+        action="store_true",
+        help="permit rewriting a committed lock whose package records changed",
+    )
     args = ap.parse_args(argv)
 
     if args.verify:
@@ -440,6 +445,20 @@ def main(argv: list[str] | None = None) -> int:
     }
     if failures:
         lock["failures"] = failures
+    # A fetch that reproduces the committed lock must not dirty it: compare the
+    # package records (the evidence) and leave the file alone when they agree.
+    if args.lock.exists():
+        try:
+            prior = json.loads(args.lock.read_text(encoding="utf-8"))
+        except ValueError:
+            prior = {}
+        if not failures and prior.get("packages") == merged and prior.get("totals") == lock["totals"]:
+            print(f"\nlock unchanged: {args.lock} (all package records match; file not rewritten)")
+            return 0
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from _frozen_guard import guard_output  # noqa: PLC0415
+
+        guard_output(args.lock, args.allow_overwrite_frozen)
     args.lock.parent.mkdir(parents=True, exist_ok=True)
     args.lock.write_text(json.dumps(lock, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"\nwrote {args.lock}")

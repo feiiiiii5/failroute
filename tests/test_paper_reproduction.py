@@ -180,3 +180,37 @@ def test_frozen_evidence_survives_autocrlf_checkout(tmp_path):
     assert (checkout / "control.txt").read_bytes() == b"first\r\nsecond\r\n"
     for name, digest in expected.items():
         assert hashlib.sha256((checkout / name).read_bytes()).hexdigest() == digest
+
+
+def _guard():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("_frozen_guard", ROOT / "tools/_frozen_guard.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.mark.skipif(shutil.which("git") is None or not (ROOT / ".git").exists(),
+                    reason="needs a git checkout to know which files are tracked")
+def test_frozen_guard_refuses_tracked_outputs_and_allows_scratch(tmp_path):
+    guard = _guard()
+    for tracked in ("bench/rq5-refactor-delta.json", "bench/corpus-coverage-union.json",
+                    "bench/rescan-v2/deepteam.jsonl", "paper/corpus-lock.json"):
+        assert guard.is_frozen(tracked), tracked
+        with pytest.raises(SystemExit):
+            guard.guard_output(tracked)
+        guard.guard_output(tracked, allow=True)  # explicit regeneration stays possible
+    guard.guard_output(tmp_path / "fresh.json")
+    assert not guard.is_frozen(tmp_path / "fresh.json")
+
+
+@pytest.mark.skipif(shutil.which("git") is None or not (ROOT / ".git").exists(),
+                    reason="needs a git checkout to know which files are tracked")
+def test_delta_script_refuses_default_frozen_output():
+    before = (ROOT / "bench/rq5-refactor-delta.json").read_bytes()
+    proc = subprocess.run([sys.executable, str(ROOT / "tools/rq5_refactor_delta.py")],
+                          cwd=ROOT, capture_output=True, text=True)
+    assert proc.returncode != 0
+    assert "refusing to overwrite" in proc.stderr
+    assert (ROOT / "bench/rq5-refactor-delta.json").read_bytes() == before

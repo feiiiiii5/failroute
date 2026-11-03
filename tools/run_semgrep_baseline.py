@@ -9,10 +9,16 @@ Writes:  bench/corpus-linter-comparison.json   (adds linters["semgrep"] per pack
          bench/corpus-coverage-union-5tool.json (5-tool union; the 4-tool baseline file
                                                  is deliberately NOT overwritten)
 Usage: cd 新项目-failroute && .venv/bin/python tools/run_semgrep_baseline.py
+
+HISTORICAL. This script reads the frozen v0.7.0 frame (paper/scan) and writes
+two committed files in place, so it now refuses to run unless
+--allow-overwrite-frozen is given. Use tools/reproduce_warning_coverage.py
+(new output directory) or tools/semgrep_diagnostic.py instead.
 """
 import json
 import os
 import subprocess
+import sys
 import time
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
@@ -23,6 +29,12 @@ SG = os.environ.get('SEMGREP', '/tmp/sgvenv/bin/semgrep')
 RULES = 'tools/semgrep-rules/exception-handling.yaml'
 LOCK = json.load(open('paper/corpus-lock.json', encoding='utf-8'))
 TOL = 1
+sys.path.insert(0, os.path.join(ROOT, 'tools'))
+from _frozen_guard import guard_output  # noqa: E402
+
+_ALLOW = '--allow-overwrite-frozen' in sys.argv[1:]
+guard_output('bench/corpus-linter-comparison.json', _ALLOW)
+guard_output('bench/corpus-coverage-union-5tool.json', _ALLOW)
 
 
 def sh(c, t=1800):

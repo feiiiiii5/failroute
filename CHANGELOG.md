@@ -2,6 +2,28 @@
 
 All notable changes to failroute. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+Research tooling and manuscript only; no change to the detector.
+
+### Added
+
+- `tools/reproduce_paper.py`: one command that re-executes the manuscript's
+  executable measurements into a new directory and compares each output with the
+  frozen file.
+- `tools/semgrep_diagnostic.py`: records Semgrep analysis errors and unscanned
+  files and bounds their effect on the five-tool co-location count, without
+  relaxing the strict coverage harness.
+- `tools/_frozen_guard.py`: analysis scripts now refuse to overwrite git-tracked
+  outputs under `bench/` and `paper/` unless `--allow-overwrite-frozen` is given;
+  `tools/fetch_corpus.py` no longer rewrites a lock whose package records match.
+
+### Changed
+
+- `tools/rq5_refactor_delta.py` gains `--old`, `--new` and `--out`.
+- Manuscript restructured around the measurement protocol; reproduction split
+  into a historical path (commit `3b4c567`) and the current audit path.
+
 ## [0.9.2] - 2026-09-24
 
 Documentation only. No behavioural change to the detector: findings, severities
