@@ -1,0 +1,27 @@
+{
+  "audit_date": "2026-11-03",
+  "scope": "Source and protocol review, not independent human relabelling",
+  "corrections": [
+    {
+      "source": "paper/annotations-v2-additions.csv",
+      "key": {
+        "add_index": "1",
+        "repo": "garak",
+        "lineno": "34"
+      },
+      "original_label": "CONTRACT",
+      "status": "rationale_corrected_label_unadjudicated",
+      "incorrect_claim": "Returning None from default is the encoder protocol's own not-serializable signal.",
+      "correction": "JSONEncoder.default must return a JSON-serializable value or raise TypeError. Returning None serializes as JSON null; it is not a not-serializable signal and does not skip the item. The source comment may express an intentional lossy-cache policy, but caller correctness has not been independently adjudicated. The historical CONTRACT label is retained as a record, not reaffirmed.",
+      "evidence": [
+        "https://docs.python.org/3/library/json.html#json.JSONEncoder.default",
+        "bench/rescan-v2/garak.jsonl:1"
+      ]
+    }
+  ],
+  "frozen_sha256": {
+    "paper/annotations.csv": "d0dd3e44986eaffb08bfc70ce772433df26ccc783954e8e232e44ee614a18646",
+    "paper/annotations-second-pass.csv": "0ef398ba7d82d4526c0c3c3069eb41a11ab974d531f642e61bf31d4d80660c60",
+    "paper/annotations-v2-additions.csv": "ca1ec102560f78bb5b1dd9f81dc90de76df0a7903174f7f2abffed2634693f0a"
+  }
+}

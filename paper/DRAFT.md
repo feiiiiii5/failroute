@@ -1,3 +1,8 @@
+> **Historical draft, not the current manuscript.** Its defect and curated-recall
+> claims are superseded by `arxiv/main.tex` and the 2026-11-03 audit in
+> `reference-audit.json`. Kept for provenance; do not cite its 3/14, 5/14 or 9/14
+> figures as current validated results.
+
 > 🔴 **2026-09-03 起本文件已被 `paper/arxiv/main.tex` 取代，不再是论文真源。**
 >
 > 投稿源码 = **`paper/arxiv/main.tex`**（+ `refs.bib` / `figures/` / `main.bbl`）。

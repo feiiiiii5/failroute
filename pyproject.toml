@@ -51,6 +51,9 @@ paper = [
     "flake8-bugbear==25.11.29",
 ]
 
+# Optional fifth baseline. Kept separate because Semgrep has its own runtime dependencies.
+paper-semgrep = ["semgrep==1.175.0"]
+
 [project.scripts]
 failroute = "failroute.cli:main"
 

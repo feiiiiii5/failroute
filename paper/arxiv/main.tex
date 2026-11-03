@@ -61,7 +61,7 @@
   School of Cyber Science and Technology, Sun Yat-sen University, Shenzhen, China\\
   Correspondence: \texttt{fei76161@gmail.com}}
 % Use the same explicit manuscript revision date as the companion study.
-\date{12 October 2026}
+\date{3 November 2026}
 
 \begin{document}
 \maketitle
@@ -86,14 +86,15 @@ violations. We examine that distinction through an AST-based detector,
 eight pinned AI/ML Python packages and paired evaluation checks.
 The initial frame contains 621 candidates. All 19 contextlib.suppress
 candidates escape four selected lint baselines, even under full-rule Ruff
-and default Pylint checks; a supplementary Semgrep rule reaches 18.
+and default Pylint checks; a retained supplementary Semgrep export reports 18 matches.
 On a refined frame, 68 generated probes and an explicit file-discovery
 check correct the inferred unmatched share from 18.3\% to 47.1\%, with
 the detector outputs held fixed. A separate predicate change increases
 measured lint overlap from 41.1\% to 52.9\% while reducing the covered
 count from 255 to 252: the changing denominator explains the increase.
-Nine of 14 in-scope curated merged fixes fall outside handlers, exposing
-a further boundary of local analysis. These results provide reproducible
+A source-linked audit of curated fixes separates handler-local cases,
+non-handler outcomes and adjacent error-handling changes; it withdraws
+pooled scope and detection ratios that these heterogeneous cases do not support. These results provide reproducible
 tests for evaluation errors that can inflate or conceal a detector's
 apparent increment. Coverage measurements are supported by executed
 checks; the separate LLM-labelled observations do not establish defect
@@ -191,7 +192,7 @@ The study separates warning comparison from contract validation:
   An AST-based detector identifies 621 candidates across eight pinned
   AI/ML packages and 524,229 scanned lines. All 19
   \texttt{contextlib.suppress} candidates escape the four selected lint
-  baselines; a supplementary rule reaches 18. This characterises a
+  baselines; a retained supplementary export reports 18 matches. This characterises a
   representation-sensitive warning boundary in the tested configurations
   (Section~\ref{sec:rq1}).
 \item \textbf{A paired analysis of evaluation sensitivity.}
@@ -204,8 +205,8 @@ The study separates warning comparison from contract validation:
   checks make these effects traceable (Section~\ref{sec:rq5}).
 \item \textbf{An explicit account of validation and construct boundaries.}
   Exploratory labels, a selected control corpus and curated merged fixes
-  test different claims. Nine of 14 in-scope reference fixes route
-  failure outside exception handlers. We identify what these records
+  test different claims. A subsequent diff audit identifies inconsistent
+  reference-set inclusion and location-only matches. We identify what these records
   support, where they disagree with local shape-based reasoning, and
   what independent contract evidence a defect-detection claim would need
   (Section~\ref{sec:validation}).
@@ -435,8 +436,8 @@ Mapping calibration & 87 to 224 unmatched findings on the same
 476-finding frame & measurement correction \\
 Contract labels & 80 stratified and 60 purposively selected LLM readings &
 exploratory contract evidence \\
-Curated fixes & 9 of 14 in-scope merged fixes are outside handlers &
-scope boundary in a selected set \\
+Curated fixes & 16 historically selected changes, audited individually &
+qualitative scope examples; pooled ratios withdrawn \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -544,19 +545,27 @@ present, \texttt{pylint} reports 563 findings; without \texttt{click}, as in the
 documented install, it reports 564 and the hidden-file count above reads 35 across 21. Table~\ref{tab:tools}
 gives these values in that order.
 Co-location is unaffected --- 255, and identical rule by rule, either way --- so no
-figure in this paper moves. And \texttt{semgrep} does not appear in
-\texttt{pyproject.toml} at all: the five-tool row is a frozen artefact
-(\texttt{bench/corpus-coverage-union-5tool.json}), not a step the documented
-install reproduces. Its generator, \texttt{tools/run\_semgrep\_baseline.py}, reads
-the v0.7.0 frame and writes over that artefact, so it reproduces neither the row
-nor the file: do not run it against the committed export.
+figure in this paper moves. The original paper extra did not install Semgrep. This audit revision adds
+a separately pinned \texttt{paper-semgrep} extra and a safe reproduction
+entrypoint, \texttt{tools/reproduce\_warning\_coverage.py}, with a new output
+directory required. It invokes the common coverage implementation on the
+621 and 476 frozen candidate frames and fails on tool errors rather than
+recording them as empty coverage. A fresh run in this audit stopped because Semgrep 1.175.0 reported a
+syntax error at \texttt{inspect\_ai/model/\_reasoning.py:62}. The retained
+five-tool counts have not been independently re-established as an error-free
+whole-corpus run. They remain historical observations, not a completed
+reproduction result for this audit. The older
+\texttt{tools/run\_semgrep\_baseline.py} reads the v0.7.0 frame and overwrites
+frozen files; it is not the reproduction command for this revision.
 
 
 \textbf{The four selected syntactic linter rule sets co-locate with 255 of 621
-findings (41.1\%); 366 (58.9\%) have no such co-location.} Adding our
-\texttt{semgrep} rules raises the co-located count to 274 (44.1\%) and lowers the
-unmatched count to 347 (55.9\%). These are exact corpus counts under the stated
-matching rule, not estimates of equivalent detection. Table~\ref{tab:coverage}
+findings (41.1\%); 366 (58.9\%) have no such co-location.} The historical export adding our
+\texttt{semgrep} rules records 274 co-located findings (44.1\%) and
+347 unmatched findings (55.9\%). The four-tool counts were reproduced in this
+audit; the full-corpus Semgrep rerun was blocked by the parser error above.
+These counts describe co-location under the stated matching rule, not
+equivalent detection. Table~\ref{tab:coverage}
 breaks them down by rule and Figure~\ref{fig:coverage} plots them.
 
 \begin{table}[htbp]
@@ -564,7 +573,8 @@ breaks them down by rule and Figure~\ref{fig:coverage} plots them.
 \caption{Per-rule co-location counts under the stated $\pm$1-line criterion.
 The four-tool union includes \texttt{ruff}, \texttt{bandit}, \texttt{pylint},
 and \texttt{flake8} with \texttt{bugbear}; the next column adds the project's
-supplementary \texttt{semgrep} rule. The two zero-count families remain in the
+supplementary \texttt{semgrep} rule from the historical export; its full-corpus
+rerun is blocked by a parser error. The two zero-count families remain in the
 detector but do not occur in this corpus. For \texttt{silent-suppress}, none of
 the selected rules, nor the full \texttt{ruff} and \texttt{pylint} rule sets,
 reports a relevant warning on the 19 findings; the project rule co-locates with
@@ -590,8 +600,9 @@ Rule & Findings & Four-tool union & With semgrep & Not co-located with four \\
 \includegraphics[width=\textwidth]{figures/fig2_cross_tool_coverage.pdf}
 \caption{Coverage of the 621 pinned findings by rule family and detector. Each
 cell gives covered findings / family total; shading encodes the coverage share.
-The four-linter union covers 255/621 findings; adding the project's supplementary
-\texttt{semgrep} rules covers 274/621. \texttt{silent-suppress} is the one family
+The four-linter union covers 255/621 findings. The historical export adding
+the project's supplementary \texttt{semgrep} rules records 274/621; its
+full-corpus rerun is blocked by a parser error. \texttt{silent-suppress} is the one family
 where the four linters, \texttt{ruff}'s full 969-rule set and \texttt{pylint}'s full
 default set all return zero coverage.}
 \label{fig:coverage}
@@ -951,9 +962,11 @@ DEFECT-labelled sites; on the control corpus it returns one candidate, which is
 a re-raise and carries no DEFECT label.
 
 \paragraph{Result: no misses were identified in the recorded read set.} Of the control
-corpus's 243 handlers the tool reports 38; 114 unreported handlers contain a
-\texttt{raise} and need no review; the remaining 91 silent-and-unreported
-handlers were each read. None was classified as a miss under the stated protocol:
+corpus's 243 handlers the tool reports 38; the historical procedure excluded
+114 unreported handlers containing a \texttt{raise}, and read the remaining 91.
+The presence of a \texttt{raise} does not establish that every reachable path
+propagates failure. Those 114 require path-sensitive review before any
+claim about misses across all unreported handlers can be made. None was classified as a miss under the stated protocol:
 the cases were optional-import and capability probes, \texttt{StopIteration}
 protocol handling, \texttt{dict.get} and \texttt{list.index} sentinels,
 documented best-effort fallbacks (\texttt{requote\_uri},
@@ -1203,78 +1216,55 @@ another places a caught exception on a queue for the consumer to re-raise.
 \subsubsection{Curated merged fixes and construct scope}
 \label{sec:rq3}
 
-A curated reference set of upstream fixes in this defect family is available;
-the projects' maintainers reviewed and merged those changes. This is not an
-exhaustive defect census or an independent adjudication of every merge. Of the 75 pull requests
-submitted from the author's account that were merged \emph{as of the 2026-09-01
-measurement freeze}, \textbf{16} are failure-routing fixes --- every
-exclusion adjudicated by reading the PR diff (52 earlier title-only judgements
-were re-checked against diffs in a dedicated pass; 49 stood, 3 flipped). For
-each family fix, the file was fetched at the merge commit's \emph{first parent}
-(i.e.\ immediately pre-fix) and scanned. Table~\ref{tab:recall} classifies the
-16, and every pull request is cited with its repository owner so that the
-classification can be checked against the public record.
+The historical reference ledger, \texttt{paper/merged-pr-recall.csv}, records
+75 merged pull requests from the author's account as of 2026-09-01 and marks
+16 as family-related. Those historical classifications are retained unchanged.
+A source-linked audit on 2026-11-03 revisited all sixteen changes and found
+that this selected set does not support a common failure-routing denominator.
+The audit is recorded separately in \texttt{paper/reference-audit.json}; it is
+an AI-assisted source review, not independent human contract adjudication.
 
-\begin{table}[htbp]
-\centering\footnotesize
-\caption{Classification of the 16 family fixes
-(\texttt{paper/merged-pr-recall.csv}, all rows diff-read). ``Handler-shape gap''
-means design-reachable: a shape outside the current six that could be expressed
-without changing the handler-level design.}
-\label{tab:recall}
-\begin{tabular}{@{}rlP{9.9cm}@{}}
-\toprule
-Class & $n$ & Cases \\
-\midrule
-Out of scope for recall & 2 &
-\texttt{microsoft/PyRIT\#2460}, a TypeScript-side change (language scope);
-\texttt{cvs-health/uqlm\#418}, a pure-additive \emph{Python} fix whose pre-fix
-defect is a non-handler implicit-\texttt{None} contract violation the six rules
-do not cover by design \\
-\textbf{Detected} & \textbf{3} &
-\texttt{cvs-health/uqlm\#450},
-\texttt{Ishannaik/agent-sweep\#197},
-\texttt{truera/trulens\#2653} \\
-Handler-shape gap & 2 &
-\texttt{UKGovernmentBEIS/inspect\_ai\#5068} (post-handler state
-mutation), \texttt{\#4906} (\texttt{tenacity} RetryError masking) --- both
-adjudicated as candidate patterns, not shipped \\
-\textbf{Non-handler routing} & \textbf{9} & NaN values reaching aggregates,
-silently filtered lists, branch-level \texttt{Score(0.0)} returns,
-implicit-\texttt{None} contract violations, silently stripped characters,
-silently dropped symbols, laundered verdicts \\
-\bottomrule
-\end{tabular}
-\end{table}
+\paragraph{Corrections to the reference interpretation.}
+\texttt{cvs-health/uqlm}\#425 previously propagated a division-by-zero
+exception; its fix adds a uniform fallback. It therefore cannot substantiate
+an unhandled failure-to-success conversion in the pre-fix program.
+\texttt{UKGovernmentBEIS/inspect\_ai}\#4906 changes Tenacity's wrapping of
+an exhausted retry into propagation of the underlying exception. That is
+error-identity preservation, not a local handler silently returning success.
+For \texttt{truera/trulens}\#2653, the retained local warning does not by
+itself demonstrate detection of the range-validation and sentinel-preservation
+problem the patch repairs. A co-located warning is not a semantic match.
 
-\textbf{In the curated reference set, the detector matches 3 of 14 in-scope
-fixes (21.4\%).} At most 5 of 14 (35.7\%) use a handler shape potentially
-reachable by this detector; nine of 14 (64.3\%) route failure outside an
-except-handler. This is coverage of the curated set, not a population recall
-estimate.
-Figure~\ref{fig:reference-matches} plots the split by defect family.
+The old exclusion of \texttt{cvs-health/uqlm}\#418 solely as a pure-additive,
+non-handler fix was also not a uniform scope criterion: other non-handler
+changes had been counted as misses. The PR describes an implicit \texttt{None}
+that later causes a numeric type error. Its relationship to ordinary-looking
+successful output needs to be stated rather than inferred from its inclusion
+in the broader reliability family.
 
-This is the construct-scope result for the curated reference set. It shows that
-the failure-routing cases in that set include patterns outside the local
-exception-handling subfamily this tool operationalises. We state this as a
-boundary \emph{and} a roadmap --- dataflow-shaped failure-routing is future
-work --- and scope the detector's results to handlers and
-\texttt{contextlib.suppress} sites accordingly.
+\paragraph{What remains supported.}
+Individual changes still motivate analysis beyond a handler's local shape.
+For example, \texttt{cvs-health/uqlm}\#459 keeps a failed judge's NaN out
+of panel aggregation, and \texttt{UKGovernmentBEIS/inspect\_evals}\#2167
+replaces a normal-looking zero score on an invalid task input. These are
+concrete selected examples, not a prevalence estimate or a test of recall.
+Other records concern diagnostics, input conversion or exception wrapping;
+they must not be pooled as interchangeable confirmed defects.
+
+We withdraw the earlier 3/14 match ratio, 5/14 handler-reachability bound
+and 9/14 non-handler share rather than repair their denominator by assumption.
+The frozen ledger remains available to explain those earlier calculations;
+the current audit records the basis and limits of each case.
+Figure~\ref{fig:reference-matches} presents the audit without a pooled rate.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/fig3_reference_matches_by_family.pdf}
-\caption{Matches in the curated merged-fix reference set. Shaded rows are
-matched; N/A denotes the two out-of-scope cases. Repository and pull-request
-identifiers locate each public change. This is not an estimate of population
-recall.}
+\caption{Source-review dispositions of sixteen historically selected changes.
+These are audit statuses, not independent defect judgements or detection outcomes.
+The original ledger is retained; pooled reference-set ratios are withdrawn.}
 \label{fig:reference-matches}
 \end{figure}
-
-\paragraph{Side observation.} In the pre-fix
-\texttt{UKGovernmentBEIS/inspect\_ai} \#5068 file the detector flagged
-a \emph{different, unfixed} \texttt{silent-fallback} candidate at line 356.
-That finding was not adjudicated as a defect in this recall audit.
 
 \subsubsection{Comparing three sources of validation evidence}
 \label{sec:tri}
@@ -1299,7 +1289,7 @@ Arm & Question & Observed record \\
 & 12/80 (15.0\%) DEFECT labels, all in one package \\
 2 --- spontaneous maintainer action & What was changed during the tracked window?
 & 13/478 (2.7\%) tracked sites classified FIXED \\
-3 --- maintainer response & What happened to the selected family-fix PRs?
+3 --- maintainer response & What happened to the historically selected PRs?
 & 16/43 (37.2\%) selected PRs merged \\
 \bottomrule
 \end{tabular}
@@ -1319,7 +1309,7 @@ against. Its tracking criterion (a handler carrying no raise, log or warn
 signal) is weaker than the six rules of Section~\ref{sec:detector}, so only
 185 of the 478 rows (38.7\%) carry a \texttt{failroute} rule at the release
 where they were first observed. And its package mix is 59.4\% \texttt{deepteam},
-against 22.5\% of the 621 findings. Arm 3 is the merged/closed record of family fix PRs submitted from the author's account: the 16 merged members
+against 22.5\% of the 621 findings. Arm 3 is the historical merged/closed record of PRs selected as family-related from the author's account: the 16 merged members
 are itemised in \texttt{paper/merged-pr-recall.csv} --- 8 of them in packages
 outside the tracked eight --- and the 27 closed-unmerged members are itemised,
 with per-PR closure reasons, in \texttt{paper/h1\_arm3\_classification.csv}
@@ -1330,7 +1320,10 @@ merits. Among the 24 PRs not self-closed, 16 merged, seven were maintainer-close
 one was bot-closed. One closed PR (\texttt{cvs-health/uqlm}\#427) shares its
 substance with merged PR \#462, and two others duplicate separate submissions;
 therefore the 43 PRs are not 43 distinct candidate defects. These are descriptive
-outcomes in a project-selected set, not an acceptance-rate estimate.
+outcomes in a project-selected set, not an acceptance-rate estimate. The source
+audit in Section~\ref{sec:rq3} qualifies the original family membership;
+these historical outcome counts are retained only as descriptions of that
+selection, not revalidated counts of confirmed family defects.
 
 \paragraph{Evidence interpretation.}
 The arms distinguish three activities: labelling consequences, tracking
@@ -1343,7 +1336,7 @@ Transferring arm 1's labels onto this risk set would therefore assume both
 compatible sampling and defect adjudication that the records do not supply.
 
 \paragraph{Correspondence and maintainer response.}
-None of the 16 merged family fixes maps to the 478 tracked sites (zero
+None of the 16 historically selected merged changes maps to the 478 tracked sites (zero
 exact file matches). In \texttt{uqlm}, none of 12 tracked family sites was
 classified FIXED, while all five project-selected family-fix PRs were
 merged; these remain different selected sets. The PR record shows
@@ -1482,15 +1475,26 @@ incremental defect detection.
 \paragraph{Construct and measurement validity.}
 Co-location within one line does not establish that two tools diagnose the
 same property; a farther warning may still be relevant. The supplementary
-Semgrep rule was developed within this project. The detector operationalises
-local handlers and suppress statements, while nine of 14 in-scope curated
-fixes lie outside those constructs. Its known false-positive and
+Semgrep rule was developed within this project. A fresh audit run reports a
+parser error in one corpus file; the historical supplementary counts are
+therefore distinguished from an error-free reproduction. The detector operationalises
+local handlers and suppress statements. The curated change records mix
+constructs and include disputed family membership and a location-only match;
+the earlier pooled scope and detection ratios have been withdrawn. Its known false-positive and
 false-negative modes remain in the evaluated build. All measurements
 describe pinned versions, not current ecosystem-wide behaviour.
 
 \paragraph{Label validity and reproducibility.}
 The 80 stratified and 60 supplementary labels were produced by LLM agents,
-not human raters. The two original runs agreed on 80/80 items, but shared
+not human raters. A later source audit identified an incorrect rationale in
+supplementary item 1: returning \texttt{None} from \texttt{JSONEncoder.default}
+produces JSON null, not a not-serializable signal. The original label is
+preserved but not reaffirmed; \texttt{paper/annotation-corrections.json}
+records the correction without pretending to provide independent relabelling.
+The historical protocol proposed TP/IC/UND and gate identifiers, whereas
+the retained labels use DEFECT/CONTRACT/FALSE\_POSITIVE without those fields.
+It is not a reproducible account of the actual runs. A replacement protocol
+is proposed in \texttt{docs/annotation-revalidation-protocol.md}, not yet executed. The two original runs agreed on 80/80 items, but shared
 model bias can produce that agreement. Model identity and version were not
 recorded and could not be recovered, so the labels and rationales can be
 inspected but the annotation process cannot be reproduced bit for bit.
@@ -1528,8 +1532,9 @@ These records establish neither independent human adjudication nor defect
 prevalence in infrastructure code.
 
 \paragraph{Maintainer records and selection.}
-The reference set consists of sixteen family-related merges from the
-author's account; per-PR divisions of AI-assisted work are undocumented.
+The historical reference set consists of sixteen merges selected as
+family-related from the author's account, with classifications corrected or
+qualified in the separate source audit; per-PR divisions of AI-assisted work are undocumented.
 Family inclusion was checked from diffs, including a recheck of 52
 earlier title-based decisions that changed three classifications.
 The separate 43-PR record includes nineteen self-closures, one bot closure,
@@ -1616,10 +1621,9 @@ show how source representation, rule semantics and file discovery affect
 measured incremental warning coverage.
 
 Predicate refinement reduces the candidate count from 621 to 476 while
-co-location rises from 41.1\% to 52.9\%. The curated fix set complements
-this comparison by locating nine non-handler cases among 14 in-scope
-fixes, specifying a boundary for extending the analysis beyond local
-handlers. Together, the measurements provide concrete tests and an
+co-location rises from 41.1\% to 52.9\%. The curated-change audit
+complements this comparison by separating concrete non-handler outcomes
+from adjacent error-handling changes and withdrawing unsupported pooled ratios. Together, the measurements provide concrete tests and an
 explicit evaluation procedure for future detectors.
 
 Defect yield remains a separate validation question. The available labels
@@ -1691,6 +1695,23 @@ python tools/make_figures.py                      # -> paper/figures/ (3 figures
 python tools/j1_adjudicate.py              # diff-read family adjudication
 \end{verbatim}
 
+\paragraph{Audit-revision reproduction.}
+The numerical archive remains pinned to the historical commit above. The
+following commands use this 3 November revision for safer remeasurement;
+they do not provide new defect labels or silently replace frozen exports.
+\begin{verbatim}
+pip install '.[test,paper,paper-semgrep]'
+python tools/reproduce_warning_coverage.py --with-semgrep \
+    --out-dir /tmp/failroute-coverage-new
+python -m pytest tests/test_paper_reproduction.py
+\end{verbatim}
+The output directory must not already exist. Semgrep analysis errors and
+malformed baseline output are fatal, so partial analysis is not counted as
+zero findings. Original annotations and reference ledgers remain unchanged. In this audit,
+the five-tool command stops on a Semgrep parser error rather than presenting
+a partial scan as complete. Omitting \texttt{-{}-with-semgrep} runs only the
+four selected lint baselines.
+
 \paragraph{Reproducing the paired measurements.}
 \begin{verbatim}
 .venv/bin/python tools/rescan_corpus.py --out bench/rescan-v2 --with-context
@@ -1745,8 +1766,13 @@ Key artefacts, and the thing each one pins down:
 \item \texttt{paper/sample.jsonl} --- the 80-item draw.
 \item \texttt{paper/annotations.csv} --- labels and rationale.
 \item \texttt{paper/annotations-second-pass.csv} --- second automated pass.
-\item \texttt{paper/merged-pr-recall.csv} --- curated merged-fix
-reference set (all rows diff-read). The repository and PR number, rather than
+\item \texttt{paper/reference-audit.json} --- current per-change audit and
+withdrawal of pooled reference ratios.
+\item \texttt{paper/annotation-corrections.json} --- known rationale corrections
+and hashes of unchanged original annotation files.
+\item \texttt{paper/merged-pr-recall.csv} --- historical curated merged-fix
+reference set; its family and match classifications are superseded where
+qualified by the audit sidecar. The repository and PR number, rather than
 the descriptive \texttt{pr\_title} field, identify each change: the stored
 titles for \texttt{agent-sweep\#197} and \texttt{inspect\_ai\#4908} do not match
 their final GitHub titles. The discrepancy does not alter classification or

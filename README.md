@@ -401,9 +401,23 @@ scope. It includes a paired ratio decomposition, a suppression-form example
 and comparisons with recent Python exception-handling studies.
 [LaTeX source](paper/arxiv/main.tex) and
 [reproduction instructions](paper/ARTIFACT.md) accompany it. The manuscript
-is the 12 October 2026 revision, has not been peer reviewed, and has not
+is the 3 November 2026 audit revision, has not been peer reviewed, and has not
 been posted to arXiv. Its warning-coverage results are executable
 measurements; the exploratory labels are not a validated defect rate.
+The audit preserves the original labels and PR ledger, records a JSONEncoder
+rationale correction, and withdraws pooled curated-fix ratios after finding
+inconsistent inclusion and a location-only match. See
+[`paper/reference-audit.json`](paper/reference-audit.json) and
+[`paper/annotation-corrections.json`](paper/annotation-corrections.json).
+A proposed independent revalidation protocol is provided, not reported as completed.
+
+For a fresh warning-coverage run without overwriting the frozen exports, install
+`.[test,paper,paper-semgrep]`, fetch the pinned corpus, then run
+`python tools/reproduce_warning_coverage.py --with-semgrep --out-dir /tmp/failroute-new`.
+The output directory must be new; this remeasures warning coverage, not defect yield.
+The audit five-tool run currently stops on a Semgrep parser error in the pinned
+inspect_ai corpus. Omit `--with-semgrep` for the four-tool run; historical
+Semgrep counts are retained, not claimed as a newly completed full reproduction.
 
 
 ### Throughput

@@ -5,7 +5,7 @@ Inputs (all produced by other scripts, never re-derived here):
   paper/intervals.json                       -- sample counts and label shares
   bench/corpus-coverage-union-5tool.json     -- P5, per-rule + per-tool coverage
                                                for the four linters and semgrep
-  paper/merged-pr-recall.csv                 -- curated merged-fix reference set
+  paper/reference-audit.json                 -- source-review correction sidecar
 
 Outputs: paper/figures/fig{1,2,3}_*.{pdf,png}
 
@@ -14,7 +14,6 @@ so the figures remain readable when printed in black and white.
 """
 from __future__ import annotations
 
-import csv
 import json
 import os
 import textwrap
@@ -170,58 +169,33 @@ def figure2(u5):
 
 
 # ---------------------------------------------------------------- figure 3 ---
-def figure3(cells):
-    """Matches of the six-rule detector in a curated merged-fix reference set."""
-    path = os.path.join(ROOT, 'paper', 'merged-pr-recall.csv')
-    with open(path, encoding='utf-8') as f:
-        rows = list(csv.DictReader(f))
-    family = [r for r in rows
-              if r.get('belongs_to_family', '').strip().lower() == 'yes']
-
-    def cell(group, label):
-        for r in cells:
-            if r['group'] == group and r['label'] == label:
-                return r
-        return None
-
-    scope_c = cell('recall', 'recall vs in-scope family fixes')
-
+def figure3(_cells):
+    """Display the source audit, never reinterpret proximity as defect recall."""
+    audit = load('paper/reference-audit.json')
     body = []
-    for r in family:
-        repo = r['repo'].split('/')[-1]
-        detected = r.get('detected', '').strip().lower() or 'n/a'
-        rule = r.get('rule_matched', '').strip() or '—'
-        note = r.get('note', '').strip()
-        if len(note) > 74:
-            note = note[:71] + '...'
-        body.append([textwrap.fill(repo, 15), '#' + r['pr_number'],
-                     detected.upper(), rule.replace('-', '-\n'),
-                     textwrap.fill(note, 42)])
-
-    fig, ax = plt.subplots(figsize=(7.2, 0.43 * (len(body) + 2)))
+    for row in audit['records']:
+        note = row['figure_summary']
+        body.append([textwrap.fill(row['repo'].split('/')[-1], 14),
+                     '#' + str(row['pr']), row['status'].replace('-', '-\n'),
+                     textwrap.fill(note, 48)])
+    fig, ax = plt.subplots(figsize=(7.2, 8.4))
     ax.axis('off')
-    tbl = ax.table(cellText=body,
-                   colLabels=['Repository', 'PR', 'Detected', 'Rule', 'Note (abridged)'],
-                   cellLoc='left', bbox=[0.0, 0.08, 1.0, 0.89],
-                   colWidths=[0.18, 0.085, 0.105, 0.135, 0.495])
-    tbl.auto_set_font_size(False)
-    tbl.set_fontsize(8.5)
-    for (r, c), tex in tbl.get_celld().items():
-        tex.set_edgecolor('0.75')
-        if r == 0:
-            tex.set_facecolor('0.82')
-            tex.set_text_props(weight='bold')
-        elif body[r - 1][2] == 'YES':
-            tex.set_facecolor('0.93')
-            tex.set_text_props(weight='bold' if c == 2 else 'normal')
-
-    fig.suptitle('Detection on merged fixes in the failure-routing reference set',
-                 fontsize=10, y=0.995)
+    table = ax.table(cellText=body,
+                     colLabels=['Repository', 'PR', 'Audit status', 'Reason (abridged)'],
+                     cellLoc='left', bbox=[0, 0.06, 1, 0.91],
+                     colWidths=[0.17, 0.08, 0.16, 0.59])
+    table.auto_set_font_size(False)
+    table.set_fontsize(8.0)
+    for (row, _col), cell in table.get_celld().items():
+        cell.set_edgecolor('0.75')
+        if row == 0:
+            cell.set_facecolor('0.85')
+            cell.set_text_props(weight='bold')
+    fig.suptitle('Source audit of sixteen historically selected changes', fontsize=10)
     fig.text(0.02, 0.012,
-             'In-scope matches: %d/%d = %.1f%%; two cases are out of scope.' % (
-                 scope_c['numerator'], scope_c['denominator'],
-                 100 * scope_c['point'],
-             ), fontsize=9, va='bottom', ha='left')
+             'Supported = broader example, not a confirmed uniform defect population.\n'
+             'Pooled detection and non-handler ratios withdrawn; see reference-audit.json.',
+             fontsize=8, va='bottom')
     fig.tight_layout()
     save(fig, 'fig3_reference_matches_by_family')
 

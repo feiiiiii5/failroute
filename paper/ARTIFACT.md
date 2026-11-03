@@ -1,3 +1,59 @@
+# Current audit and reproduction entrypoint (2026-11-03)
+
+The historical run log follows below. Use `paper/arxiv/main.tex` for the current
+manuscript; older paragraphs here record prior versions, not current endorsements.
+
+- Original annotation CSVs and `merged-pr-recall.csv` are preserved byte-identically.
+- `annotation-corrections.json` corrects a JSONEncoder rationale without asserting
+  a new independently validated label. It locks the original annotation hashes.
+- `reference-audit.json` records source inspection of all sixteen historically
+  selected PRs. Pooled 3/14 detection, 5/14 reachability and 9/14 non-handler
+  claims are withdrawn. These heterogeneous records do not define a consistently
+  adjudicated defect denominator. Existing `intervals.json` recall cells and
+  historical claim checks retain historical calculations, not current estimates.
+- `docs/annotation-protocol.md` is a historical proposal that does not reconstruct
+  the actual label process. Its replacement is proposed, not yet human-executed.
+- The current Figure 3 reads the audit sidecar and reports no pooled rate.
+
+Safe warning-coverage remeasurement from this revision:
+
+```sh
+pip install '.[test,paper,paper-semgrep]'
+python tools/fetch_corpus.py
+python tools/reproduce_warning_coverage.py --with-semgrep --out-dir /tmp/failroute-new
+python -m pytest tests/test_paper_reproduction.py
+```
+
+Choose a new output directory. The command uses the frozen 621/476 candidate
+frames and runs the selected baselines; it does not regenerate candidate labels.
+The fifth baseline uses the project's own rules, not Semgrep's shipped defaults.
+The old `run_semgrep_baseline.py` and `semgrep_detail.py` overwrite historical
+files and are not the current reproduction entrypoints.
+
+### Audit execution status
+
+The eight corpus archives were fetched anew with all manifest SHA-256 checks
+passing (Linux, Python 3.12). The five-tool run correctly stops on a Semgrep
+1.175.0 syntax error in `inspect_ai/model/_reasoning.py:62` (`effort` unexpected).
+The historical five-tool figures therefore are not claimed as an error-free
+end-to-end reproduction in this audit. Do not suppress this error to obtain
+matching headline counts. Omit `--with-semgrep` for the four-tool run.
+
+The completed four-tool run reproduced 621/255/366 and 476/252/224.
+All 1,097 per-finding rows matched the frozen exports exactly. A separate
+Semgrep check restricted to the five files containing the 19 silent-suppress
+candidates completed without parser errors and matched 18/19; this narrow
+check does not repair the full-corpus failure or validate other Semgrep counts.
+
+Local validation: 233 tests passed on Python 3.12, source coverage 89.84%,
+Ruff and mypy passed, and all 68 constructed benchmark fixtures passed.
+Repository self-scan excluding the fetched external corpus and intentionally
+faulty fixtures had zero HIGH findings and one pre-existing MEDIUM finding
+in `tools/lint_mapping_probe.py`. These are implementation checks, not empirical
+validation of defect labels. The rebuilt manuscript has 26 pages.
+
+## Historical reproduction log
+
 # ARTIFACT — reproduction notes for the failroute study
 
 The current manuscript is [`arxiv/main.pdf`](arxiv/main.pdf), with source in
