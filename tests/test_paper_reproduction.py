@@ -282,3 +282,75 @@ def test_frozen_truth_figure_rebuilt_from_changed_counts_differs(tmp_path):
     other = "fig2_cross_tool_coverage.pdf"
     assert checker.pdf_tokens(tmp_path / "out" / other) == checker.pdf_tokens(
         ROOT / "paper/figures" / other)
+
+
+FIG1 = "fig1_llm_label_share_by_package.pdf"
+FIG2 = "fig2_cross_tool_coverage.pdf"
+
+
+def _rebuild_figures(tmp_path, patch=None):
+    """Rebuild the paper figures into tmp_path, optionally editing the plotting code."""
+    source = (ROOT / "tools/make_figures.py").read_text(encoding="utf-8")
+    if patch is not None:
+        old, new = patch
+        assert source.count(old) == 1, old
+        source = source.replace(old, new)
+    (tmp_path / "tools").mkdir(parents=True)
+    (tmp_path / "tools/make_figures.py").write_text(source, encoding="utf-8")
+    for rel in ("paper/intervals.json", "bench/corpus-coverage-union-5tool.json",
+                "paper/reference-audit.json"):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / rel, tmp_path / rel)
+    subprocess.run([sys.executable, str(tmp_path / "tools/make_figures.py"),
+                    "--out-dir", str(tmp_path / "out")], check=True, capture_output=True)
+    return tmp_path / "out"
+
+
+_needs_render = pytest.mark.skipif(shutil.which("pdftotext") is None,
+                                   reason="needs poppler's pdftotext")
+
+
+@_needs_render
+@pytest.mark.parametrize("label,patch,figure", [
+    ("points mirrored, labels unchanged",
+     ("ax.scatter(pts, y,", "ax.scatter([100.0 - p for p in pts], y,"), FIG1),
+    ("one point moved by one unit, labels unchanged",
+     ("ax.scatter(pts, y,",
+      "ax.scatter([p + (1.0 if k == 0 else 0.0) for k, p in enumerate(pts)], y,"), FIG1),
+    ("heatmap cell shading reversed per row, cell labels unchanged",
+     ("image = ax.imshow(shares,", "image = ax.imshow([row[::-1] for row in shares],"), FIG2),
+])
+def test_geometry_check_sees_moves_the_text_check_cannot(tmp_path, label, patch, figure):
+    pytest.importorskip("matplotlib")
+    checker = _frozen_truth()
+    before = {p.name: p.read_bytes() for p in (ROOT / "paper/figures").glob("*.pdf")}
+    out = _rebuild_figures(tmp_path, patch)
+    committed, tampered = ROOT / "paper/figures" / figure, out / figure
+    # The blind spot: every label, count and tick is the same, so text alone passes.
+    assert checker.pdf_tokens(committed) == checker.pdf_tokens(tampered), label
+    text_ok, geometry_ok, detail = checker.figure_match(committed, tampered)
+    assert text_ok and not geometry_ok, f"{label}: {detail}"
+    # Checking never writes to the committed figures.
+    assert {p.name: p.read_bytes() for p in (ROOT / "paper/figures").glob("*.pdf")} == before
+
+
+@_needs_render
+def test_geometry_check_passes_original_and_normal_rebuild(tmp_path):
+    pytest.importorskip("matplotlib")
+    checker = _frozen_truth()
+    out = _rebuild_figures(tmp_path)
+    for figure in (FIG1, FIG2, "fig3_reference_matches_by_family.pdf"):
+        committed = ROOT / "paper/figures" / figure
+        assert checker.figure_match(committed, committed)[:2] == (True, True), figure
+        text_ok, geometry_ok, detail = checker.figure_match(committed, out / figure)
+        assert text_ok and geometry_ok, f"{figure}: {detail}"
+
+
+def test_geometry_reader_rejects_unknown_content():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("pdf_geometry", ROOT / "tools/pdf_geometry.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    with pytest.raises(module.GeometryError):
+        module._objects(b"%PDF-1.4\nnot a pdf\n")
