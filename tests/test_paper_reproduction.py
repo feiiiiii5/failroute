@@ -351,6 +351,9 @@ def test_geometry_reader_rejects_unknown_content():
 
     spec = importlib.util.spec_from_file_location("pdf_geometry", ROOT / "tools/pdf_geometry.py")
     module = importlib.util.module_from_spec(spec)
+    # dataclasses resolve string annotations through sys.modules, so the module must
+    # be registered before it executes (it is when loaded by check_frozen_truth.py).
+    sys.modules.setdefault("pdf_geometry", module)
     spec.loader.exec_module(module)
     with pytest.raises(module.GeometryError):
         module._objects(b"%PDF-1.4\nnot a pdf\n")
