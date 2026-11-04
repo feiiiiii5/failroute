@@ -819,6 +819,10 @@ Pylint directory-invocation counts (250/621) & cited & recorded at commit
 \texttt{3b4c567}; superseded \\
 Control-corpus code readings; LLM labels; maintainer records & cited & single
 recorded passes; LLM provenance unrecoverable \\
+Unit fixtures, set v7 (68 synthetic cases) & re-executed & 34 positive and 34
+negative agree; not real-code defect precision \\
+Rebuilt figures and \texttt{intervals.json} vs.\ committed files & re-executed &
+same text and data; drawn geometry within stated tolerances \\
 Claim checks needing unpublished commits or the companion repository &
 historical & 8 claims, reported HIST; 5 re-derived on public commits \\
 Defect precision or recall & not measured & requires independent adjudication \\
@@ -940,7 +944,7 @@ author had contributed, and the curated merged fixes and closed pull requests
 were submitted from the author's GitHub account. These relationships are also
 stated on the title page. To limit their effect, results unfavourable to the
 detector are reported alongside favourable ones, and no defect-detection claim
-is made. The author declares no other competing interests.
+is made.
 
 \section*{Manuscript licence}
 This manuscript is licensed under the Creative Commons Attribution 4.0
@@ -1007,21 +1011,22 @@ overwrite is harmless and can be compared with \texttt{git diff}.
 \label{sec:repro-current}
 
 The current audit tooling was introduced in commit \texttt{b88cbad} (3 November
-2026) and completed in commit \texttt{3e19575} (4 November 2026), which adds
-whole-row comparison, a content check of the frozen artefacts and the separation
-of historical claims; later commits do not change the audit tools. It adds a
-guard
+2026), extended in commit \texttt{3e19575} (whole-row comparison, a content check
+of the frozen artefacts and the separation of historical claims) and completed in
+commit \texttt{8040aeb} (4 November 2026), which makes the figure check compare
+drawn geometry as well as text; later commits do not change the audit tools. It
+adds a guard
 (\texttt{tools/\_frozen\_guard.py}) that makes the analysis scripts refuse to
 overwrite a git-tracked output unless \texttt{-{}-allow-overwrite-frozen} is
 given; a fetch that reproduces the lock leaves the lock file untouched. One
 command runs every executable check into a new directory and compares each
 output with the frozen file:
 \begin{verbatim}
-git checkout 3e19575
+git checkout 8040aeb
 python -m venv .venv && . .venv/bin/activate
 pip install '.[test,paper,paper-semgrep]'
 python tools/fetch_corpus.py                    # lock unchanged if it matches
-python -m pytest                       # 239 tests; as root 238 pass, 1 skips
+python -m pytest                       # 244 tests; as root 243 pass, 1 skips
 python tools/reproduce_paper.py --out-dir /tmp/failroute-audit --with-semgrep
 \end{verbatim}
 The steps are: corpus verification; the v0.8.0 scan from a disposable worktree at
@@ -1038,7 +1043,17 @@ non-Semgrep steps passed, with both scans and both coverage files byte-identical
 to the frozen exports, and the Semgrep step reported PARTIAL with the values in
 Section~\ref{sec:rq2}. The control corpus is checked separately with
 \texttt{PYTHONPATH=src python tools/control\_rescan.py -{}-check}, which passed for
-all eight packages.
+all eight packages. A separate check
+(\texttt{tools/check\_frozen\_truth.py -{}-corpus}) verifies the protected inputs
+by SHA-256 and rebuilds \texttt{intervals.json} and the three figures. A rebuilt
+figure must carry the same text and the same drawn geometry (vector marks, marker
+positions and decoded image cells, relative to the axes area) within stated
+tolerances, so a moved point or cell is detected even when every label is
+unchanged. The committed figures were written by matplotlib 3.11.0 (Figures 1--2)
+and 3.11.1 (Figure 3) and are rebuilt with 3.11.1; the residual differences are
+at most 0.04\% of the axes width or height for vector marks and 0.66\% of image
+samples,
+and are printed by every run.
 
 The repository's claim checks (\texttt{tools/verify\_claims.py}) separate the
 checks the current version must pass from historical ones. Eight historical claims
@@ -1112,7 +1127,7 @@ two findings at a multi-target site share an identifier.
 of 36 positive and 32 negative cases; v0.9.1 has 221 tests and fixture set v7 with
 34 positive and 34 negative cases (five narrow-type \texttt{contextlib.suppress}
 cases became negative and three other cases changed in the opposite direction).
-The current revision has 239 tests. Fixture agreement shows that the detector
+The current revision has 244 tests. Fixture agreement shows that the detector
 implements its specification, not that its findings are defects.
 
 \section{Measurement corrections and revision history}

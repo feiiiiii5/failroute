@@ -39,7 +39,7 @@ in a disposable `git worktree` (manuscript Appendix A.1).
 
 See [`audit-rerun-2026-11-03.md`](audit-rerun-2026-11-03.md) for commands,
 comparison scope and outcomes. In short, on Linux x86_64 / Python 3.13 with the
-tools at commit `3e19575`:
+tools at commit `8040aeb`:
 
 * Corpus 8/8. Both scans, and both four-tool per-finding coverage files (1,097
   rows), are byte-identical to the frozen exports. The frame delta, the E722/BLE001
@@ -48,7 +48,12 @@ tools at commit `3e19575`:
 * The historical path at `3b4c567` (disposable worktree, `.[test,paper]` only)
   gives byte-identical coverage files and rescan.
 * `tools/check_frozen_truth.py --corpus` checks the protected inputs by SHA-256
-  and rebuilds `intervals.json` and the three figures for a content comparison.
+  and rebuilds `intervals.json` and the three figures. A rebuilt figure must have
+  the same text tokens and the same drawn geometry (vector marks, marker
+  positions and decoded image cells relative to the axes area, read by
+  `tools/pdf_geometry.py`) within printed tolerances; text alone cannot see a
+  moved point or cell. Its regression tests need matplotlib and poppler's
+  `pdftotext`, so the project CI, which installs only `.[test]`, skips them.
 * `bench/benchmark-results.json`: corpus v7, 68 synthetic fixtures, 34 TP / 34 TN.
   This is agreement with synthetic fixtures, not real-code defect precision.
 * Claims: eight claims need commits absent from the public history (`6eb7973`,

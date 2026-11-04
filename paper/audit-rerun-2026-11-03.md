@@ -1,5 +1,12 @@
 # Re-execution record, 3–4 November 2026
 
+Final state: tools at commit `8040aeb`. On 4 November 2026 the test suite,
+`reproduce_paper.py`, `control_rescan.py --check`, `check_frozen_truth.py
+--corpus` and the full claim run were repeated on that commit. The hand checks
+listed under "Other checks" (BLE001 variant, all Ruff rules and default Pylint,
+handler counts, v0.9.1 rescan) were run on 3 November and not repeated; the
+historical path ran at commit `3b4c567`.
+
 This file records what was actually re-run for the 3 November 2026 manuscript
 revision, what is cited from earlier recorded runs, and what could not be re-run.
 It is a log, not a new result: no label, ledger or frozen export was changed.
@@ -9,12 +16,12 @@ Environment: Linux x86_64 (cloud container), CPython 3.13.18, toolchain from
 pylint 4.0.8, flake8 7.3.0 + bugbear 25.11.29, semgrep 1.175.0). The historical
 scans were run on macOS arm64.
 
-## 1. Current audit path (tools at commit 3e19575)
+## 1. Current audit path (tools at commit 8040aeb)
 
 ```sh
-git checkout 3e19575
+git checkout 8040aeb
 python tools/fetch_corpus.py           # "lock unchanged": all 8 package records match
-python -m pytest                       # 239 tests: 238 passed, 1 skipped (POSIX permission test; run as root)
+python -m pytest                       # 244 tests: 243 passed, 1 skipped (POSIX permission test; run as root)
 python tools/reproduce_paper.py --out-dir <new dir> --with-semgrep
 PYTHONPATH=src python tools/control_rescan.py --check
 python tools/benchmark.py --json
@@ -56,10 +63,25 @@ Other checks:
   The seven protected inputs match `paper/frozen-truth-sha256.json` (and the
   hashes already locked in `annotation-corrections.json` and
   `reference-audit.json`); `intervals.json` rebuilt from its inputs equals the
-  committed file apart from its timestamp; the three figures rebuilt with the
-  pinned matplotlib 3.11.1 are not byte-identical (two were made with 3.11.0, and
-  PDFs embed version, date and glyph placement) but carry identical text
-  content (56, 75 and 229 tokens).
+  committed file apart from its timestamp. Each of the three figures, rebuilt
+  with the pinned matplotlib 3.11.1, must match on two independent axes:
+  - text: identical text tokens (56, 75 and 229 tokens);
+  - drawn geometry (since commit 8040aeb, `tools/pdf_geometry.py`): vector marks,
+    scatter-marker positions and decoded image cells, relative to the axes area.
+    Measured against the committed figures (two written by matplotlib 3.11.0):
+    vector marks differ by at most 0.000414 of the axes width or height
+    (tolerance 0.001), image placement by at most 0.0046 (one pixel; tolerance
+    0.01), and 0.66 % of heatmap samples differ by more than 8/255 (cell-boundary
+    rows after resampling; tolerance 2 %).
+  The figure bytes are not identical (PDFs embed version, date and glyph
+  placement) and are not claimed to be.
+* Figure-check blind spot, found in review and fixed in 8040aeb: the earlier
+  check compared figure text only. Mirroring the figure-1 points, moving one
+  point by one unit, or reversing the figure-2 cell shading, each with every
+  label unchanged, passes a text-only comparison; each now fails the geometry
+  comparison (vector marks moved 0.93 and 0.0093 of the frame; 71.6 % of image
+  samples differ). These cases are regression tests. The committed figures were
+  not affected.
 * The v0.9.1 tag (worktree, its own exporter) also reproduces the 476-finding frame.
 * `coverage_union.py --ruff-select S110,S112,BLE001` on the 621 frame: union 255,
   ruff co-located 127, silent-suppress 0/19.
@@ -72,8 +94,9 @@ Other checks:
 ### Claim checks (`tools/verify_claims.py`, full run)
 
 First full run: 44 PASS, 8 HIST, 5 FAIL. After the probe fix described below, a
-second full run (slow claims included) gave **47 PASS, 8 HIST, 2 FAIL**, and left
-every tracked file unmodified.
+second full run (slow claims included) gave **47 PASS, 8 HIST, 2 FAIL**, and a
+third, on the final tools (commit 8040aeb), gave the same **47 PASS, 8 HIST,
+2 FAIL**; neither left any tracked file modified.
 
 * **HIST (historical, not independently reproducible; expectations unchanged):**
   `F1.red_replay`, `F1.baseline_repro` (need commit `50275e8`),
