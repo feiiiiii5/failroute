@@ -8,10 +8,16 @@ historical v0.8.0 scan runs from a disposable git worktree inside --out-dir.
 Steps (each prints PASS or FAIL, and the script exits non-zero on any FAIL):
 
   corpus       tools/fetch_corpus.py --verify: 8 trees and archive SHA-256 vs the lock
-  scan-v080    v0.8.0 detector from a worktree at tag v0.8.0  == bench/rescan-f2 (621)
-  scan-current current detector                                == bench/rescan-v2 (476)
+  scan-v080    v0.8.0 detector from a worktree at tag v0.8.0  == bench/rescan-f2 (621);
+               exported without context windows, as the frozen export was
+  scan-current current detector, with context windows       == bench/rescan-v2 (476)
   coverage     four selected lint baselines on both frozen frames; per-finding rows
                == bench/corpus-coverage-per-finding-{621,v2}.jsonl
+
+Comparison scope: scans and coverage rows are compared as whole JSON rows (every
+field, order-independent); each step also reports whether the files are
+byte-identical. The delta, E722 and probe outputs are compared as JSON with only
+their timestamp (and, for the probe matrix, interpreter path) ignored.
   delta        tools/rq5_refactor_delta.py on the fresh exports == bench/rq5-refactor-delta.json
   e722         tools/e722_baseline.py                       == bench/e722-baseline.json
   probes       tools/lint_mapping_probe.py --check-parity   == bench/lint-rule-mapping.json
@@ -52,22 +58,26 @@ def record(step: str, ok: bool | None, detail: str) -> None:
     print(f"[{status:7}] {step:12} {detail}", flush=True)
 
 
-def scan_keys(directory: Path) -> list[tuple]:
-    keys = []
-    for f in sorted(glob.glob(str(directory / "*.jsonl"))):
-        for line in open(f, encoding="utf-8"):
+def rows_of(paths: list[Path]) -> list[str]:
+    """Every row of every file, as canonical JSON, order-independent."""
+    out = []
+    for f in paths:
+        for line in f.read_text(encoding="utf-8").splitlines():
             if line.strip():
-                r = json.loads(line)
-                path = (r.get("file") or "").replace("\\", "/")
-                keys.append((Path(f).name, path, r.get("lineno"), r.get("rule") or r.get("rule_id")))
-    return sorted(keys)
+                out.append(f"{f.name}\t" + json.dumps(json.loads(line), sort_keys=True))
+    return sorted(out)
 
 
-def coverage_keys(path: Path) -> list[tuple]:
-    rows = [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
-    return sorted((r["repo"], r["file"].replace("\\", "/"), r["lineno"], r["rule"], r["failroute_only"],
-                   tuple(sorted(r["baseline_tools_colocated"])), json.dumps(r.get("covered_by_static")))
-                  for r in rows)
+def compare_files(fresh: list[Path], frozen: list[Path]) -> tuple[bool, bool, int]:
+    """(whole rows equal, files byte-identical, number of rows)."""
+    names_ok = [p.name for p in fresh] == [p.name for p in frozen]
+    a, b = rows_of(fresh), rows_of(frozen)
+    same_bytes = names_ok and all(x.read_bytes() == y.read_bytes() for x, y in zip(fresh, frozen))
+    return names_ok and a == b, same_bytes, len(a)
+
+
+def jsonl_dir(directory: Path) -> list[Path]:
+    return sorted(Path(p) for p in glob.glob(str(directory / "*.jsonl")))
 
 
 def same_json(a: Path, b: Path, ignore: tuple[str, ...]) -> list[str]:
@@ -91,14 +101,18 @@ def main() -> int:
         print(p.stdout + p.stderr)
         return 1
 
+    # bench/rescan-f2 was exported without context windows and bench/rescan-v2 with
+    # them; each recomputation uses the same export options as its frozen file.
     p = run([PY, "tools/pinned_rescan.py", "--ref", "v0.8.0", "--out", str(out / "scan-v080"),
-             "--worktree", str(out / "worktree-v080"), "--with-context"], timeout=7200)
-    ok = p.returncode == 0 and scan_keys(out / "scan-v080") == scan_keys(ROOT / "bench/rescan-f2")
-    record("scan-v080", ok, f"{len(scan_keys(out / 'scan-v080'))} findings vs bench/rescan-f2")
+             "--worktree", str(out / "worktree-v080")], timeout=7200)
+    rows_ok, bytes_ok, n = compare_files(jsonl_dir(out / "scan-v080"), jsonl_dir(ROOT / "bench/rescan-f2"))
+    record("scan-v080", p.returncode == 0 and rows_ok,
+           f"{n} findings vs bench/rescan-f2; whole rows equal={rows_ok}, bytes identical={bytes_ok}")
 
     p = run([PY, "tools/rescan_corpus.py", "--out", str(out / "scan-current"), "--with-context"], timeout=7200)
-    ok = p.returncode == 0 and scan_keys(out / "scan-current") == scan_keys(ROOT / "bench/rescan-v2")
-    record("scan-current", ok, f"{len(scan_keys(out / 'scan-current'))} findings vs bench/rescan-v2")
+    rows_ok, bytes_ok, n = compare_files(jsonl_dir(out / "scan-current"), jsonl_dir(ROOT / "bench/rescan-v2"))
+    record("scan-current", p.returncode == 0 and rows_ok,
+           f"{n} findings vs bench/rescan-v2; whole rows equal={rows_ok}, bytes identical={bytes_ok}")
 
     p = run([PY, "tools/reproduce_warning_coverage.py", "--out-dir", str(out / "coverage")], timeout=7200)
     if p.returncode != 0:
@@ -106,9 +120,15 @@ def main() -> int:
     else:
         for name, frozen in (("baseline", "621"), ("refined", "v2")):
             fresh = out / "coverage" / f"{name}-per-finding.jsonl"
-            a, b = coverage_keys(fresh), coverage_keys(ROOT / f"bench/corpus-coverage-per-finding-{frozen}.jsonl")
-            covered = sum(not k[4] for k in a)
-            record("coverage", a == b, f"{name}: {covered}/{len(a)} co-located, rows identical={a == b}")
+            stored = ROOT / f"bench/corpus-coverage-per-finding-{frozen}.jsonl"
+            rows_ok = rows_of([fresh]) == rows_of([stored]) if fresh.name == stored.name else (
+                sorted(r.split("\t", 1)[1] for r in rows_of([fresh]))
+                == sorted(r.split("\t", 1)[1] for r in rows_of([stored])))
+            bytes_ok = fresh.read_bytes() == stored.read_bytes()
+            rows = [json.loads(x) for x in fresh.read_text(encoding="utf-8").splitlines() if x.strip()]
+            covered = sum(not r["failroute_only"] for r in rows)
+            record("coverage", rows_ok, f"{name}: {covered}/{len(rows)} co-located; whole rows "
+                                        f"equal={rows_ok}, bytes identical={bytes_ok}")
 
     p = run([PY, "tools/rq5_refactor_delta.py", "--old", str(out / "coverage/baseline-per-finding.jsonl"),
              "--new", str(out / "coverage/refined-per-finding.jsonl"), "--out", str(out / "rq5.json")])

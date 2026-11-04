@@ -214,3 +214,68 @@ def test_delta_script_refuses_default_frozen_output():
     assert proc.returncode != 0
     assert "refusing to overwrite" in proc.stderr
     assert (ROOT / "bench/rq5-refactor-delta.json").read_bytes() == before
+
+
+def _frozen_truth():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("check_frozen_truth",
+                                                  ROOT / "tools/check_frozen_truth.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_frozen_truth_detects_changed_protected_bytes(tmp_path):
+    checker = _frozen_truth()
+    manifest = json.loads((ROOT / checker.MANIFEST).read_text(encoding="utf-8"))
+    (tmp_path / "paper").mkdir()
+    shutil.copyfile(ROOT / checker.MANIFEST, tmp_path / checker.MANIFEST)
+    for rel in manifest["files"]:
+        target = tmp_path / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / rel, target)
+    assert checker.changed_protected(tmp_path) == []
+    victim = tmp_path / "paper/annotations.csv"
+    data = victim.read_bytes()
+    victim.write_bytes(data.replace(b"DEFECT", b"CONTRACT", 1))  # one real label change
+    assert checker.changed_protected(tmp_path) == ["paper/annotations.csv"]
+    victim.write_bytes(data)
+    (tmp_path / "paper/sample.jsonl").unlink()  # a missing file is a change, not a pass
+    assert checker.changed_protected(tmp_path) == ["paper/sample.jsonl"]
+
+
+def test_frozen_truth_intervals_ignore_only_the_timestamp(tmp_path):
+    checker = _frozen_truth()
+    committed = json.loads((ROOT / "paper/intervals.json").read_text(encoding="utf-8"))
+    restamped = dict(committed, generated_at_utc8="2099-01-01 00:00:00")
+    (tmp_path / "a.json").write_text(json.dumps(restamped))
+    assert checker.same_intervals(ROOT / "paper/intervals.json", tmp_path / "a.json")
+    tampered = json.loads(json.dumps(committed))
+    tampered["cells"][0]["numerator"] += 1
+    (tmp_path / "b.json").write_text(json.dumps(tampered))
+    assert not checker.same_intervals(ROOT / "paper/intervals.json", tmp_path / "b.json")
+
+
+@pytest.mark.skipif(shutil.which("pdftotext") is None, reason="needs poppler's pdftotext")
+def test_frozen_truth_figure_rebuilt_from_changed_counts_differs(tmp_path):
+    pytest.importorskip("matplotlib")
+    checker = _frozen_truth()
+    for rel in ("tools/make_figures.py", "paper/intervals.json",
+                "bench/corpus-coverage-union-5tool.json", "paper/reference-audit.json"):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / rel, tmp_path / rel)
+    doc = json.loads((tmp_path / "paper/intervals.json").read_text(encoding="utf-8"))
+    cell = next(c for c in doc["cells"]
+                if c["group"] == "overall[pass1]" and c["label"] == "defect rate")
+    cell["numerator"] -= 1  # 12/80 -> 11/80: a real change to a plotted count
+    (tmp_path / "paper/intervals.json").write_text(json.dumps(doc), encoding="utf-8")
+    subprocess.run([sys.executable, str(tmp_path / "tools/make_figures.py"),
+                    "--out-dir", str(tmp_path / "out")], check=True, capture_output=True)
+    name = "fig1_llm_label_share_by_package.pdf"
+    assert checker.pdf_tokens(tmp_path / "out" / name) != checker.pdf_tokens(
+        ROOT / "paper/figures" / name)
+    # The unchanged figure still matches, so the difference above is the count.
+    other = "fig2_cross_tool_coverage.pdf"
+    assert checker.pdf_tokens(tmp_path / "out" / other) == checker.pdf_tokens(
+        ROOT / "paper/figures" / other)

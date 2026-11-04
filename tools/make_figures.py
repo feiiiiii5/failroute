@@ -36,7 +36,7 @@ def save(fig, name):
     fig.savefig(os.path.join(OUT, name + '.pdf'), bbox_inches='tight')
     fig.savefig(os.path.join(OUT, name + '.png'), dpi=PPI, bbox_inches='tight')
     plt.close(fig)
-    print('wrote paper/figures/%s.{pdf,png}' % name)
+    print('wrote %s.{pdf,png}' % os.path.join(os.path.relpath(OUT, ROOT), name))
 
 
 # ---------------------------------------------------------------- figure 1 ---
@@ -201,6 +201,13 @@ def figure3(_cells):
 
 
 def main():
+    global OUT
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('--out-dir', default=OUT,
+                    help='where to write the figures (default: paper/figures); use a new '
+                         'directory to rebuild them for comparison with the committed files')
+    OUT = os.path.abspath(ap.parse_args().out_dir)
     if not os.path.isdir(OUT):
         os.makedirs(OUT)
     iv = load('paper/intervals.json')

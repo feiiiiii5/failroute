@@ -448,7 +448,12 @@ def main():
             with open(args.out, encoding="utf-8") as fh:
                 prior = json.load(fh)
             prior_stamp = prior.pop("generated_at_utc8", None)
-            unchanged = json.dumps(prior, indent=2, ensure_ascii=False) == new_body
+            # The interpreter path is where the run happened, not what it measured;
+            # a matrix that differs only there is the same measurement.
+            def _measured(doc):
+                return json.dumps({k: v for k, v in doc.items() if k != "interpreter"},
+                                  indent=2, ensure_ascii=False)
+            unchanged = _measured(prior) == _measured(out)
             if unchanged:
                 stamp = prior_stamp or stamp
         except (ValueError, OSError):
