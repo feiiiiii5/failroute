@@ -467,4 +467,7 @@ includes a case where nothing was filed, is in [`docs/process.md`](docs/process.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Code and repository documentation are MIT licensed — see [LICENSE](LICENSE).
+The [manuscript](paper/arxiv/main.pdf) is licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), as stated in its
+Manuscript licence section. Third-party artefacts keep their own licences.

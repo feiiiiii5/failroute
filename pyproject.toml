@@ -39,7 +39,7 @@ test = ["pytest>=7"]
 # previously UNDECLARED, so a reviewer following ARTIFACT.md had to hand-install six
 # packages before the paper's own figures/coverage numbers would reproduce. Pinned to
 # the exact versions verified to reproduce the frozen numbers (four-tool union
-# 250/621 = 40.3%: ruff 72 / bandit 63 / pylint 245 / flake8 124; three figures).
+# 255/621 = 41.1%: ruff 72 / bandit 63 / pylint 255 / flake8 124; three figures).
 # Kept separate from [test] so the test install stays lean and the paper toolchain is
 # explicit. Reproduce with: pip install '.[test,paper]'.
 paper = [
