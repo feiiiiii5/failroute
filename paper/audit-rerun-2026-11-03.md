@@ -9,33 +9,57 @@ Environment: Linux x86_64 (cloud container), CPython 3.13.18, toolchain from
 pylint 4.0.8, flake8 7.3.0 + bugbear 25.11.29, semgrep 1.175.0). The historical
 scans were run on macOS arm64.
 
-## 1. Current audit path (tools in this revision)
+## 1. Current audit path (tools at commit 3e19575)
 
 ```sh
+git checkout 3e19575
 python tools/fetch_corpus.py           # "lock unchanged": all 8 package records match
-python -m pytest                       # 235 passed, 1 skipped (POSIX permission test; run as root)
+python -m pytest                       # 239 tests: 238 passed, 1 skipped (POSIX permission test; run as root)
 python tools/reproduce_paper.py --out-dir <new dir> --with-semgrep
 PYTHONPATH=src python tools/control_rescan.py --check
+python tools/benchmark.py --json
+python tools/check_frozen_truth.py --corpus
+python tools/verify_claims.py          # full run, slow claims included
 ```
 
-`reproduce_paper.py` output (abridged):
+`reproduce_paper.py` output, run of 4 November 2026. Comparison scope: scans
+and coverage rows are compared as whole JSON rows (every field,
+order-independent), and byte identity of the files is reported separately; the
+delta, E722 and probe outputs are compared as JSON with only their timestamp
+(and, for the probe matrix, the interpreter path) ignored.
 
 | Step | Status | Detail |
 |---|---|---|
 | corpus | PASS | 8/8 packages verified (archive SHA-256 and extracted-tree hash) |
-| scan-v080 | PASS | v0.8.0 from a disposable worktree at tag `v0.8.0`: 621 findings, identical to `bench/rescan-f2` |
-| scan-current | PASS | current detector: 476 findings, identical to `bench/rescan-v2` |
-| coverage | PASS | 255/621 and 252/476 co-located; all 1,097 per-finding rows identical to the frozen exports |
-| delta | PASS | `rq5_refactor_delta.py` recomputed from the fresh rows equals `bench/rq5-refactor-delta.json` |
-| e722 | PASS | 134 E722 and 334 BLE001 candidates; 12/12 and 0/12 original DEFECT labels |
-| probes | PASS | 68-probe matrix identical to `bench/lint-rule-mapping.json` apart from the interpreter path; parity exact |
+| scan-v080 | PASS | v0.8.0 from a disposable worktree at tag `v0.8.0`, exported without context windows as the frozen file was: 621 findings; every file byte-identical to `bench/rescan-f2` |
+| scan-current | PASS | current detector, with context windows: 476 findings; every file byte-identical to `bench/rescan-v2` |
+| coverage | PASS | 255/621 and 252/476 co-located; both per-finding files (1,097 rows) byte-identical to the frozen exports |
+| delta | PASS | `rq5_refactor_delta.py` recomputed from the fresh rows: JSON equal to `bench/rq5-refactor-delta.json` apart from its timestamp and input paths |
+| e722 | PASS | 134 E722 and 334 BLE001 candidates; 12/12 and 0/12 original DEFECT labels; JSON equal apart from its timestamp |
+| probes | PASS | 68-probe matrix equal to `bench/lint-rule-mapping.json` apart from the interpreter path; parity exact |
 | refix | PASS | 36 mapping tests: 21 fail on the reconstructed pre-fix predicate |
 | semgrep | PARTIAL | see section 3 |
 
-`control_rescan.py --check`: CHECK-OK for all eight control packages.
+An earlier run on 3 November compared scans on key fields only (package, file,
+line, rule) and requested context windows for the v0.8.0 scan, whose frozen file
+has none; the 4 November run above replaces it.
 
-Additional checks run by hand:
+Other checks:
 
+* `control_rescan.py --check`: CHECK-OK for all eight control packages.
+* `benchmark.py --json`: corpus v7, 68 synthetic fixtures, TP=34, TN=34, FP=0,
+  FN=0. This is agreement with hand-labelled synthetic fixtures, a regression
+  gate on the detector's specification; it is not defect precision on real code.
+  `bench/benchmark-results.json` (previously corpus v6, 36/32) was regenerated
+  from this run.
+* `check_frozen_truth.py --corpus`: `protected=0 derived_rebuilt_match=True`.
+  The seven protected inputs match `paper/frozen-truth-sha256.json` (and the
+  hashes already locked in `annotation-corrections.json` and
+  `reference-audit.json`); `intervals.json` rebuilt from its inputs equals the
+  committed file apart from its timestamp; the three figures rebuilt with the
+  pinned matplotlib 3.11.1 are not byte-identical (two were made with 3.11.0, and
+  PDFs embed version, date and glyph placement) but carry identical text
+  content (56, 75 and 229 tokens).
 * The v0.9.1 tag (worktree, its own exporter) also reproduces the 476-finding frame.
 * `coverage_union.py --ruff-select S110,S112,BLE001` on the 621 frame: union 255,
   ruff co-located 127, silent-suppress 0/19.
@@ -44,11 +68,39 @@ Additional checks run by hand:
   sites only `E501` (4 sites) and `C0301` (1 site), both line-length messages.
 * Handler counts by direct AST walk over the scan roots: 2,270 `except` handlers
   (main), 243 (control core), 842 (control, all eight).
-* `tools/verify_claims.py --skip-slow`: two claims fail, and fail identically on a
-  clean checkout of `origin/main` (f02d70c): `F1.delta_bound` needs commit
-  `6eb7973`, which is not in the public history, and
-  `V2.frozen_truth_untouched` refers to a figure file renamed in an earlier
-  revision. Neither expectation was changed.
+
+### Claim checks (`tools/verify_claims.py`, full run)
+
+First full run: 44 PASS, 8 HIST, 5 FAIL. After the probe fix described below, a
+second full run (slow claims included) gave **47 PASS, 8 HIST, 2 FAIL**, and left
+every tracked file unmodified.
+
+* **HIST (historical, not independently reproducible; expectations unchanged):**
+  `F1.red_replay`, `F1.baseline_repro` (need commit `50275e8`),
+  `F1.corpus_delta`, `F1.delta_bound`, `F2.corpus_delta` (need `6eb7973`),
+  `F2.truth_check` (needs `6eb7973` and the companion repository),
+  `F2.ablation_no_fixed_loss`, `F3.truth_f3_154` (need the companion
+  repository). Neither commit is in any branch or tag after a full unshallow
+  fetch, GitHub reports "No commit found for SHA" for both, and a commit search
+  finds neither: the F-batch history was rewritten before publication. The
+  companion repository (`contractlens`) is unreleased.
+* **Public re-derivations, all PASS:** `F1.red_replay_public`,
+  `F1.baseline_repro_public` (public commit `06eba40`, pre-F1),
+  `F1.corpus_delta_public`, `F1.delta_bound_public`, `F2.corpus_delta_public`
+  (public commit `82734d1`, post-F1). They reproduce the recorded expectations
+  on public code; they do not prove that the trees equal the lost commits.
+* **FAIL, expected:** `F3.union_old_5tool_repro` and `F3.union_new_5tool`
+  require an error-free five-tool Semgrep run, which the strict harness refuses
+  (section 3). The diagnostic observes their expected values, 284/649 (upper
+  bound 285) and 274/621 (upper bound 275).
+* The three `V3` probe claims failed in the first full run because the new
+  overwrite guard treated a different interpreter path in the probe matrix as a
+  content change. `lint_mapping_probe.py` now ignores the interpreter path as it
+  ignores the timestamp; all nine `v3` claims pass and the tracked matrix is
+  untouched.
+* `V2.frozen_truth_untouched` previously compared file modification times and
+  named two renamed figures, so it failed on every checkout. It now runs
+  `check_frozen_truth.py --corpus` and passes.
 
 ## 2. Historical path (commit 3b4c567)
 
@@ -70,8 +122,9 @@ python tools/coverage_union.py --findings-dir bench/rescan-v2 --out <tmp>/h-unio
 ```
 
 Results: both coverage runs exit 0 in about 42 s each, giving 255/621 (41.1%) and
-252/476 (52.9%), and every per-finding row (621 and 476) is identical to
-`bench/corpus-coverage-per-finding-621.jsonl` and `-v2.jsonl`.
+252/476 (52.9%). Both per-finding files are byte-identical to
+`bench/corpus-coverage-per-finding-621.jsonl` and `-v2.jsonl`, and all eight
+rescan files are byte-identical to `bench/rescan-v2`.
 
 Practical note: a first attempt that symlinked `paper/corpus` from another
 checkout into the worktree made Pylint's parallel run stall for more than 20
@@ -98,6 +151,9 @@ through its default `.semgrepignore` (no detector finding in that file).
   `bench/corpus-coverage-union-5tool.json`. One unmatched finding lies in the
   partially analysed file (`_reasoning.py:193`), so the upper bound is 275.
 * 476-finding frame: 267/476, no finding in the affected file.
+* 649-finding v0.7.0 frame (`paper/scan`, used by `F3.union_old_5tool_repro`):
+  four-tool 258, with Semgrep 284 (26 newly: 25 `silent-suppress`, 1
+  `silent-fallback`), upper bound 285 for the same `_reasoning.py:193` finding.
 
 The strict harness (`coverage_union.py --with-semgrep`,
 `reproduce_warning_coverage.py --with-semgrep`) still refuses this run, by design.
@@ -114,13 +170,13 @@ error-free reproduction.
 
 ## 5. Bibliography checks
 
-Direct access to arxiv.org, doi.org, api.crossref.org and dblp.org was blocked
-by the session's network policy; the following were confirmed through
-search-index copies of the authoritative listings and should be re-checked on
-the live pages before upload:
+* `do2022`: the first author's family name is "Nguyen Quang Do", as on the
+  author's own website (checked online 2026-11-04) and in her DBLP author record;
+  IEEE TSE 48(3):835–847, 2022, DOI 10.1109/TSE.2020.3004525. The earlier entry
+  rendered the surname as "Do".
+* `masters2026rolloutcards`: the official arXiv page lists version 1 as current
+  (checked online 2026-11-04); the entry is pinned to arXiv:2605.12131v1 [cs.AI],
+  submitted 12 May 2026.
 
-* `do2022`: DBLP author record "Lisa Nguyen Quang Do" (pid 183/1600); IEEE TSE
-  48(3):835–847, 2022, DOI 10.1109/TSE.2020.3004525. The family name is
-  "Nguyen Quang Do"; the earlier entry rendered it as "Do".
-* `masters2026rolloutcards`: arXiv:2605.12131v1 [cs.AI], submitted 12 May 2026,
-  the only version indexed. Pinned to v1.
+The cloud session that ran the audit could not reach arxiv.org or dblp.org
+directly; the two online checks above were made outside it.

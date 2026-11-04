@@ -786,12 +786,12 @@ HIGH with empty \texttt{covered\_by} & 25 & 2 & 5 \\
 \subsection{Summary of evidential status}
 
 Table~\ref{tab:status} states, for each headline result, whether it was
-re-executed in the 2026-11-03 audit, is cited from an earlier recorded run, or
+re-executed in the audit of 3--4 November 2026, is cited from an earlier recorded run, or
 could not be re-run. Nothing in the table is a defect-detection measurement.
 
 \begin{table}[htbp]
 \centering\small
-\caption{Evidential status of the reported results (audit of 2026-11-03).}
+\caption{Evidential status of the reported results (audit of 3--4 November 2026).}
 \label{tab:status}
 \begin{tabular}{@{}P{6.0cm}P{2.6cm}P{5.6cm}@{}}
 \toprule
@@ -800,17 +800,18 @@ Result & Status & Note \\
 8 pinned archives and extracted trees match the lock & re-executed &
 SHA-256 and tree hashes, fresh download \\
 621-finding frame (v0.8.0) and 476-finding frame (v0.9.1, current) &
-re-executed & identical to frozen exports, finding by finding \\
-Four-tool co-location, both frames (255/621, 252/476) & re-executed & all
-1{,}097 per-finding rows identical, with both the current tools and commit
-\texttt{3b4c567} \\
+re-executed & output files byte-identical to the frozen exports \\
+Four-tool co-location, both frames (255/621, 252/476) & re-executed &
+per-finding files (1{,}097 rows) byte-identical, with both the current tools and
+commit \texttt{3b4c567} \\
 Frame delta, denominator decomposition & re-executed & recomputed from the
-fresh per-finding rows \\
+fresh rows; JSON equal apart from its timestamp \\
 68-probe matrix, mapping parity, 21/36 replay & re-executed & matrix identical
 apart from the interpreter path \\
 19 suppress sites vs.\ all Ruff rules and default Pylint & re-executed &
 only line-length messages nearby \\
-E722 and BLE001 candidate counts & re-executed & 134 and 334 \\
+E722 and BLE001 candidate counts & re-executed & 134 and 334; JSON equal apart
+from its timestamp \\
 Control-corpus scans & re-executed & 8/8 packages match the committed exports \\
 Semgrep five-tool co-location (274/621) & partial & observed 274, bound 275;
 one file partially parsed \\
@@ -818,6 +819,8 @@ Pylint directory-invocation counts (250/621) & cited & recorded at commit
 \texttt{3b4c567}; superseded \\
 Control-corpus code readings; LLM labels; maintainer records & cited & single
 recorded passes; LLM provenance unrecoverable \\
+Claim checks needing unpublished commits or the companion repository &
+historical & 8 claims, reported HIST; 5 re-derived on public commits \\
 Defect precision or recall & not measured & requires independent adjudication \\
 \bottomrule
 \end{tabular}
@@ -995,47 +998,65 @@ cd - && git worktree remove --force ../failroute-3b4c567
 Fetch the corpus into the worktree rather than symlinking it from another
 checkout: through a symlink, Pylint's parallel run stalled for over 20 minutes on
 one package that otherwise takes seconds. On 4 November 2026 this path gave
-255/621 and 252/476 with every per-finding row identical to the committed
-exports. At that commit, \texttt{tools/rq5\_refactor\_delta.py} has no output option and
+255/621 and 252/476, with the per-finding files and the rescan byte-identical
+to the committed exports. At that commit, \texttt{tools/rq5\_refactor\_delta.py} has no output option and
 writes \texttt{bench/rq5-refactor-delta.json}; inside the disposable tree that
 overwrite is harmless and can be compared with \texttt{git diff}.
 
 \subsection{Current audit}
 \label{sec:repro-current}
 
-The current audit tooling is fixed at commit \texttt{b88cbad} (3 November 2026),
-the first commit that contains all of it; later commits do not change the
-behaviour of these tools. It adds a guard
+The current audit tooling was introduced in commit \texttt{b88cbad} (3 November
+2026) and completed in commit \texttt{3e19575} (4 November 2026), which adds
+whole-row comparison, a content check of the frozen artefacts and the separation
+of historical claims; later commits change only the manuscript and
+documentation. It adds a guard
 (\texttt{tools/\_frozen\_guard.py}) that makes the analysis scripts refuse to
 overwrite a git-tracked output unless \texttt{-{}-allow-overwrite-frozen} is
 given; a fetch that reproduces the lock leaves the lock file untouched. One
 command runs every executable check into a new directory and compares each
 output with the frozen file:
 \begin{verbatim}
-git checkout b88cbad
+git checkout 3e19575
 python -m venv .venv && . .venv/bin/activate
 pip install '.[test,paper,paper-semgrep]'
 python tools/fetch_corpus.py                    # lock unchanged if it matches
-python -m pytest                       # 236 tests; as root 235 pass, 1 skips
+python -m pytest                       # 239 tests; as root 238 pass, 1 skips
 python tools/reproduce_paper.py --out-dir /tmp/failroute-audit --with-semgrep
 \end{verbatim}
 The steps are: corpus verification; the v0.8.0 scan from a disposable worktree at
 tag \texttt{v0.8.0}; the current scan; four-tool coverage on both frames; the
 frame delta recomputed from the fresh rows; the E722/BLE001 counts; the 68-probe
 matrix with parity check; the mapping-test replay; and, with
-\texttt{-{}-with-semgrep}, the Semgrep diagnostic. Every step except the last
+\texttt{-{}-with-semgrep}, the Semgrep diagnostic. Scan and coverage outputs are
+compared as whole JSON rows and checked for byte identity; the delta, E722 and
+probe outputs are compared as JSON with only timestamps and the interpreter path
+ignored. Every step except the last
 must report PASS; the Semgrep step reports PARTIAL while Semgrep records an
-analysis error. On 3 November 2026, on Linux x86\_64 with Python 3.13, all eight
-non-Semgrep steps passed and the Semgrep step reported PARTIAL with the values in
+analysis error. On 4 November 2026, on Linux x86\_64 with Python 3.13, all eight
+non-Semgrep steps passed, with both scans and both coverage files byte-identical
+to the frozen exports, and the Semgrep step reported PARTIAL with the values in
 Section~\ref{sec:rq2}. The control corpus is checked separately with
 \texttt{PYTHONPATH=src python tools/control\_rescan.py -{}-check}, which passed for
 all eight packages.
 
+The repository's claim checks (\texttt{tools/verify\_claims.py}) separate the
+checks the current version must pass from historical ones. Eight historical claims
+cannot be re-run from public artefacts: six need commits \texttt{6eb7973} or
+\texttt{50275e8}, which were lost when the history of one development batch was
+rewritten before publication, and two need an unreleased companion repository.
+They are reported as \texttt{HIST}, never as passing, with their expectations
+unchanged. For five of them, the same expectation is re-derived on the public
+commits that play the same roles (\texttt{06eba40}, \texttt{82734d1}), which
+shows that public code reproduces the recorded results but not that the trees are
+identical. Two further slow claims fail as expected: they demand an error-free
+five-tool Semgrep run, which the strict harness refuses (Section~\ref{sec:rq2}).
+
 \subsection{Execution notes}
 The historical corpus scans were run on macOS arm64; the CI matrix (Ubuntu, macOS
 and Windows; Python 3.9--3.13) runs the test suite, not the corpus scans. The
-2026-11-03 re-execution on Linux x86\_64 reproduced the historical outputs
-exactly. The v0.8.0 scanner exits with status 1 when it reports findings even if
+re-execution of 3--4 November 2026 on Linux x86\_64 reproduced the historical
+outputs exactly. The v0.8.0 scanner exits with status 1 when it reports findings even if
 the scan succeeded; the 0.9.x scanner separates severity and error exit
 statuses. Three pipeline scripts are deliberately not part of either path because
 they overwrite hand-curated artefacts: \texttt{draw\_sample.py},
@@ -1091,7 +1112,7 @@ two findings at a multi-target site share an identifier.
 of 36 positive and 32 negative cases; v0.9.1 has 221 tests and fixture set v7 with
 34 positive and 34 negative cases (five narrow-type \texttt{contextlib.suppress}
 cases became negative and three other cases changed in the opposite direction).
-The current revision has 236 tests. Fixture agreement shows that the detector
+The current revision has 239 tests. Fixture agreement shows that the detector
 implements its specification, not that its findings are defects.
 
 \section{Measurement corrections and revision history}
@@ -1341,7 +1362,7 @@ judgements or detection outcomes; pooled ratios are withdrawn.}
   audit; historical classifications are superseded where the audit qualifies
   them.
 \item \texttt{paper/audit-rerun-2026-11-03.md} --- the commands and outcomes of
-  the 2026-11-03 re-execution.
+  the re-execution of 3--4 November 2026.
 \end{itemize}
 \par}
 

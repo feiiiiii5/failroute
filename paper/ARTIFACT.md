@@ -35,17 +35,33 @@ The historical numerical archive is commit `3b4c567`. It predates the scripts
 above, and several of its scripts write into tracked files, so reproduce it only
 in a disposable `git worktree` (manuscript Appendix A.1).
 
-### Audit execution status (3 November 2026)
+### Audit execution status (3–4 November 2026)
 
-See [`audit-rerun-2026-11-03.md`](audit-rerun-2026-11-03.md) for commands and
-outcomes. In short: corpus 8/8, both frames, all 1,097 four-tool per-finding rows,
-the frame delta, E722/BLE001, the 68-probe matrix and the replay were re-executed
-on Linux x86_64 / Python 3.13 and match the frozen files. Semgrep 1.175.0 records
-a syntax error at `inspect_ai/model/_reasoning.py:62` and analyses that file
-only partially; `tools/semgrep_diagnostic.py` observes 274/621 (upper bound 275)
-and 267/476. Do not suppress this error to obtain a "complete" five-tool count.
-The old `run_semgrep_baseline.py` and `semgrep_detail.py` read historical frames
-and are not reproduction entrypoints.
+See [`audit-rerun-2026-11-03.md`](audit-rerun-2026-11-03.md) for commands,
+comparison scope and outcomes. In short, on Linux x86_64 / Python 3.13 with the
+tools at commit `3e19575`:
+
+* Corpus 8/8. Both scans, and both four-tool per-finding coverage files (1,097
+  rows), are byte-identical to the frozen exports. The frame delta, the E722/BLE001
+  counts and the 68-probe matrix are equal as JSON apart from timestamps and the
+  interpreter path. The mapping replay fails 21/36, as recorded.
+* The historical path at `3b4c567` (disposable worktree, `.[test,paper]` only)
+  gives byte-identical coverage files and rescan.
+* `tools/check_frozen_truth.py --corpus` checks the protected inputs by SHA-256
+  and rebuilds `intervals.json` and the three figures for a content comparison.
+* `bench/benchmark-results.json`: corpus v7, 68 synthetic fixtures, 34 TP / 34 TN.
+  This is agreement with synthetic fixtures, not real-code defect precision.
+* Claims: eight claims need commits absent from the public history (`6eb7973`,
+  `50275e8`) or the unreleased companion repository. They are reported as `HIST`
+  with unchanged expectations; five are re-derived on public commits
+  (`06eba40`, `82734d1`) by separate `*_public` claims.
+* Semgrep 1.175.0 records a syntax error at `inspect_ai/model/_reasoning.py:62`
+  and analyses that file only partially, while printing "Scan completed
+  successfully". `tools/semgrep_diagnostic.py` observes 274/621 (upper bound
+  275), 267/476 and 284/649 (upper bound 285). Do not suppress this error to
+  obtain a "complete" five-tool count; the two claims that require one fail as
+  expected. The old `run_semgrep_baseline.py` and `semgrep_detail.py` read
+  historical frames and are not reproduction entrypoints.
 
 Note on "68": the 68 generated lint probes (`tools/lint_mapping_probe.py`) are a
 different object from the detector's 68 unit fixtures (34 positive / 34 negative,
