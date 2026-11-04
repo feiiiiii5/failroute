@@ -450,8 +450,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.lock.exists():
         try:
             prior = json.loads(args.lock.read_text(encoding="utf-8"))
-        except ValueError:
-            prior = {}
+        except ValueError:  # failroute: ignore -- an unreadable lock counts as "changed",
+            prior = {}      # which routes to guard_output below and refuses the overwrite
         if not failures and prior.get("packages") == merged and prior.get("totals") == lock["totals"]:
             print(f"\nlock unchanged: {args.lock} (all package records match; file not rewritten)")
             return 0

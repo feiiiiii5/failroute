@@ -1004,8 +1004,8 @@ overwrite is harmless and can be compared with \texttt{git diff}.
 \label{sec:repro-current}
 
 The current audit tooling is fixed at commit \texttt{b88cbad} (3 November 2026),
-the first commit that contains all of it; later commits change only the manuscript
-and documentation. It adds a guard
+the first commit that contains all of it; later commits do not change the
+behaviour of these tools. It adds a guard
 (\texttt{tools/\_frozen\_guard.py}) that makes the analysis scripts refuse to
 overwrite a git-tracked output unless \texttt{-{}-allow-overwrite-frozen} is
 given; a fetch that reproduces the lock leaves the lock file untouched. One
