@@ -615,11 +615,14 @@ it. For example, \texttt{garak/analyze/ci\_calculator.py:40} is a literal
 \texttt{except (ValueError, TypeError): pass}; the old mapping called it covered,
 and all four baselines report nothing on that file.
 
-Correcting the mapping removes credit from 146 findings (all
-\texttt{no-action}) and adds it to 3; the predicted unmatched count rises from
+Correcting the mapping removes rule credits from 146 findings (all
+\texttt{no-action}): 137 lose all predicted coverage and nine retain at least
+one credit. Three of those nine also gain credits for other rules, leaving their
+union coverage unchanged. The predicted unmatched count therefore rises from
 87 to 224, a correction of \textbf{28.8 percentage points}. The detector's output
-is the same 476 findings before and after, and the executed co-location is the
-same 252 covered and 224 unmatched: only the attribution changed. After the
+is the same 476 findings before and after. Holding the corrected read set fixed,
+the executed co-location remains 252 covered and 224 unmatched: only the
+attribution changed. After the
 correction, the predicted mapping and executed co-location agree on all 476
 findings. Five findings had initially disagreed; all five were in files that the
 directory-based Pylint invocation had not analysed, so the residual disagreement
