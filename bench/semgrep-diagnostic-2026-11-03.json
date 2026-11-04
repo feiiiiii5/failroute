@@ -1,0 +1,102 @@
+{
+  "semgrep_version": "1.175.0",
+  "rules": "tools/semgrep-rules/exception-handling.yaml",
+  "line_tolerance": 1,
+  "packages": {
+    "garak": {
+      "results": 15,
+      "errors": [],
+      "py_files": 201,
+      "py_files_scanned": 201,
+      "py_files_not_scanned": []
+    },
+    "inspect_ai": {
+      "results": 343,
+      "errors": [
+        {
+          "type": "Syntax error",
+          "level": "warn",
+          "path": "paper/corpus/inspect_ai-0.3.260/src/inspect_ai/model/_reasoning.py",
+          "message": "Syntax error at line paper/corpus/inspect_ai-0.3.260/src/inspect_ai/model/_reasoning.py:62:"
+        }
+      ],
+      "py_files": 755,
+      "py_files_scanned": 755,
+      "py_files_not_scanned": []
+    },
+    "pydantic_ai_slim": {
+      "results": 102,
+      "errors": [],
+      "py_files": 298,
+      "py_files_scanned": 298,
+      "py_files_not_scanned": []
+    },
+    "uqlm": {
+      "results": 13,
+      "errors": [],
+      "py_files": 91,
+      "py_files_scanned": 91,
+      "py_files_not_scanned": []
+    },
+    "trl": {
+      "results": 27,
+      "errors": [],
+      "py_files": 155,
+      "py_files_scanned": 155,
+      "py_files_not_scanned": []
+    },
+    "smolagents": {
+      "results": 14,
+      "errors": [],
+      "py_files": 20,
+      "py_files_scanned": 20,
+      "py_files_not_scanned": []
+    },
+    "deepteam": {
+      "results": 165,
+      "errors": [],
+      "py_files": 588,
+      "py_files_scanned": 587,
+      "py_files_not_scanned": [
+        "paper/corpus/deepteam-1.0.9/deepteam/tests/test_core/test_vulnerabilities/test_hallucination.py"
+      ]
+    },
+    "fickling": {
+      "results": 6,
+      "errors": [],
+      "py_files": 16,
+      "py_files_scanned": 16,
+      "py_files_not_scanned": []
+    }
+  },
+  "frames": {
+    "baseline": {
+      "per_finding_export": "bench/corpus-coverage-per-finding-621.jsonl",
+      "findings": 621,
+      "four_tool_covered": 255,
+      "semgrep_colocated": 19,
+      "newly_covered_by_semgrep": {
+        "silent-fallback": 1,
+        "silent-suppress": 18
+      },
+      "five_tool_covered_observed": 274,
+      "uncovered_findings_in_partial_or_unscanned_files": [
+        "paper/corpus/inspect_ai-0.3.260/src/inspect_ai/model/_reasoning.py:193 (silent-fallback)"
+      ],
+      "five_tool_covered_upper_bound": 275
+    },
+    "refined": {
+      "per_finding_export": "bench/corpus-coverage-per-finding-v2.jsonl",
+      "findings": 476,
+      "four_tool_covered": 252,
+      "semgrep_colocated": 15,
+      "newly_covered_by_semgrep": {
+        "silent-suppress": 15
+      },
+      "five_tool_covered_observed": 267,
+      "uncovered_findings_in_partial_or_unscanned_files": [],
+      "five_tool_covered_upper_bound": 267
+    }
+  },
+  "status": "PARTIAL: Semgrep reported errors; five-tool counts are bounded, not reproduced"
+}

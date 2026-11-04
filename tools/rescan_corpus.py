@@ -92,6 +92,11 @@ def main() -> int:
         help="attach the same context_before/context_after/function_signature "
         "windows the CLI's --export-findings writes (needed for annotation)",
     )
+    parser.add_argument(
+        "--allow-overwrite-frozen",
+        action="store_true",
+        help="permit writing over committed exports such as bench/rescan-v2 (see tools/_frozen_guard.py)",
+    )
     args = parser.parse_args()
 
     lock_path = ROOT / "paper" / "corpus-lock.json"
@@ -124,6 +129,9 @@ def main() -> int:
     out_dir = Path(args.out)
     if not out_dir.is_absolute():
         out_dir = ROOT / out_dir
+    from _frozen_guard import guard_dir  # noqa: PLC0415
+
+    guard_dir(out_dir, [f"{p['name']}.jsonl" for p in lock["packages"]], args.allow_overwrite_frozen)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     total = 0

@@ -197,7 +197,14 @@ parser.add_argument('--ruff-select', default='S110,S112',
                     help="rule set ruff is invoked with (default: the paper's S110,S112). "
                          "S batch: pass 'S110,S112,BLE001' to give ruff its broad-except "
                          "rule, symmetric to the pylint W0703 the other baselines already get.")
+parser.add_argument('--allow-overwrite-frozen', action='store_true',
+                    help='permit writing over a committed output (see tools/_frozen_guard.py)')
 args = parser.parse_args()
+from _frozen_guard import guard_output
+
+guard_output(args.out, args.allow_overwrite_frozen)
+if args.emit_per_finding:
+    guard_output(args.emit_per_finding, args.allow_overwrite_frozen)
 RUFF_SELECT = args.ruff_select
 if args.with_semgrep:
     if not os.path.exists(SG):

@@ -37,7 +37,13 @@
   "value": "SURVIVED 检出 72→71（少报的 1 条本身是 SURVIVED=疑似误报，属精度改善）；FIXED 检出 0→0",
   "cmd": ".venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f3-truth >/dev/null && git -C \"${CONTRACTLENS_ROOT}\" show b5efe7d299aaea9a78dc8a77cf314a397c393652:data/dataset.jsonl > /tmp/fr-f3-dataset.jsonl && PYTHONPATH=src .venv/bin/python tools/truth_probe_check.py --mode f3 --dataset /tmp/fr-f3-dataset.jsonl --base paper/scan --new /tmp/fr-f3-truth 2>&1 | /usr/bin/grep -E 'SUMMARY|RECALL_GATE'",
   "expect": "SUMMARY SURVIVED: sites=145 detected_old=72 detected_new=71\\nSUMMARY FIXED: sites=9 detected_old=0 detected_new=0\\nRECALL_GATE PASS",
-  "slow": true
+  "slow": true,
+  "historical": {
+   "reason": "Needs the unreleased companion repository at CONTRACTLENS_ROOT (commit b5efe7d, data/dataset.jsonl), which is not publicly available, so this claim cannot be re-run from the public artefacts. The expectation is kept unchanged as historical evidence.",
+   "requires_env_paths": [
+    "CONTRACTLENS_ROOT"
+   ]
+  }
  },
  {
   "id": "F3.recall_gate_no_drop",

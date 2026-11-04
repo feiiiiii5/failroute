@@ -99,6 +99,15 @@ def main() -> int:
             print(f"  {kind}: {item}")
 
     if args.json:
+        # The file is quoted alongside the paper; state what the 1.0 is about so it
+        # cannot be read as precision on real code.
+        report["fixtures"] = report["true_positives"] + report["true_negatives"] + len(
+            report["false_positives"]) + len(report["false_negatives"])
+        report["scope"] = (
+            "Agreement with hand-labelled synthetic fixtures in tests/corpus (a regression "
+            "gate on the detector's own specification). It is not defect precision or recall "
+            "on real code, which this project has not measured."
+        )
         out = REPO_ROOT / "bench" / "benchmark-results.json"
         out.parent.mkdir(exist_ok=True)
         out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

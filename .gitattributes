@@ -6,3 +6,6 @@ paper/annotations.csv -text
 paper/annotations-second-pass.csv -text
 paper/annotations-v2-additions.csv -text
 paper/merged-pr-recall.csv -text
+# Protected inputs hashed by tools/check_frozen_truth.py (paper/frozen-truth-sha256.json).
+paper/sample.jsonl -text
+paper/corpus-lock.json -text
