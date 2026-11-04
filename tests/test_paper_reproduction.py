@@ -157,6 +157,9 @@ def test_frozen_evidence_survives_autocrlf_checkout(tmp_path):
     audit = json.loads((ROOT / "paper/reference-audit.json").read_text())
     expected = dict(annotations["frozen_sha256"])
     expected[audit["historical_source"]] = audit["historical_sha256"]
+    # Every input check_frozen_truth.py hashes must also keep its bytes.
+    manifest = json.loads((ROOT / "paper/frozen-truth-sha256.json").read_text(encoding="utf-8"))
+    expected.update({rel: entry["sha256"] for rel, entry in manifest["files"].items()})
     repository = tmp_path / "repository"
     repository.mkdir()
     (repository / ".gitattributes").write_bytes((ROOT / ".gitattributes").read_bytes())

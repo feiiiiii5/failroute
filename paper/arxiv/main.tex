@@ -1009,8 +1009,8 @@ overwrite is harmless and can be compared with \texttt{git diff}.
 The current audit tooling was introduced in commit \texttt{b88cbad} (3 November
 2026) and completed in commit \texttt{3e19575} (4 November 2026), which adds
 whole-row comparison, a content check of the frozen artefacts and the separation
-of historical claims; later commits change only the manuscript and
-documentation. It adds a guard
+of historical claims; later commits do not change the audit tools. It adds a
+guard
 (\texttt{tools/\_frozen\_guard.py}) that makes the analysis scripts refuse to
 overwrite a git-tracked output unless \texttt{-{}-allow-overwrite-frozen} is
 given; a fetch that reproduces the lock leaves the lock file untouched. One
