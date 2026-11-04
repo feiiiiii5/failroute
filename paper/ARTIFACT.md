@@ -15,42 +15,41 @@ manuscript; older paragraphs here record prior versions, not current endorsement
   the actual label process. Its replacement is proposed, not yet human-executed.
 - The current Figure 3 reads the audit sidecar and reports no pooled rate.
 
-Safe warning-coverage remeasurement from this revision:
+Re-execution from this revision (writes only to a new directory):
 
 ```sh
 pip install '.[test,paper,paper-semgrep]'
-python tools/fetch_corpus.py
-python tools/reproduce_warning_coverage.py --with-semgrep --out-dir /tmp/failroute-new
-python -m pytest tests/test_paper_reproduction.py
+python tools/fetch_corpus.py            # leaves paper/corpus-lock.json untouched if it matches
+python tools/reproduce_paper.py --out-dir /tmp/failroute-audit --with-semgrep
+PYTHONPATH=src python tools/control_rescan.py --check
 ```
 
-Choose a new output directory. The command uses the frozen 621/476 candidate
-frames and runs the selected baselines; it does not regenerate candidate labels.
-The fifth baseline uses the project's own rules, not Semgrep's shipped defaults.
-The old `run_semgrep_baseline.py` and `semgrep_detail.py` overwrite historical
-files and are not the current reproduction entrypoints.
+`reproduce_paper.py` verifies the corpus, re-scans with v0.8.0 (disposable
+worktree at the tag) and with the current detector, re-runs the four selected
+baselines on both frozen frames, recomputes the frame delta, the E722/BLE001
+counts, the 68-probe matrix and the mapping-test replay, and compares each output
+with the committed file. Analysis scripts refuse to overwrite git-tracked outputs
+unless `--allow-overwrite-frozen` is passed (`tools/_frozen_guard.py`).
 
-### Audit execution status
+The historical numerical archive is commit `3b4c567`. It predates the scripts
+above, and several of its scripts write into tracked files, so reproduce it only
+in a disposable `git worktree` (manuscript Appendix A.1).
 
-The eight corpus archives were fetched anew with all manifest SHA-256 checks
-passing (Linux, Python 3.12). The five-tool run correctly stops on a Semgrep
-1.175.0 syntax error in `inspect_ai/model/_reasoning.py:62` (`effort` unexpected).
-The historical five-tool figures therefore are not claimed as an error-free
-end-to-end reproduction in this audit. Do not suppress this error to obtain
-matching headline counts. Omit `--with-semgrep` for the four-tool run.
+### Audit execution status (3 November 2026)
 
-The completed four-tool run reproduced 621/255/366 and 476/252/224.
-All 1,097 per-finding rows matched the frozen exports exactly. A separate
-Semgrep check restricted to the five files containing the 19 silent-suppress
-candidates completed without parser errors and matched 18/19; this narrow
-check does not repair the full-corpus failure or validate other Semgrep counts.
+See [`audit-rerun-2026-11-03.md`](audit-rerun-2026-11-03.md) for commands and
+outcomes. In short: corpus 8/8, both frames, all 1,097 four-tool per-finding rows,
+the frame delta, E722/BLE001, the 68-probe matrix and the replay were re-executed
+on Linux x86_64 / Python 3.13 and match the frozen files. Semgrep 1.175.0 records
+a syntax error at `inspect_ai/model/_reasoning.py:62` and analyses that file
+only partially; `tools/semgrep_diagnostic.py` observes 274/621 (upper bound 275)
+and 267/476. Do not suppress this error to obtain a "complete" five-tool count.
+The old `run_semgrep_baseline.py` and `semgrep_detail.py` read historical frames
+and are not reproduction entrypoints.
 
-Local validation: 233 tests passed on Python 3.12, source coverage 89.84%,
-Ruff and mypy passed, and all 68 constructed benchmark fixtures passed.
-Repository self-scan excluding the fetched external corpus and intentionally
-faulty fixtures had zero HIGH findings and one pre-existing MEDIUM finding
-in `tools/lint_mapping_probe.py`. These are implementation checks, not empirical
-validation of defect labels. The rebuilt manuscript has 26 pages.
+Note on "68": the 68 generated lint probes (`tools/lint_mapping_probe.py`) are a
+different object from the detector's 68 unit fixtures (34 positive / 34 negative,
+fixture set v7).
 
 ## Historical reproduction log
 

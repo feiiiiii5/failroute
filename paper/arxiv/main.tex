@@ -1,14 +1,14 @@
-%% Failure-Routing in AI/ML Python Except-Handlers: Corpus Measurements and
-%% Validation Limits
+%% Measuring What a Failure-Routing Detector Adds:
+%% Representation, File Discovery and Denominators in AI/ML Python
 %%
 %% Reported counts are derived from committed artefacts in the accompanying
-%% repository: the reference-set ledger, the two label sets, the arm-3 closure
-%% ledger, and the scan exports under bench/. All are itemised, with commands,
-%% in "Reproduction and artefacts". The paper reports descriptive counts.
+%% repository (the pinned corpus locks, the frozen scan and coverage exports under
+%% bench/, the label sets and ledgers under paper/). Appendix A gives two separate
+%% reproduction paths: the historical numerical archive (commit 3b4c567) and the
+%% current audit tooling, which writes only to new directories.
 %%
 %% Build (TeX Live): pdflatex main && bibtex main && pdflatex main && pdflatex main
-%% Build (single binary, used for the local manuscript PDF):
-%%       tectonic -X compile main.tex --keep-logs --keep-intermediates
+%% Build (single binary): tectonic -X compile main.tex --keep-logs --keep-intermediates
 %%
 \documentclass[10pt,a4paper]{article}
 
@@ -28,11 +28,9 @@
 \setlength{\belowcaptionskip}{6pt}
 % In \texttt, write command-line flags as -{}-flag: with T1 Latin Modern the pair
 % -- ligates into a single en dash, so --select would print as a one-dash flag.
-% natbib is loaded for one reason: plainnat, unlike plain, prints the doi/url
-% field, so every entry in the reference list becomes resolvable. The numeric
-% option keeps the bracketed style this document is written in, and \cite is
-% aliased to \citep so that it stays a bare number --- natbib would otherwise
-% print "Author [n]" beside author names the running text already supplies.
+% natbib is loaded because plainnat, unlike plain, prints the doi/url field. The
+% numeric option keeps the bracketed style, and \cite is aliased to \citep so that
+% it stays a bare number.
 \usepackage[numbers,sort&compress]{natbib}
 \let\cite\citep
 % hyperref is loaded last, as it requires. pdfauthor and pdftitle are set
@@ -41,109 +39,107 @@
 \usepackage[colorlinks=true,allcolors=blue]{hyperref}
 \hypersetup{
   pdfauthor={Yufeiyang Chen},
-  pdftitle={Failure-Routing in AI/ML Python Except-Handlers: Corpus Measurements and Validation Limits},
-  pdfsubject={Empirical study of except-handler failure-routing in AI/ML Python},
-  pdfkeywords={exception handling; silent failure; static analysis; empirical software engineering; machine learning systems}
+  pdftitle={Measuring What a Failure-Routing Detector Adds: Representation, File Discovery and Denominators in AI/ML Python},
+  pdfsubject={A reproducible protocol for measuring the warning coverage of exception-handling detectors},
+  pdfkeywords={exception handling; static analysis; warning coverage; measurement validity; empirical software engineering; machine learning systems}
 }
 \emergencystretch=2em
 \newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
 
-% The author footnote states contribution, generative-tool disclosure, and the
-% project's evaluation role.
 % Keep the title on one metadata-safe line; arXiv indexes it as a single string.
-\title{Failure-Routing in AI/ML Python Except-Handlers: Corpus Measurements and Validation Limits}
+\title{Measuring What a Failure-Routing Detector Adds: Representation, File Discovery and Denominators in AI/ML Python}
 \author{Yufeiyang Chen\thanks{%
-  \textbf{Author contribution.} The author originated the \texttt{failroute}
-  idea and directed the study, including its research questions and key decisions.
-  AI language tools assisted software development, testing, data analysis, and
-  the drafting and revision of the text. The author takes responsibility for the final work.
-  Corpus labels were produced by LLM agents rather than human annotators; the paper states their provenance and limitations.}\\[2pt]
+  \textbf{Author contribution and AI assistance.} The author originated the
+  \texttt{failroute} idea and directed the study, including its research questions
+  and key decisions. AI language tools assisted software development, testing,
+  data analysis, and the drafting and revision of the text; the author takes
+  responsibility for the final work. All corpus labels discussed in this paper
+  were produced by LLM agents, not human annotators.
+  \textbf{Relationships to the evaluated material.} The author wrote the
+  detector under evaluation and the supplementary Semgrep rules; selected the
+  main corpus partly from packages the author had contributed to; and submitted,
+  from the author's GitHub account, the pull requests that form the curated
+  maintainer records. See the conflict-of-interest statement.}\\[2pt]
   School of Cyber Science and Technology, Sun Yat-sen University, Shenzhen, China\\
   Correspondence: \texttt{fei76161@gmail.com}}
-% Use the same explicit manuscript revision date as the companion study.
 \date{3 November 2026}
 
 \begin{document}
 \maketitle
 
-% The arXiv metadata form accepts at most 1920 characters, and the form is the
-% abstract readers actually search, so the text below is what gets pasted into it.
-% Convention: the environment's body, stripped of leading and trailing whitespace,
-% each newline one character, TeX markup NOT stripped. Do not re-measure by hand and
-% do not write the number into this comment -- it is a command now:
+% The arXiv metadata form accepts at most 1920 characters. Measure with
 %     .venv/bin/python tools/check_abstract_len.py
-% The tool measures the source convention used by the arXiv abstract form and
-% exits non-zero when either measured form exceeds the configured character limit.
-% Keep the body flush-left: indented source makes the raw count include the
-% indentation, and the two conventions then diverge by enough to hide an overrun.
-% Do not spell the two environment markers literally in this comment -- a matcher
-% scanning for them finds the comment first and measures the wrong span.
+% Keep the body flush-left so the raw and flattened counts agree.
 \begin{abstract}
-Static detectors can identify exception handlers that turn a failed
-operation into an ordinary result. Establishing what those detectors add,
-however, requires separating warning coverage from actual contract
-violations. We examine that distinction through an AST-based detector,
-eight pinned AI/ML Python packages and paired evaluation checks.
-The initial frame contains 621 candidates. All 19 contextlib.suppress
-candidates escape four selected lint baselines, even under full-rule Ruff
-and default Pylint checks; a retained supplementary Semgrep export reports 18 matches.
-On a refined frame, 68 generated probes and an explicit file-discovery
-check correct the inferred unmatched share from 18.3\% to 47.1\%, with
-the detector outputs held fixed. A separate predicate change increases
-measured lint overlap from 41.1\% to 52.9\% while reducing the covered
-count from 255 to 252: the changing denominator explains the increase.
-A source-linked audit of curated fixes separates handler-local cases,
-non-handler outcomes and adjacent error-handling changes; it withdraws
-pooled scope and detection ratios that these heterogeneous cases do not support. These results provide reproducible
-tests for evaluation errors that can inflate or conceal a detector's
-apparent increment. Coverage measurements are supported by executed
-checks; the separate LLM-labelled observations do not establish defect
-precision and require independent contract adjudication.
+Static detectors for exception handlers that turn a failed operation into an
+ordinary value are often compared with existing linters by counting the
+detector findings that no linter reports. That count mixes three things: the
+source forms each rule recognises, the files each tool actually analyses, and
+the set of findings used as the denominator. We describe a reproducible
+measurement protocol that separates them and apply it to an AST-based detector
+on eight pinned AI/ML Python packages (2,124 scanned files; 2,270 except
+handlers). Sixty-eight generated probes calibrate which selected Ruff, Bandit,
+Pylint and flake8 rules fire on which handler and suppression forms. In the
+corpus, none of the 19 contextlib.suppress candidates is co-located with a
+selected lint warning, or with an exception-related message from all 969 Ruff
+rules or Pylint's default set; a project-written Semgrep rule reaches 18. File
+discovery matters: Pylint silently skipped 152 files under directories without
+\_\_init\_\_.py, and Semgrep 1.175.0 parses one file only partially. Replacing a
+name-based coverage mapping with the probe-calibrated one raises the predicted
+unmatched share from 18.3\% to 47.1\% with no change in detector output. A
+predicate refinement raises measured overlap from 41.1\% to 52.9\% while the
+number of co-located findings falls from 255 to 252: the smaller denominator
+explains the rise. Both candidate frames, the four-tool coverage rows and the
+probe matrix were re-executed from pinned inputs. The study measures warning
+coverage only. Exploratory LLM labels and curated maintainer records are
+reported with their provenance; they do not establish defect precision or
+recall.
 \end{abstract}
 
-\noindent\textbf{Keywords:} exception handling; silent failure; static analysis;
-empirical software engineering; machine learning systems.
+\noindent\textbf{Keywords:} exception handling; static analysis; warning coverage;
+measurement validity; empirical software engineering; machine learning systems.
 
 \section{Introduction}
+\label{sec:intro}
 
 An AI evaluator catches an API timeout and returns \texttt{0.0}. A document
-loader catches a decoding error and returns an empty string. In both cases,
-the caller receives a value it could also receive after a successful
-computation. The exception has been converted into an ordinary result, and
-downstream code must recover a distinction that the local return value no
-longer carries. We call this \emph{failure-routing}. Its consequences depend
-on the caller's contract: a fallback may be intentional, or it may corrupt
-a score, a security verdict or a later computation.
+loader catches a decoding error and returns an empty string. In both cases the
+caller receives a value it could also receive after a successful computation.
+We call this conversion of an exception into an ordinary result
+\emph{failure-routing}. Whether it is a defect depends on the caller's contract:
+a fallback may be intentional, or it may corrupt a score, a security verdict or a
+later computation. Swallowed and overly broad exception handling are well-studied
+problems~\cite{cabral2007,depadua2017prevalence,souza2026python}, and existing
+linters already flag many of their forms.
 
-Static analysis can locate candidate handlers, but evaluating such an
-analysis requires several distinct measurements. Does another tool flag
-the same site? Does a change in syntax alter warning coverage? Does a
-candidate violate its caller's contract? These questions use different
-evidence. Treating them as interchangeable can overstate a detector's
-incremental value or hide a gap in the comparison itself.
+A new detector for such handlers therefore has to answer a narrower question:
+\emph{what does it report that existing tools do not?} The usual answer is a
+count of detector findings with no co-located linter warning. This paper argues
+that the count is a property of the whole comparison, not of the detector, and
+that it moves when any of four inputs moves:
+\begin{enumerate}[nosep,leftmargin=*]
+\item the source \emph{representation} each rule recognises (an \texttt{except}
+  clause and a \texttt{contextlib.suppress} statement can express the same
+  suppression);
+\item the \emph{files each tool actually analyses}, which need not be the files it
+  was pointed at;
+\item how \emph{coverage is attributed}: by running the baselines, or by a mapping
+  that predicts which rule would fire;
+\item the \emph{denominator}: which candidates enter the frame, and whether the unit
+  is a finding, a source site or a handler.
+\end{enumerate}
+Each of these can change the headline share without any change in what the
+detector finds or in whether the findings are defects.
 
-This study examines those distinctions through a concrete detector and
-pinned software artefacts. \texttt{failroute} recognises five
-silent-continuation or failure-to-value shapes and one adjacent
-exception-masking shape, including both \texttt{except} handlers and
-\texttt{contextlib.suppress} sites. We compare its candidates with four
-selected lint baselines, test the coverage mapping with generated probes,
-and examine how predicate refinement changes the resulting frame. LLM
-labels and public maintainer records provide further evidence with stated
-provenance and selection boundaries.
-
-\paragraph{A representation-sensitive coverage boundary.}
-Ruff's \texttt{SIM105}~\cite{ruffsim105} recommends replacing a simple
-\texttt{try/except/pass} block with \texttt{contextlib.suppress(...)}.
-A direct rewrite can preserve the intended suppression while changing
-which warnings a tool emits. In the frozen 0.8.0 frame, none of the 19
-\texttt{silent-suppress} candidates is reported by the four selected lint
-baselines. Enabling all 969 Ruff rules or Pylint's full default message
-set does not recover them. Our supplementary Semgrep rule reaches 18
-of the 19 (Section~\ref{sec:rq1}). This establishes a concrete gap in
-the tested configurations and shows that the shape can be expressed by a
-syntactic rule; deciding whether suppression is appropriate remains a
-contract question.
+We make the dependence explicit through a measurement protocol and apply it to
+\texttt{failroute}, an AST-based detector, on eight pinned AI/ML Python packages.
+The protocol keeps three kinds of evidence apart (Table~\ref{tab:claims}):
+\emph{behavioural calibration} of lint rules on generated probes, which establishes
+what a rule fires on; \emph{tool-output coverage} on the corpus, which establishes
+which detector findings coincide with a linter warning; and \emph{defect
+validity}, which would require independent adjudication of caller contracts. This
+paper reports the first two. For the third it reports only exploratory evidence
+and states why that evidence does not support precision or recall estimates.
 
 \begin{figure}[htbp]
 \centering\small
@@ -165,432 +161,391 @@ with contextlib.suppress(
     update_cache()
 \end{verbatim}
 \end{minipage}
-\caption{Constructed illustration of the measured representation boundary.
-Selected Ruff S110 and Bandit B110 checks recognise the broad
-\texttt{except/pass} form; the four selected lint baselines do not reach
-the suppress form. Ruff SIM105 recommends this kind of rewrite.
-The example illustrates warning reach, not whether the caller's contract
-permits suppression.}
+\caption{Two representations of the same suppression. Ruff \texttt{SIM105}
+recommends rewriting the left form as the right one~\cite{ruffsim105}. Selected
+Ruff \texttt{S110} and Bandit \texttt{B110} fire on the left form; none of the
+selected lint rules fires on the right form (Section~\ref{sec:rq1}). The example
+concerns warning reach, not whether the caller's contract permits suppression.}
 \label{fig:suppression-form}
 \end{figure}
 
 \paragraph{Research questions.}
-The study separates warning comparison from contract validation:
 \begin{enumerate}[label=\textbf{RQ\arabic*},nosep,leftmargin=*]
-\item Which local failure-routing shapes are reached by the selected lint
-  baselines, and where does source representation change that reach?
+\item \emph{Representation.} Which selected lint rules fire on the handler and
+  suppression forms the detector reports, on generated probes and in the corpus?
   (Section~\ref{sec:rq1})
-\item How much do candidate refinement, coverage mapping and file discovery
-  change the measured overlap? (Section~\ref{sec:rq5})
-\item What can exploratory labels and maintainer records establish about
-  candidate validity and the detector's scope? (Section~\ref{sec:validation})
+\item \emph{Read sets and attribution.} How much do the files each tool actually
+  analyses, and the way coverage is attributed, change the measured unmatched
+  share? (Section~\ref{sec:rq2})
+\item \emph{Denominator.} When the candidate predicate changes, how much of the
+  change in measured overlap comes from the denominator rather than from the
+  number of covered findings? (Section~\ref{sec:rq3})
 \end{enumerate}
+Section~\ref{sec:validation} then sets out what the available labels and
+maintainer records can and cannot add to these coverage results.
 
 \paragraph{Contributions.}
 \begin{enumerate}[nosep,leftmargin=*]
-\item \textbf{A reproducible measurement of a suppression-form boundary.}
-  An AST-based detector identifies 621 candidates across eight pinned
-  AI/ML packages and 524,229 scanned lines. All 19
-  \texttt{contextlib.suppress} candidates escape the four selected lint
-  baselines; a retained supplementary export reports 18 matches. This characterises a
-  representation-sensitive warning boundary in the tested configurations
-  (Section~\ref{sec:rq1}).
-\item \textbf{A paired analysis of evaluation sensitivity.}
-  Holding the corpus fixed, we separate changes to the detector predicate
-  from changes to its coverage measurement. A 68-probe calibration and a
-  file-discovery check correct the inferred unmatched share from 18.3\%
-  to 47.1\% without changing any detector output. Predicate refinement,
-  by contrast, changes the frame from 621 to 476 findings while measured
-  overlap rises from 41.1\% to 52.9\%. The preserved exports and executable
-  checks make these effects traceable (Section~\ref{sec:rq5}).
-\item \textbf{An explicit account of validation and construct boundaries.}
-  Exploratory labels, a selected control corpus and curated merged fixes
-  test different claims. A subsequent diff audit identifies inconsistent
-  reference-set inclusion and location-only matches. We identify what these records
-  support, where they disagree with local shape-based reasoning, and
-  what independent contract evidence a defect-detection claim would need
-  (Section~\ref{sec:validation}).
+\item \textbf{A measurement protocol for detector increments}
+  (Section~\ref{sec:protocol}): explicit units (finding, site, handler), a check
+  of each tool's read set, probe-based calibration of rule semantics with
+  positive controls, paired candidate frames with a denominator decomposition,
+  and a rule that partial analyses are reported as bounds.
+\item \textbf{Measurements on a pinned corpus}: a representation boundary at
+  \texttt{contextlib.suppress} that the tested lint configurations, including
+  all 969 Ruff rules and Pylint's default set, do not reach; two file-discovery
+  effects; a 28.8-point correction of the predicted unmatched share caused only
+  by coverage attribution; and an overlap increase explained by a shrinking
+  denominator.
+\item \textbf{Executable artefacts with stated audit status}: frozen exports, a
+  current reproduction entry point that writes only to new directories, and an
+  explicit separation between what was re-executed, what is cited from earlier
+  runs, and what could not be re-run (Appendix~\ref{sec:repro}).
 \end{enumerate}
+We do not claim to be the first to detect exception swallowing or
+failure-to-value conversion. Exception Miner already detects handling
+anti-patterns in Python with AST queries~\cite{souza2024miner}; Souza et
+al.\ analyse 942 manually validated Python exception-handling
+bugs~\cite{souza2026python}; and Rollout Cards treats the handling of failed
+runs and the choice of reporting rules as a reproducibility problem in agent
+evaluation~\cite{masters2026rolloutcards}. Our contribution is the measurement
+of a detector's \emph{warning increment} and of the conditions under which that
+measurement is valid (Section~\ref{sec:related}).
 
-\paragraph{Study design.}
-The comparisons answer different validation questions. Syntax witnesses
-and baseline checks test warning reach; generated probes test the
-measurement instrument itself. The paired frames then distinguish a
-change in candidate selection from a change in how coverage is counted.
-Control packages and merged fixes test the limits of handler-local
-reasoning, while exploratory labels identify contract questions for
-further adjudication. The coverage claims rest on executed scans and
-probe outcomes, not on treating the LLM labels as ground truth. This
-separation makes it possible to report an instrument correction or a
-counterexample without converting either into a defect-detection claim.
+\section{Related work and positioning}
+\label{sec:related}
 
-\section{The pattern family}
-\label{sec:family}
+\paragraph{Exception-handling anti-patterns and bugs.}
+Cabral and Marques~\cite{cabral2007}, Sawadpong et al.~\cite{sawadpong2012} and
+de P\'adua and Shang~\cite{depadua2017prevalence,depadua2017flow} established
+exception handling as an empirical object, including the prevalence of handling
+anti-patterns. Exception Miner identifies such anti-patterns in Java, TypeScript
+and Python with static AST queries and was evaluated on eleven multi-language
+projects~\cite{souza2024miner}. Souza et al.~\cite{souza2026python} analysed 942
+manually validated Python exception-handling bugs from 550 projects, including
+machine-learning and AI software, and derived root-cause and repair taxonomies
+whose categories include swallowing, overly broad handling and incorrect
+recovery. These studies characterise the phenomenon more broadly than our
+corpus does and, unlike our labels, rest on manual validation. We take the
+phenomenon as given and ask a different question: how a detector's incremental
+warning coverage over existing linters should be measured, and how sensitive
+that measurement is to representation, read sets, attribution and
+denominators.
 
-The six registered shapes are listed in Table~\ref{tab:shapes}. Five concern a
-caught failure that is suppressed or routed into a normal-looking value or
-continuation. \texttt{name-shadowing} is different: it can replace the original
-exception with a \texttt{NameError}, masking the cause without producing a
-success-shaped value. We include it as an adjacent exception-handling hazard,
-not as evidence of silent success. The categories describe local Python
-constructs; membership alone does not establish a contract violation.
-Their operational predicates were revised during development on this corpus.
-Four of the six shapes account for all 621 findings
-reported in Section~\ref{sec:rq1}, and the two that never fire on this corpus are
-retained because a shape's absence from one corpus is not evidence that the shape
-does not occur. Both are exercised by the tool's unit corpus.
+\paragraph{Static-analysis warnings and their evaluation.}
+Developers' use of static analysis depends on noise and actionable
+feedback~\cite{johnson2013,ruthruff2008,do2022,yedida2023}. Tricorder and the
+FindBugs fixit describe filtering and prioritisation in deployed
+analysis~\cite{sadowski2015,ayewah2010,sadowski2018}; work on false-positive
+mitigation and warning relevance gives further context~\cite{guo2023,querel2018}.
+Hu et al.~\cite{hu2025suppressed} study developers' suppression of static
+warnings. A warning-suppression annotation and a runtime
+\texttt{contextlib.suppress} statement operate at different layers: the latter
+changes exceptional control flow. Our probes measure which tested rules reach
+that runtime construct. We do not evaluate actionability, and we make no claim
+of superiority over other exception-handling tools.
+
+\paragraph{Reporting rules and denominators.}
+Rollout Cards~\cite{masters2026rolloutcards} audits agent training and
+evaluation repositories and shows that reporting rules, including how failed,
+errored or skipped runs are dropped or counted, can change reported scores. It is
+the closest prior work in spirit: it already treats failed computations that
+enter a score, and the choice of denominator, as reproducibility problems. Our
+setting is different, a comparison between static detectors, but the lesson
+transfers: a coverage share is only interpretable together with its numerator,
+its denominator and the record of what each tool actually analysed.
+
+\paragraph{LLM support and ML-system reliability.}
+Souza et al.~\cite{souza2026llm} evaluate prompted LLMs on four Python
+exception-handling tasks against a curated benchmark. Here LLM readings are
+retained exploratory labels with unrecoverable model provenance; they are not a
+benchmark. Pipeline coupling and boundary checks motivate reliability work in
+ML software~\cite{sculley2015,polyzotis2019,breck2017,amershi2019,paleyes2022,sambasivan2021};
+our corpus is drawn from that domain but our claims are about measurement, not
+about ML systems in general.
+
+\section{Measurement protocol}
+\label{sec:protocol}
+
+\subsection{Units and the three kinds of claims}
+\label{sec:units}
+
+\paragraph{Units.} A \emph{finding} is one output record of the detector. A
+\emph{site} is a source coordinate (package, file, line). A \emph{handler} is an
+\texttt{except} clause in the AST. These are not interchangeable:
+\begin{itemize}[nosep,leftmargin=*]
+\item one handler can produce several findings: the assignment channel of
+  \texttt{silent-fallback} emits one finding per assigned target, so four sites
+  carry two findings in each frame studied here (621 findings on 617 sites; 476 on
+  472);
+\item a \texttt{contextlib.suppress} statement produces a finding but is not an
+  \texttt{except} handler (19 such sites in the 621-finding frame, 16 in the
+  476-finding frame).
+\end{itemize}
+We therefore report ``findings per 100 \texttt{except} handlers'' only as a
+ratio of tool output to handler count. It includes suppress findings and repeated
+outputs and is \emph{not} the percentage of handlers affected. In the main corpus
+(2{,}270 handlers) the refined frame gives 476 findings, or 21.0 per 100 handlers,
+while 456 distinct handlers (20.1\%) carry at least one finding; the 621-finding
+frame gives 27.4 findings per 100 handlers and 598 handlers with a finding
+(26.3\%). Handler counts are from a direct AST count over the scan roots.
+
+\paragraph{Co-location.} A finding is \emph{co-located} with a baseline when that
+baseline reports one of its selected rules in the same file within $\pm1$ line,
+and \emph{unmatched} when no baseline does. Co-location asks whether a tool
+flagged the same place, not whether it expressed the same property: a
+broad-except warning can coincide with a failure-routing finding for a different
+reason. Coverage results below are co-location counts and nothing stronger.
 
 \begin{table}[htbp]
 \centering\small
-\caption{Five silent-continuation or failure-to-value shapes and one adjacent
-exception-masking shape.}
-\label{tab:shapes}
-\begin{tabular}{@{}P{3.0cm}P{5.3cm}P{6.0cm}@{}}
+\caption{Three kinds of claims, the evidence each requires, and what this study
+provides.}
+\label{tab:claims}
+\begin{tabular}{@{}P{3.0cm}P{4.6cm}P{3.6cm}P{3.0cm}@{}}
 \toprule
-Rule & Shape & Consequence \\
+Claim & Question & Evidence required & In this study \\
 \midrule
-\texttt{no-action} & \texttt{except ...: pass} & handler emits no direct
-failure signal \\
-\texttt{silent-fallback} & handler returns/assigns a constant without re-raising
-& judge outage becomes a legitimate \texttt{0.0} \\
-\texttt{masked-exception} & catch-all conditionally re-raises \emph{and} falls
-back to a constant & outcome depends on which branch ran \\
-\texttt{silent-suppress} & \texttt{with contextlib.suppress(...)} & suppresses
-specified exceptions; invisible to the linters we tested \\
-\texttt{implicit-fallback} & handler neither re-raises, returns, nor records ---
-falls through to implicit \texttt{None} & ``did nothing'' becomes a legitimate
-\texttt{None} \\
-\texttt{name-shadowing} & \texttt{except E as e:} rebinds \texttt{e} inside the
-handler & Python deletes the binding on exit; a later use can raise
-\texttt{NameError} or \texttt{UnboundLocalError} \\
+Behavioural calibration & On which handler and body forms does a lint rule fire?
+& executed rules on generated probes, with positive controls & 68 probes, all
+re-executed (Sec.~\ref{sec:probes}) \\
+Tool-output coverage & Which detector findings coincide with a selected lint
+warning in a corpus? & executed baselines on the read set, per-finding rows &
+621- and 476-finding frames, re-executed \\
+Defect validity & Is a finding a contract violation; what are precision and
+recall? & independent contract adjudication, held-out sample & \textbf{not
+measured}; exploratory LLM labels only (Sec.~\ref{sec:validation}) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{The detector}
+\subsection{Detector and candidate frames}
 \label{sec:detector}
 
-The detector configuration defines which candidates enter the comparison.
-We describe its rules and exclusions so that the measurements can be interpreted. \texttt{failroute} 0.8.0 parses each file to an
-AST and applies six rules through a shared registry, emitting text, JSON or
-SARIF; individual rules can be disabled per project under
-\texttt{[tool.failroute]}.
+\texttt{failroute} parses each file to an AST and applies the rules of
+Table~\ref{tab:shapes} through a shared registry. Five rules concern a caught
+failure that is suppressed or routed into a normal-looking value or
+continuation; \texttt{name-shadowing} is an adjacent exception-masking hazard.
+Rule membership describes a local construct, not a contract violation. Three
+gates remove a site before any rule runs: handlers catching only
+shutdown, iteration or cancellation exceptions; an opt-out comment; and
+per-project configuration. Whether a handler ``records'' the failure is decided
+syntactically (re-raise, exit, \texttt{warnings.warn}, or a logger-like call,
+with a deliberately stricter test for catch-all handlers). Appendix~\ref{sec:detector-detail}
+gives the full predicates and their known asymmetries.
 
-\paragraph{Unit of analysis.} One finding is one \texttt{except} handler --- or,
-for the \texttt{silent-suppress} rule, one \texttt{contextlib.suppress}
-statement --- reported at the line where it starts. Findings are sorted by line,
-with a stable per-handler registry order for findings that share a line, so the
-output order is deterministic.
+\begin{table}[htbp]
+\centering\small
+\caption{Detector rules. Counts are findings in the 621-finding (v0.8.0) and
+476-finding (v0.9.1) frames.}
+\label{tab:shapes}
+\begin{tabular}{@{}P{3.0cm}P{6.4cm}rr@{}}
+\toprule
+Rule & Shape & v0.8.0 & v0.9.1 \\
+\midrule
+\texttt{silent-fallback} & handler returns or assigns a fallback constant without
+re-raising or recording & 386 & 248 \\
+\texttt{no-action} & \texttt{except ...: pass} (or equivalent inert body) & 213 & 209 \\
+\texttt{silent-suppress} & \texttt{with contextlib.suppress(...)} & 19 & 16 \\
+\texttt{masked-exception} & catch-all that conditionally re-raises and otherwise
+falls back to a constant & 3 & 3 \\
+\texttt{implicit-fallback} & handler falls through to an implicit \texttt{None} & 0 & 0 \\
+\texttt{name-shadowing} & \texttt{except E as e:} rebinds \texttt{e} in the handler & 0 & 0 \\
+\midrule
+Total & & 621 & 476 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\paragraph{What counts as silence.} The tool treats a failure as explicitly
-signalled, rather than silently routed, if its handler re-raises; calls
-\texttt{exit} or \texttt{\_exit}; calls \texttt{warnings.warn} or
-\texttt{warnings.warn\_explicit}; or calls a logger-like name. Two properties of
-that test matter for reading Section~\ref{sec:rq2}.
+Two detector versions define two \emph{candidate frames} on the same corpus.
+\textbf{v0.8.0} (tag \texttt{v0.8.0}) yields 621 findings. \textbf{v0.9.1} (tag
+\texttt{v0.9.1}) refines \texttt{silent-fallback}: it downgrades a fallback that
+the enclosing function's declared return type admits, records whether the value
+escapes the call or outlives it as object state, and attaches a severity and a
+static \texttt{covered\_by} list predicting which lint rules fire on the handler.
+It yields 476 findings. The refinement was developed on this corpus and its
+labels, with no held-out set (Section~\ref{sec:threats}).
 
-First, the test is \emph{not} uniform across handler kinds. A \textbf{catch-all}
-handler (bare \texttt{except:} or \texttt{except Exception:}) must call a method
-named in \{error, warning, warn, exception, critical, fatal\}; a \textbf{typed}
-handler qualifies on \emph{any} method of a logger-like object, \texttt{debug} and
-\texttt{info} included --- and, because the test matches the object rather than the
-method's meaning, on method names that are not logging calls at all.
-\texttt{capture\_exception} on a logger-like object also qualifies. A bare
-\texttt{print()} never does. Thus \texttt{logger.debug()} prevents a finding
-for a typed handler under this syntactic test but not for a catch-all handler. The asymmetry is
-deliberate: a typed clause documents the failure its author anticipated. It
-does not establish that a debug message reaches the caller.
-Section~\ref{sec:rq5} shows the asymmetry matters in this sample: every
-original LLM DEFECT label sits on a bare handler, which falls through the
-strict half of this test rather than the lenient half.
-
-Second, the test is not global. Only \texttt{silent-fallback} and
-\texttt{implicit-fallback} consult it; \texttt{no-action},
-\texttt{masked-exception} and \texttt{name-shadowing} report without asking whether
-the handler recorded anything.
-
-``Logger-like'' means a base-name list
-(\texttt{logger}, \texttt{logging}, \texttt{log}, \texttt{\_logger},
-\texttt{\_log}, \texttt{sentry\_sdk}) plus a suffix heuristic, since real
-codebases name loggers \texttt{audit\_logger}, \texttt{err\_log} and
-\texttt{self.\_log}. Handler bodies are traversed through control flow but
-\emph{not} into nested function, lambda or class bodies, so a \texttt{return None}
-inside a callback defined in a handler does not silence it.
-
-\paragraph{What counts as a fallback value.} A fixed constant set
-(\texttt{None}, \texttt{False}, \texttt{0}, \texttt{0.0}, \texttt{""},
-\texttt{[]}, \texttt{\{\}}, \texttt{()}), whose ambiguous members
-(\texttt{True}, \texttt{1}, \texttt{1.0}) are marked as such because they are
-legitimate in boolean scorers, plus namespace-qualified sentinels such as
-\texttt{Status.UNKNOWN} and any project-specific values configured under
-\texttt{[tool.failroute]}. Bare names are deliberately not matched, so
-\texttt{return result} can never fire.
-
-\paragraph{Exemptions.} Three gates remove a site before any rule runs. The
-first is the caught type. A handler catching only \texttt{KeyboardInterrupt},
-\texttt{SystemExit} or \texttt{GeneratorExit} is exempt. The same applies to
-\texttt{StopIteration}, \texttt{StopAsyncIteration} or
-\texttt{CancelledError}; a tuple handler is exempt only when every member is.
-These exceptions can occur in
-shutdown, iteration and cancellation handling, where suppression may be
-intentional; the tool does not determine whether it is appropriate at a given
-site. The exemption can therefore also hide a genuine mistake. The second gate
-is an opt-out marker in the handler's own lines:
-\texttt{\# failroute: ignore} or \texttt{\# pragma: no cover}. The third is
-configuration: a rule disabled under \texttt{[tool.failroute]} never fires. All
-three gates are applied once, in the dispatcher, rather than re-implemented per
-rule.
-
-The heuristics deliberately err on the side of reporting: a finding is meant to
-be worth a look, not to be a verdict. Section~\ref{sec:rq2} reports LLM labels
-for a sample; those labels do not measure precision against confirmed defects.
-
-\paragraph{Quality gates.} The v0.8.0 release has 158 tests and a CI matrix
-covering Ubuntu, macOS and Windows with Python 3.9--3.13, plus
-\texttt{mypy -{}-strict}. Its v6 unit-fixture corpus contains 36 positive and 32
-negative cases; CI checks each against its expected result.
-
-\paragraph{Construct validity.} Fixture agreement shows that the detector
-implements its tested specification; it does not show that its findings are
-real defects. Section~\ref{sec:rq2} is a limited within-corpus label audit,
-not an external validation against confirmed defects.
-
-\section{Study design}
-\label{sec:study}
-
-\paragraph{Statistical reporting.}
-The paper reports finite-set counts and descriptive proportions. The weighted
-label projection estimates the number of LLM DEFECT labels in its corrected
-sampling frame; it is not an estimate of confirmed defects. The package,
-co-location, and PR comparisons have different sampling or selection processes
-and are not used to infer population rates or causal effects. No confidence
-intervals are reported because the available labels and selected records do not
-support the population claims such intervals might suggest.
-
-\subsection{Corpus}
+\subsection{Corpus and read sets}
 \label{sec:corpus}
 
-Eight AI/ML packages fetched as pinned PyPI source distributions (not git
-clones), each recorded with URL, SHA-256, upload time and extracted tree hash in
-\texttt{paper/corpus-lock.json}. Table~\ref{tab:corpus} lists them. Together the
-eight sdists hold 2{,}354 \texttt{.py} files and 563{,}270 lines; the scan roots the
-detector actually reads hold 2{,}124 files and 524{,}229 lines; finding-density
-figures are calculated over those scan roots. Fetching is pinned rather than
-merely scripted: \texttt{tools/fetch\_corpus.py} resolves each package to the
-version recorded in \texttt{paper/corpus-manifest.json}, checks the downloaded
-archive's SHA-256 against the same manifest, and exits non-zero on mismatch, so a
-re-fetch either reproduces these inputs or fails loudly. A fresh fetch into a
-clean directory on 2026-09-02 reproduced all eight archives byte-identically (8/8
-SHA-256 matches against \texttt{corpus-lock.json}).
+The main corpus consists of eight AI/ML packages fetched as pinned PyPI source
+distributions (Table~\ref{tab:corpus}). Each is recorded with URL, SHA-256, upload
+time and extracted-tree hash in \texttt{paper/corpus-lock.json};
+\texttt{tools/fetch\_corpus.py} verifies each archive and exits non-zero on
+mismatch. The eight sdists hold 2{,}354 \texttt{.py} files; the scan roots, which
+exclude tests, examples and vendored content outside the package body, hold 2{,}124
+files, 524{,}229 lines and 2{,}270 \texttt{except} handlers. The packages were
+selected partly because of the author's contribution history; they are not a
+sample of AI/ML software.
 
 \begin{table}[htbp]
 \centering\small
-\caption{Pinned corpus. Per-package counts are the files \emph{inside each scan
-root} --- the subtree the detector actually scans --- so the column sums to the
-total shown (2{,}124 \texttt{.py} files / 524{,}229 lines). The eight pinned
-sdists contain \textbf{2{,}354} \texttt{.py} files / \textbf{563{,}270} lines in
-total; the difference is content outside the scan roots (tests, examples,
-vendored code).}
+\caption{Pinned main corpus. Counts are inside each scan root.}
 \label{tab:corpus}
-\begin{tabular}{@{}lllrr@{}}
+\begin{tabular}{@{}lllrrr@{}}
 \toprule
-Package & Version & Scan root & \texttt{.py} files & Lines \\
+Package & Version & Scan root & \texttt{.py} files & Lines & Handlers \\
 \midrule
-inspect\_ai & 0.3.260 & \texttt{src/inspect\_ai} & 755 & 198{,}351 \\
-pydantic\_ai\_slim & 2.36.0 & \texttt{.} & 298 & 119{,}534 \\
-deepteam & 1.0.9 & \texttt{deepteam} & 588 & 71{,}305 \\
-trl & 1.12.0 & \texttt{trl} & 155 & 65{,}727 \\
-garak & 0.16.0 & \texttt{garak} & 201 & 38{,}328 \\
-smolagents & 1.26.0 & \texttt{src/smolagents} & 20 & 13{,}355 \\
-uqlm & 0.6.5 & \texttt{uqlm} & 91 & 12{,}605 \\
-fickling & 0.1.12 & \texttt{fickling} & 16 & 5{,}024 \\
+inspect\_ai & 0.3.260 & \texttt{src/inspect\_ai} & 755 & 198{,}351 & 859 \\
+pydantic\_ai\_slim & 2.36.0 & \texttt{.} & 298 & 119{,}534 & 495 \\
+deepteam & 1.0.9 & \texttt{deepteam} & 588 & 71{,}305 & 456 \\
+trl & 1.12.0 & \texttt{trl} & 155 & 65{,}727 & 86 \\
+garak & 0.16.0 & \texttt{garak} & 201 & 38{,}328 & 207 \\
+smolagents & 1.26.0 & \texttt{src/smolagents} & 20 & 13{,}355 & 93 \\
+uqlm & 0.6.5 & \texttt{uqlm} & 91 & 12{,}605 & 39 \\
+fickling & 0.1.12 & \texttt{fickling} & 16 & 5{,}024 & 35 \\
 \midrule
-\textbf{Total (scanned)} & & & \textbf{2{,}124} & \textbf{524{,}229} \\
+\textbf{Total} & & & \textbf{2{,}124} & \textbf{524{,}229} & \textbf{2{,}270} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-A second, style-opposite corpus tests whether the headline comparison survives outside bare-\texttt{except} code. Eight infrastructure packages were fetched as pinned PyPI sdists (URL, SHA-256, upload time and tree hash in \texttt{paper/corpus-lock-control.json}, same schema as above): \texttt{attrs} 26.1.0, \texttt{httpx} 0.28.1, \texttt{requests} 2.34.2 and \texttt{urllib3} 2.7.0 (the four zero-bare-\texttt{except} packages of Section~\ref{sec:control}), plus \texttt{click} 8.5.0 (CLI), \texttt{pydantic} 2.13.5 (validation), \texttt{anyio} 4.15.1 (concurrency) and \texttt{msgpack} 1.2.2 (serialisation) --- chosen for domain diversity before any scan ran, explicitly avoiding the HTTP-client stack that three of the first four share. Only each package body is scanned (scan roots recorded in the lock file), the same definition as above. Section~\ref{sec:control} reports the comparison.
+A second, \emph{style-opposite} control corpus of eight infrastructure packages
+(\texttt{attrs}, \texttt{httpx}, \texttt{requests}, \texttt{urllib3},
+\texttt{click}, \texttt{pydantic}, \texttt{anyio}, \texttt{msgpack}; 263 files,
+842 handlers, one bare \texttt{except}) is pinned in
+\texttt{paper/corpus-lock-control.json} and used in
+Section~\ref{sec:control}.
 
-\paragraph{Measurements and units.}
-A \emph{finding} is a rule output; a \emph{site} is its source coordinate,
-so two outputs at one handler remain one site. Warning overlap is
-co-location under the declared matching rule. A label is an automated
-reading of a sampled candidate, whereas a merged fix is a selected change
-accepted by a maintainer. Table~\ref{tab:evidence} distinguishes these units
-before we compare them.
+\paragraph{Read sets.} Pointing a tool at a directory does not guarantee that it
+analyses every file below it. The protocol therefore records, for each tool, how
+it discovers files and how many of the 2{,}124 scan-root files it analysed
+(Table~\ref{tab:readsets}). This check exposed one omission that had affected
+earlier results and one partial analysis that bounds a supplementary result
+(Section~\ref{sec:rq2}).
 
 \begin{table}[htbp]
 \centering\small
-\caption{Evidence used in the study and the claim each measurement supports.}
-\label{tab:evidence}
-\begin{tabular}{@{}P{3.3cm}P{6.2cm}P{4.8cm}@{}}
+\caption{File discovery and read set per tool over the 2{,}124 scan-root files.}
+\label{tab:readsets}
+\begin{tabular}{@{}P{2.6cm}P{5.6cm}P{6.2cm}@{}}
 \toprule
-Measurement & Observation & Interpretation \\
+Tool & Discovery & Files analysed \\
 \midrule
-Representation & 19 suppress candidates; 0 reached by selected lint
-baselines, 18 by the supplementary rule & warning reach under pinned
-configurations \\
-Predicate refinement & 621 to 476 findings; overlap 255 to 252 &
-candidate-frame change \\
-Mapping calibration & 87 to 224 unmatched findings on the same
-476-finding frame & measurement correction \\
-Contract labels & 80 stratified and 60 purposively selected LLM readings &
-exploratory contract evidence \\
-Curated fixes & 16 historically selected changes, audited individually &
-qualitative scope examples; pooled ratios withdrawn \\
+\texttt{failroute} & own walker over \texttt{.py} files & 2{,}124 \\
+\texttt{ruff}, \texttt{bandit}, \texttt{flake8} & filesystem walk & 2{,}124;
+directory and explicit-file invocations give identical hits \\
+\texttt{pylint} (directory argument) & walks packages; does not descend into a
+directory without \texttt{\_\_init\_\_.py} & 1{,}972: 152 files silently not
+analysed (exit 0, no message) \\
+\texttt{pylint} (file list; used for all results) & explicit file arguments & 2{,}124 \\
+\texttt{semgrep} 1.175.0 (supplementary) & filesystem walk with default
+\texttt{.semgrepignore} & 2{,}123 scanned (one \texttt{deepteam} test file
+ignored by default); one file only partially parsed \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{Results}
+\subsection{Baselines and matching}
+\label{sec:baselines}
 
-\subsection{RQ1: Warning coverage and representation}
-\label{sec:rq1}
-
-\texttt{failroute} (v0.8.0) reports \textbf{621} findings. Baselines were run on
-the \emph{same} pinned trees; Table~\ref{tab:tools} lists the tools, their
-versions and the rule sets they were invoked with.
-
-\paragraph{Matching protocol.} Each baseline was invoked with only the rules that
-address this family --- \texttt{ruff} S110/S112, \texttt{bandit} B110/B112,
-\texttt{pylint} W0702/W0703/W0705/W0706, \texttt{flake8} E722 with
-\texttt{bugbear} B001/B017 --- and every report was reduced to a (file, line)
-pair. A \texttt{failroute} finding counts as \emph{covered} by a baseline when
-that baseline reported any of its selected rules in the same file within $\pm$1
-line of it (\texttt{TOL $=$ 1} in \texttt{tools/coverage\_union.py}), and as
-covered by the \emph{union} when any baseline covers it. Co-location is
-deliberately a weak criterion --- it asks whether a tool flagged the same
-handler, not whether it expressed the same property --- and the caveat at the end
-of this subsection states what that costs.
-
-\paragraph{A blind spot in the baseline harness and its correction.}
-The initial harness passed each scan root to \texttt{pylint} as a single directory
-argument. \texttt{pylint} walks a directory as a \emph{package}
-and does not descend into one with no \texttt{\_\_init\_\_.py}, so every module
-under such a directory is silently never analysed --- no message, no error, exit 0.
-Here 152 of the 2{,}124 scanned files (7.2\%) sit under one (\texttt{inspect\_ai}
-123, \texttt{deepteam} 20, \texttt{garak} 9), and RQ1's exact selection emits 34
-messages across 20 of them that the directory invocation reported as zero. Handing
-\texttt{pylint} the file list recovers them and perturbs nothing else: on the files
-it already reached, the two invocations agree message for message (0 lost, 0
-gained, per package), so the correction is a pure addition to the baseline. Every
-figure in this paper uses the corrected invocation, and it moves the four-linter
-union from 250 to 255 of 621 and \texttt{failroute}-only from 371 to 366 --- it
-\emph{reduces} the detector's unmatched warning count. Reporting the corrected
-read set is therefore necessary for a valid comparison. The other three baselines have no
-equivalent blind spot: \texttt{ruff}, \texttt{bandit} and \texttt{flake8} are
-filesystem walkers, and over those same 152 files their directory and
-explicit-file invocations return identical hit sets --- 6{,}879 messages under
-\texttt{ruff\ -{}-select\ ALL}, 104 under \texttt{bandit} with every test enabled,
-and 2{,}375 under \texttt{flake8}'s default selection, identical both ways. Under
-RQ1's own narrow selections those same files yield 5, 0 and 0, which is why the
-blind spot cost only \texttt{pylint} anything. The control corpus of
-Section~\ref{sec:control} contains no \texttt{\_\_init\_\_}-less directory at all
-(0 of 263 files), so it was never exposed. \texttt{-{}-recursive=y} and
-\texttt{-{}-init-hook} were both tested; neither recovers a single message.
-
-The baseline selection includes Pylint's W0703 (broad \texttt{except},
-reported as W0718) but excludes Ruff's direct analogue BLE001. We checked
-this asymmetry with an additional selection that includes BLE001. Re-running with BLE001 added, \texttt{ruff}'s \emph{own}
-co-located findings rise from 72 to 127 (410 findings in total rather than 76),
-but the four-tool union does not move: 255 of 621 and \texttt{failroute}-only 366
-under either selection, because every finding BLE001 newly reaches is one
-\texttt{pylint}'s W0718 already reaches (W0718 is the id under which
-\texttt{pylint} reports the retired W0703 that the baseline enables). \texttt{silent-suppress} stays at 0/19
-either way, since BLE001 fires on \texttt{except} clauses and the shape in
-question has none. The asymmetry therefore costs the union nothing and bears only
-on the per-tool comparison below; we keep the narrower selection as the headline
-because that is what the publicly tagged artefact set reproduces. The symmetric run
-is \texttt{tools/coverage\_union.py -{}-ruff-select S110,S112,BLE001}, and its output
-is committed as \texttt{bench/corpus-coverage-union-ruff-ble001.json}.
+Each baseline is run on the same pinned scan roots with only the rules that
+address this family (Table~\ref{tab:tools}); every report is reduced to (file,
+line) pairs and matched with $\pm1$-line tolerance
+(\texttt{tools/coverage\_union.py}). The four-tool union is the set of findings
+co-located with any of \texttt{ruff}, \texttt{bandit}, \texttt{pylint} and
+\texttt{flake8} with \texttt{bugbear}. A fifth, supplementary row uses a Semgrep
+rule set that the author wrote for the six shapes
+(\texttt{tools/semgrep-rules/exception-handling.yaml}); it shows what a syntactic
+pattern engine \emph{can} express, not what users get by default, and it is
+reported separately from the four-tool union. Pylint's \texttt{W0703} is
+reported under its current identifier \texttt{W0718}.
 
 \begin{table}[htbp]
 \centering\small
-\caption{Cross-tool comparison on the pinned corpus. The \texttt{semgrep} row is
-\emph{not} a shipped-rule baseline: its rule set
-(\texttt{tools/semgrep-rules/exception-handling.yaml}) was written by us, so it
-shows what a syntactic-pattern engine \emph{can} express given rules, not what
-users get by default. $+19$ is the number of \texttt{failroute} findings newly
-co-located once \texttt{semgrep} is added to the union (mostly the
-\texttt{contextlib.suppress} shape: 18 of 19).}
+\caption{Baselines on the 621-finding frame. \emph{Findings} is each tool's own
+output under the selected rules; \emph{co-located} counts \texttt{failroute}
+findings within $\pm1$ line. The Pylint output count depends on whether
+\texttt{click} is importable (563 with, 564 without); co-location does not.}
 \label{tab:tools}
 \begin{tabular}{@{}lllrr@{}}
 \toprule
-Tool & Version & Rules & Findings & Co-located $\pm$1 line \\
+Tool & Version & Rules & Findings & Co-located \\
 \midrule
 \textbf{\texttt{failroute}} & 0.8.0 & all six & \textbf{621} & --- \\
 \texttt{ruff} & 0.16.4 & S110, S112 & 76 & 72 \\
 \texttt{bandit} & 1.9.4 & B110, B112 & 67 & 63 \\
-\texttt{pylint} & 4.0.8 & W0702, W0703, W0705, W0706 & 563/564 & 255 \\
+\texttt{pylint} & 4.0.8 & W0702, W0703/W0718, W0705, W0706 & 563/564 & 255 \\
 \texttt{flake8}+\texttt{bugbear} & 7.3.0 / 25.11.29 & E722, B001, B017 & 268 & 124 \\
-\texttt{semgrep} (our rules) & 1.175.0 & hand-written, 6 shapes & --- & $+19$ \\
+\midrule
+four-tool union & & & & \textbf{255} \\
+\texttt{semgrep} (project rules) & 1.175.0 & six shapes & --- & $+19$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{Baseline version and environment provenance.}
-Versions are those installed in the
-reproduction environment and are the versions that produced the committed
-artefacts. Three provenance notes. \texttt{pyproject.toml} pins
-\texttt{ruff==0.16.5}, one patch above the 0.16.4 that produced the committed
-artefact; 0.16.0, 0.16.4 and 0.16.5 all produce \emph{set-identical} hits for both
-rule selections (76 findings and 72 co-located for S110/S112; 410 and 127 for
-S110/S112/BLE001), so the row is stable across every patch release we can install.
-The \texttt{pylint} \emph{Findings} cell is the one count in this table that
-depends on the analysis environment rather than on the corpus: \texttt{pylint}
-resolves imported names, so a handler that re-raises before a later
-\texttt{except Exception} is correctly left alone when the caught type is
-importable and reported as \texttt{W0706} when it is not. With \texttt{click}
-present, \texttt{pylint} reports 563 findings; without \texttt{click}, as in the
-documented install, it reports 564 and the hidden-file count above reads 35 across 21. Table~\ref{tab:tools}
-gives these values in that order.
-Co-location is unaffected --- 255, and identical rule by rule, either way --- so no
-figure in this paper moves. The original paper extra did not install Semgrep. This audit revision adds
-a separately pinned \texttt{paper-semgrep} extra and a safe reproduction
-entrypoint, \texttt{tools/reproduce\_warning\_coverage.py}, with a new output
-directory required. It invokes the common coverage implementation on the
-621 and 476 frozen candidate frames and fails on tool errors rather than
-recording them as empty coverage. A fresh run in this audit stopped because Semgrep 1.175.0 reported a
-syntax error at \texttt{inspect\_ai/model/\_reasoning.py:62}. The retained
-five-tool counts have not been independently re-established as an error-free
-whole-corpus run. They remain historical observations, not a completed
-reproduction result for this audit. The older
-\texttt{tools/run\_semgrep\_baseline.py} reads the v0.7.0 frame and overwrites
-frozen files; it is not the reproduction command for this revision.
+\subsection{Generated probes}
+\label{sec:probes}
 
+Coverage can be attributed in two ways: by running the baselines on the corpus,
+or by \emph{predicting} from a mapping which rules fire on a handler of a given
+form. The v0.9.1 detector ships such a mapping (\texttt{covered\_by}). To make
+the mapping an empirical object rather than a reading of rule names,
+\texttt{tools/lint\_mapping\_probe.py} generates \textbf{68 probes}: eleven
+caught-type forms (bare; \texttt{Exception}; \texttt{BaseException};
+\texttt{builtins.Exception}; narrow tuples; tuples mixing \texttt{Exception} with
+narrow, dotted or unresolvable members; single and dotted narrow names; a call
+expression) crossed with six body forms (\texttt{pass}, \texttt{...},
+\texttt{continue}, returned constant, assigned constant, discarded comparison),
+plus a broad and a narrow \texttt{contextlib.suppress} statement. All four
+baselines run over the probe file, each hit is attributed to the probe whose
+function span contains it, and the resulting matrix is written to
+\texttt{bench/lint-rule-mapping.json}. Every selected rule has a positive
+control, so a selector that silently matches nothing fails the run.
+With \texttt{-{}-check-parity} the script also compares the detector's predicted
+\texttt{covered\_by} with the measured matrix, probe by probe.
 
-\textbf{The four selected syntactic linter rule sets co-locate with 255 of 621
-findings (41.1\%); 366 (58.9\%) have no such co-location.} The historical export adding our
-\texttt{semgrep} rules records 274 co-located findings (44.1\%) and
-347 unmatched findings (55.9\%). The four-tool counts were reproduced in this
-audit; the full-corpus Semgrep rerun was blocked by the parser error above.
-These counts describe co-location under the stated matching rule, not
-equivalent detection. Table~\ref{tab:coverage}
-breaks them down by rule and Figure~\ref{fig:coverage} plots them.
+The probes are a \emph{behavioural calibration} of the comparison instrument.
+They show what each rule fires on; they say nothing about how often a form occurs
+in real code or whether a finding is a defect. They are also distinct from the
+detector's 68 unit fixtures (34 positive, 34 negative in fixture set v7), which
+test the detector against its own specification.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{RQ1: Representation}
+\label{sec:rq1}
+
+\paragraph{Probes.} On the generated probes, \texttt{ruff S110/S112} fire on bare
+and catch-all handlers (including tuples containing \texttt{Exception} or
+\texttt{BaseException}); \texttt{bandit B110/B112} fire only on a bare handler or
+exactly \texttt{except Exception:}; and \texttt{S110}/\texttt{B110} fire on a
+\texttt{pass} body but not on \texttt{...}. Neither \texttt{contextlib.suppress}
+probe, broad or narrow, draws a message from any selected rule. The selected
+rule sets are therefore tied to the \texttt{except} representation.
+
+\paragraph{Corpus.} The 621-finding frame contains 19 \texttt{silent-suppress}
+findings, in five files of \texttt{inspect\_ai} and
+\texttt{pydantic\_ai\_slim}. \textbf{None is co-located with a warning from the
+four selected baselines} (Table~\ref{tab:coverage}). Widening the baselines does
+not change this: running all 969 Ruff rules and Pylint's full default message set
+over those five files yields, within $\pm1$ line of the 19 sites, only line-length
+messages (\texttt{E501}, \texttt{C0301}). The project's Semgrep rule co-locates
+with 18 of the 19, so the form is expressible by a syntactic rule. In the refined
+frame, \texttt{silent-suppress} falls to 16 findings, still with no four-tool
+co-location. Ruff's \texttt{SIM105} recommends rewriting \texttt{try/except/pass}
+into exactly this form~\cite{ruffsim105}; a rewrite of that kind can preserve the
+suppression while removing it from the reach of the tested rules. Whether a given
+suppression is appropriate remains a contract question.
 
 \begin{table}[htbp]
 \centering\small
-\caption{Per-rule co-location counts under the stated $\pm$1-line criterion.
-The four-tool union includes \texttt{ruff}, \texttt{bandit}, \texttt{pylint},
-and \texttt{flake8} with \texttt{bugbear}; the next column adds the project's
-supplementary \texttt{semgrep} rule from the historical export; its full-corpus
-rerun is blocked by a parser error. The two zero-count families remain in the
-detector but do not occur in this corpus. For \texttt{silent-suppress}, none of
-the selected rules, nor the full \texttt{ruff} and \texttt{pylint} rule sets,
-reports a relevant warning on the 19 findings; the project rule co-locates with
-18.}
+\caption{Co-location by rule in the 621-finding frame. The Semgrep column adds the
+supplementary project rule; its value is the observed count of the 2026-11-03
+diagnostic rerun, which matched the historical export (Section~\ref{sec:rq2}).}
 \label{tab:coverage}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
-Rule & Findings & Four-tool union & With semgrep & Not co-located with four \\
+Rule & Findings & Four-tool union & With Semgrep & Unmatched (four-tool) \\
 \midrule
 \texttt{silent-fallback} & 386 & 180 & 181 & 206 \\
 \texttt{no-action} & 213 & 72 & 72 & 141 \\
-\textbf{\texttt{silent-suppress}} & \textbf{19} & \textbf{0}
-& \textbf{18} & \textbf{19} \\
+\textbf{\texttt{silent-suppress}} & \textbf{19} & \textbf{0} & \textbf{18} & \textbf{19} \\
 \texttt{masked-exception} & 3 & 3 & 3 & 0 \\
-\texttt{implicit-fallback} & 0 & --- & --- & --- \\
-\texttt{name-shadowing} & 0 & --- & --- & --- \\
+\midrule
+Total & 621 & 255 (41.1\%) & 274 (44.1\%) & 366 (58.9\%) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -598,521 +553,623 @@ Rule & Findings & Four-tool union & With semgrep & Not co-located with four \\
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_cross_tool_coverage.pdf}
-\caption{Coverage of the 621 pinned findings by rule family and detector. Each
-cell gives covered findings / family total; shading encodes the coverage share.
-The four-linter union covers 255/621 findings. The historical export adding
-the project's supplementary \texttt{semgrep} rules records 274/621; its
-full-corpus rerun is blocked by a parser error. \texttt{silent-suppress} is the one family
-where the four linters, \texttt{ruff}'s full 969-rule set and \texttt{pylint}'s full
-default set all return zero coverage.}
+\caption{Co-location of the 621 findings by rule family and tool. Each cell gives
+co-located findings / family total. The four-linter union covers 255/621; adding
+the supplementary Semgrep rules gives 274/621 (upper bound 275, because one file
+was only partially parsed). \texttt{silent-suppress} is the family that no
+selected lint rule reaches.}
 \label{fig:coverage}
 \end{figure}
 
-\paragraph{Per-tool comparison and simple-baseline controls.}
-\begin{enumerate}[nosep,leftmargin=*]
-\item \texttt{pylint} is a stronger baseline than \texttt{ruff}, by a factor that
-  depends on which \texttt{ruff} rules the comparison allows. Against
-  \texttt{ruff}'s S110/S112 alone, the gap is 3.54$\times$ (72 vs 255
-  co-located findings). Adding \texttt{ruff}'s broad-except rule BLE001, symmetric
-  to the W0703 \texttt{pylint} rule, reduces the gap to 2.01$\times$ (127 vs
-  255). The comparison depends on the stated rule selection; we report both
-  rather than treating the narrower one as representative of \texttt{ruff}'s
-  broad-except coverage.
-\item \texttt{masked-exception} is fully covered. All 3 findings co-locate with a
-  \texttt{pylint} broad-except warning. That rule contributes no additional warning coverage
-  here; this finite count is specific to the pinned corpus.
-\end{enumerate}
+\paragraph{Rule selection.} The selection gives Pylint its broad-except rule
+(\texttt{W0718}) but not Ruff's analogue \texttt{BLE001}. Adding \texttt{BLE001}
+raises Ruff's own co-located count from 72 to 127 but leaves the union at 255,
+because every finding it newly reaches is already reached by \texttt{W0718}; the
+suppress family stays at 0/19. Per-tool comparisons therefore depend on the rule
+selection (Appendix~\ref{sec:corrections}); the union does not, in this corpus.
 
-\paragraph{A simple baseline for candidate-list length.}
-The union above asks which detector findings a linter flags near the same line; it
-does not compare candidate-list lengths. Across the same eight scan roots,
-\texttt{flake8 -{}-select E722} reports \textbf{134} bare-except candidates,
-including all \textbf{12} original LLM DEFECT-labelled sites. Its list is
-4.63$\times$ shorter than the 621-finding v0.8.0 list and 3.55$\times$ shorter
-than the 476-finding refactored list. These are list-size comparisons at equal
-coverage of the twelve original labels, not equal recall of confirmed defects.
-The sample was drawn from \texttt{failroute} findings, not from E722's candidate
-list, so it cannot estimate E722's label yield or precision.
+\subsection{RQ2: Read sets and coverage attribution}
+\label{sec:rq2}
 
-\texttt{ruff}'s broad-except rule BLE001 is a useful contrast: it returns 334
-candidates and co-locates with none of the 12 original LLM DEFECT-labelled
-sites. BLE001 fires on \texttt{except Exception:}, not bare \texttt{except:};
-all 12 labels in the frozen sample are attached to bare handlers. This is a
-finite overlap result, not evidence that E722 detects confirmed defects better
-than BLE001.
+\paragraph{A read-set omission in the Pylint baseline.} The original harness
+passed each scan root to Pylint as one directory argument. Pylint then skips every
+module under a directory without \texttt{\_\_init\_\_.py}, with exit status 0
+and no message. In this corpus 152 of the 2{,}124 files (7.2\%) sit under such
+directories (\texttt{inspect\_ai} 123, \texttt{deepteam} 20, \texttt{garak} 9).
+Passing the file list instead recovers 34 selected messages in 20 of them and
+changes nothing on the files already analysed (0 messages lost, 0 gained). The
+four-tool union rises from 250 to 255 of 621 and the unmatched count falls from
+371 to 366: the omission had \emph{inflated} the detector's apparent increment.
+All results in this paper use the file-list invocation. Ruff, Bandit and flake8
+return identical hits under both invocations; neither
+\texttt{-{}-recursive=y} nor \texttt{-{}-init-hook} recovers the skipped files.
 
-Both counts come from \texttt{tools/e722\_baseline.py}, which fails loudly if
-either linter is unusable rather than reporting an empty hit set, and are
-committed as \texttt{bench/e722-baseline.json}.
+\paragraph{A partial analysis in the supplementary baseline.} Semgrep 1.175.0
+reports a syntax error in \texttt{inspect\_ai/model/\_reasoning.py} at line~62, a
+\texttt{match} statement, and marks the file as partially analysed; it also skips
+one \texttt{deepteam} test module through its default \texttt{.semgrepignore}.
+Semgrep exits with status 0 and its console summary reads ``Scan completed
+successfully'' (``Parsed lines: \textasciitilde100.0\%''); the error is visible only
+in the JSON \texttt{errors} array and in \texttt{-{}-verbose} output. The strict reproduction harness
+refuses such a run. A separate diagnostic (\texttt{tools/semgrep\_diagnostic.py})
+records the error and bounds its effect: the skipped test module contains no
+detector finding, and the partially analysed file contains one finding of the
+621-finding frame (line~193, not co-located). The diagnostic observes 274/621
+co-located findings with Semgrep added, identical to the historical export, with
+an upper bound of 275; for the 476-finding frame it observes 267/476, with no
+finding in the affected file. We therefore report the five-tool figures as an
+observed value with a bound, not as an error-free reproduction.
 
-\paragraph{Methodological caveat on co-location.}
-Co-location at $\pm$1 line means that a selected lint rule flags the same
-handler; it does not show that the warning expresses the failure-routing
-property studied here. A broad-except warning can co-locate for a different
-reason. We therefore report the 255/621 co-location count as such and do not
-infer semantic coverage or novelty from it.
+\paragraph{Predicted versus executed attribution.} On the 476-finding frame,
+executed co-location leaves 224 findings (47.1\%) unmatched. The original
+\texttt{covered\_by} mapping, inferred from rule names, predicted only 87
+(18.3\%). The probes identified why: the mapping credited \texttt{ruff S110}
+and \texttt{bandit B110} to every handler with an inert body regardless of what it
+caught, although both are broad-only; it treated \texttt{bandit}'s rules as if
+they fired on tuples and on \texttt{BaseException}, which they do not; and it did
+not distinguish a \texttt{pass} body from \texttt{...}. In the opposite
+direction, a tuple with an unresolvable member, such as
+\texttt{except (anyio.get\_cancelled\_exc\_class(), Exception):}, was classified
+as narrow and lost the \texttt{W0718} and \texttt{BLE001} credits that do fire on
+it. For example, \texttt{garak/analyze/ci\_calculator.py:40} is a literal
+\texttt{except (ValueError, TypeError): pass}; the old mapping called it covered,
+and all four baselines report nothing on that file.
 
-\subsection{RQ2: Sensitivity to the detector and its evaluation}
-\label{sec:rq5}
+Correcting the mapping removes credit from 146 findings (all
+\texttt{no-action}) and adds it to 3; the predicted unmatched count rises from
+87 to 224, a correction of \textbf{28.8 percentage points}. The detector's output
+is the same 476 findings before and after, and the executed co-location is the
+same 252 covered and 224 unmatched: only the attribution changed. After the
+correction, the predicted mapping and executed co-location agree on all 476
+findings. Five findings had initially disagreed; all five were in files that the
+directory-based Pylint invocation had not analysed, so the residual disagreement
+was a read-set effect, not a mapping effect. Thirty-six regression tests pin the
+corrected conditions; replaying them against a reconstruction of the
+pre-correction mapping (\texttt{tools/refix\_replay.py}) fails 21 of them, so the
+tests discriminate between the two versions.
 
-\paragraph{Provenance and evaluation scope.}
-The baseline frame uses \texttt{failroute} 0.8.0,
-pinned by the \texttt{v0.8.0} tag. This comparison evaluates the released
-\texttt{failroute} 0.9.1, pinned by \texttt{v0.9.1}; a rescan of the pinned corpus reproduces the
-476-finding export in \texttt{bench/rescan-v2/} (verified 2026-09-07). The refactor
-was developed against the same corpus and all 140 labels used in this evaluation,
-with no held-out set. The results below are therefore descriptive of this
-development corpus and do not establish performance on unseen data.
+\subsection{RQ3: Candidate predicate and denominator}
+\label{sec:rq3}
 
-\paragraph{What changed.} v0.8.0's \texttt{silent-fallback} rule asks whether the
-handler's body returns or assigns a member of a fixed constant set. That is a
-syntactic proxy for the failure-to-value pattern in
-Section~\ref{sec:family}; it cannot tell whether the value is an intentional
-part of the function's contract. The refactor replaces the constant test with
-three further heuristics. \textbf{(1) Value-range membership:}
-if the enclosing function's declared return type admits the substituted value,
-the tool treats this as possible contract evidence and downgrades the finding ---
-applied only to the return channel and only to explicitly declared ranges, never to
-an assignment into object state. A type annotation alone neither establishes
-intent nor lets the caller distinguish a failed operation from a legitimate
-value of the same type. \textbf{(2) Exception--predicate isomorphism:}
-whether the handler's work is structurally the same as a \texttt{-> bool} predicate
-the codebase already declares. \textbf{(3) Data-flow consequence:} whether the
-substituted value escapes the call (returned) or outlives it (assigned to object
-state), a proxy for possible caller-visible consequences rather than proof of
-them. Every finding now also
-carries a severity (INFO, LOW, MEDIUM, HIGH), an isomorphism class, and a static
-\texttt{covered\_by} list predicting which lint rules flag this handler. That
-list is a table derived by running the four baselines over generated probes rather than
-by reading rule names
-(\texttt{tools/lint\_mapping\_probe.py} $\rightarrow$
-\texttt{bench/lint-rule-mapping.json}). The original shape-based mapping got
-three conditions wrong; the calibration below reports the correction and its effect.
+\paragraph{Frame change.} The v0.9.1 predicate reduces the frame from 621 to 476
+findings (617 to 472 sites). The four-tool co-location \emph{rises} from
+255/621 $=$ 41.1\% to 252/476 $=$ \textbf{52.9\%}, while the unmatched count
+falls from 366 (58.9\%) to 224 (47.1\%). The refinement is not a pruning of the
+old frame: over distinct sites, 184 disappeared, 39 appeared and 433 persisted.
+Of the 184 dropped sites, 155 (84.2\%) had been unmatched; of the 39 added, 15
+(38.5\%) were. The losses concentrate in \texttt{silent-fallback} (177 of 184,
+plus 4 \texttt{no-action} and 3 \texttt{silent-suppress}); all additions are
+\texttt{silent-fallback}.
 
-\paragraph{Candidate and overlap changes.}
-Findings fall from 621 to \textbf{476} (617 to 472 distinct handler sites; four
-sites are reported twice in \emph{each} frame, because the assign channel emits one
-finding per assigned target while the finding identifier is derived from the handler
-alone --- an identifier collision in the refactored detector, noted rather than
-hidden). The four-linter union's co-location with those findings \textbf{rises}
-from 255/621 $=$ 41.1\% to 252/476 $=$ \textbf{52.9\%}; the unmatched count
-falls from 366 (58.9\%) to \textbf{224} (47.1\%). These are exact counts in the
-pinned corpus under the stated matching rule.
-
-The refactor is not a pruning of the old frame, and treating it as one would
-overstate its coherence. Over distinct sites, \textbf{184 disappeared, 39 appeared
-and 433 persisted}. Of the 184 dropped sites, 155 (84.2\%) had been
-\texttt{failroute}-only; of the 39 added, 15 (38.5\%) were. The losses concentrate
-in \texttt{silent-fallback} (177 of 184, plus 4 \texttt{no-action} and 3
-\texttt{silent-suppress}); the additions are all \texttt{silent-fallback}.
-\texttt{silent-suppress} falls from 19 findings to 16, so RQ1's ``0 of the 19'' is
-a property of v0.8.0 and does not carry over to this frame. On these counts, the refinement reduced the candidate list and also reduced
-the number of findings not co-located with selected linters. The available label
-set cannot establish whether that trade-off improved confirmed-defect detection.
-
-\paragraph{Separating denominator and covered-count effects.}
-Write the overlap as $O=C/N$, with $C$ co-located findings and $N$ findings
-in the frame. For the two detector versions,
+\paragraph{Denominator decomposition.} Write the overlap as $O=C/N$, with $C$
+co-located findings and $N$ findings in the frame. Then
 \[
- O_1-O_0=\frac{C_1-C_0}{N_1}
-          +C_0\left(\frac{1}{N_1}-\frac{1}{N_0}\right).
+ O_1-O_0=\underbrace{\frac{C_1-C_0}{N_1}}_{\mbox{\scriptsize covered count}}
+          +\underbrace{C_0\left(\frac{1}{N_1}-\frac{1}{N_0}\right)}_{\mbox{\scriptsize denominator}}.
 \]
-With $(C_0,N_0)=(255,621)$ and $(C_1,N_1)=(252,476)$, the smaller frame
-contributes $+12.51$ percentage points and the change in covered count
-contributes $-0.63$ points, giving the observed $+11.88$-point overlap
-change before rounding. Thus overlap rises while the number of co-located
-findings falls. This decomposition describes a ratio change; it does not
-assign causal effects to individual predicate heuristics.
+With $(C_0,N_0)=(255,621)$ and $(C_1,N_1)=(252,476)$, the denominator term
+contributes $+12.51$ percentage points and the covered-count term $-0.63$, giving
+the observed $+11.88$ points. \textbf{Overlap rises although fewer findings are
+co-located}; the increase is a property of the smaller frame. The decomposition
+describes a ratio change and does not attribute causal effects to individual
+predicate heuristics. Whether the smaller frame contains a higher share of
+defects is a separate question that the available labels cannot answer
+(Section~\ref{sec:validation}).
 
-\paragraph{Exploratory label comparison.}
-The baseline comparison measures candidate-list co-location; the label audit reports LLM labels for a different
-sample. Neither alone establishes which findings are defects. We joined all 140
-labels to the refactored frame on (package, file, line) --- the handler's coordinates, deliberately \emph{not} including the rule name,
-because the refactor can reclassify a handler without dropping it and one label in the
-sample was reclassified from \texttt{implicit-fallback} to \texttt{silent-fallback} ---
-104 join and 36 do not; all 36 come from the frozen 80 and are 33
-CONTRACT plus 3 FALSE POSITIVE, so \textbf{no observation carrying an LLM DEFECT label was removed}, and only
-one of the 36 sits within two lines of a surviving finding --- the failures to join
-are deletions, not line drift.
+\paragraph{Instrument versus predicate.} RQ2 and RQ3 change the reported
+unmatched share by similar amounts through different mechanisms
+(Table~\ref{tab:paired}). The attribution correction leaves all detector outputs
+fixed and changes the instrument; the predicate refinement leaves the instrument
+fixed and changes the candidates. Reporting either change as ``the detector
+improved'' would conceal which mechanism moved the number.
 
 \begin{table}[htbp]
 \centering\small
-\caption{LLM DEFECT labels by lint co-location among the 104 observations that
-join to the refactored frame. The static mapping and empirical co-location agree
-on all 104; the label shares describe this clustered, partly purposive set only.}
-\label{tab:crosstab}
-\begin{tabular}{@{}lrrr@{}}
+\caption{Paired measurements on the same pinned corpus. Each row changes one input
+and holds the others fixed.}
+\label{tab:paired}
+\begin{tabular}{@{}P{4.2cm}P{3.2cm}P{3.0cm}P{3.6cm}@{}}
 \toprule
-Co-location & LLM DEFECT labels & $n$ & Sample share \\
+Change & Held fixed & Unmatched before $\to$ after & What moved \\
 \midrule
-A linter reaches the finding & 12 & 48 & 25.0\% \\
-No linter reaches the finding & 1 & 56 & 1.8\% \\
+Pylint read set (directory $\to$ file list) & detector v0.8.0, rules & 371 $\to$
+366 of 621 & tool read set \\
+Coverage attribution (name-based $\to$ probe-calibrated) & detector v0.9.1,
+corpus & 87 $\to$ 224 of 476 (predicted) & attribution only \\
+Candidate predicate (v0.8.0 $\to$ v0.9.1) & baselines, matching rule & 366/621
+$\to$ 224/476 & frame and denominator \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Because the labels are clustered and the 60 supplementary observations were
-purposively selected, the table describes this joined set only. It does not
-establish a population-level difference or incremental defect yield.
+\section{What the coverage results do not show}
+\label{sec:validation}
 
-\paragraph{Calibrating the predicted coverage map.}
-The inference credited \texttt{bandit:B110} and \texttt{ruff:S110} to every handler
-with an inert body, without looking at what the handler catches. Both rules are
-broad-only. Before the mapping was measured, the faulty
-inference called 87 of 476 findings (18.3\%) unmatched, compared with co-location's 224 (47.1\%),
-and 137 findings it called statically covered were flagged by no linter at all. One of
-them is \texttt{garak/analyze/ci\_calculator.py:40}, whose handler is a literal
-\texttt{except (ValueError, TypeError): pass}. Running all four baselines on that
-single file returns \emph{nothing} --- \texttt{ruff} reports ``All checks passed!'',
-\texttt{bandit} and \texttt{flake8} return no rows, \texttt{pylint} scores the file
-10.00/10. The incorrect mapping overestimated baseline coverage and understated
-failroute's incremental warning coverage. The preserved pre-fix export
-makes the correction auditable.
+The coverage results establish where selected warnings reach and where they do
+not. They do not establish that an unmatched finding is a defect, or that a
+detector finds more defects than a simpler one. The project holds three further
+kinds of evidence; each is reported with its own denominator and none is pooled.
 
-\texttt{tools/lint\_mapping\_probe.py} generates 68 probes --- eleven caught-type forms
-(bare; \texttt{Exception}; \texttt{BaseException}; \texttt{builtins.Exception}; a tuple
-of two narrow names; a tuple mixing \texttt{Exception} with a narrow name, with a dotted
-name, and with a name no resolver can read; a single narrow name; a dotted narrow name;
-and a caught type that is a call expression) crossed with six body forms
-(\texttt{pass}, \texttt{...}, \texttt{continue}, a returned constant, an assigned
-constant, a discarded comparison), plus both \texttt{contextlib.suppress} forms ---
-runs all four baselines over them, attributes every hit to the case whose function span
-contains it, and writes the matrix to \texttt{bench/lint-rule-mapping.json}. Every rule
-carries a positive control, so a selector that silently matches nothing fails the run
-instead of being recorded as ``never fires''. Two selector behaviours illustrate
-why the controls are needed.
-\texttt{ruff} rejects an unknown selector with exit code 2 rather than an empty result
-set. And \texttt{pylint} accepts \texttt{W0703} --- the retired id RQ1's baseline
-enables --- and reports those messages as \texttt{W0718}: enabling only \texttt{W0703}
-emits \texttt{W0718} and nothing else, and over the corpus RQ1's exact selection emits
-423 \texttt{W0718}, 134 \texttt{W0702} and 6 \texttt{W0706}, which is the 563 of
-Table~\ref{tab:tools}. A reproducer who counts \texttt{W0703} messages finds zero and
-would reasonably conclude the broad-except rule never ran.
+\subsection{Exploratory LLM labels}
+\label{sec:rq2labels}
 
-The measurement identified three incorrect mapping conditions:
-\begin{itemize}[nosep,leftmargin=*]
-\item \textbf{Caught type, ruff.} \texttt{S110} and \texttt{S112} fire when the handler
-  is bare or catches \texttt{Exception}\,/\allowbreak\,\texttt{BaseException}, including
-  inside a tuple of any composition.
-\item \textbf{Caught type, bandit.} \texttt{B110} and \texttt{B112} are narrower still:
-  bare, or \emph{exactly} \texttt{except Exception:}. They do not fire on
-  \texttt{except BaseException:}, on \texttt{except builtins.Exception:}, or on any
-  tuple. Gating all four rules on one ``broad'' predicate would
-  have moved the over-credit rather than removed it, and left
-  \texttt{pydantic\_ai/\_agent\_graph.py:205}, an
-  \texttt{except BaseException: pass}, wrongly credited.
-\item \textbf{Body form.} \texttt{S110} and \texttt{B110} are literally
-  ``try-except-\emph{pass}'': they fire on a body of \texttt{pass} and not on a body of
-  \texttt{...}, even for a bare handler. This detector's own notion of an inert body
-  accepts both forms, so the distinction had to be made in the mapping rather than
-  inherited from that flag. On this corpus that third condition changes no number ---
-  all 146 over-credited findings have a \texttt{pass} body --- but it is a real defect
-  and the probe pins it.
-\end{itemize}
+A stratified random sample of 80 findings (rule $\times$ package strata, seed
+20260831) was drawn from an earlier 659-candidate frame and labelled
+DEFECT, CONTRACT or FALSE POSITIVE by reading the pinned source. \textbf{Both
+labelling rounds were run by LLM agents}, not human raters; they agreed on 80/80
+items, which is compatible with shared model bias, and the model identity and
+version were not recorded. The labels were 12 DEFECT, 64 CONTRACT and 4 FALSE
+POSITIVE. All 12 DEFECT labels are in \texttt{deepteam}, all on bare
+\texttt{except:} handlers, and they fall into three copied code families; for
+five of them the failure-conversion mechanism is unestablished. A further 60
+labels were added purposively, prioritising sites the refinement changed and
+sites no linter reaches (1 DEFECT, 58 CONTRACT, 1 FALSE POSITIVE); one rationale
+was later found to be incorrect and is recorded in
+\texttt{paper/annotation-corrections.json} without relabelling.
 
-Correcting the caught-type conditions exposed an error in the opposite
-direction. The predicate
-deciding whether a handler catches \texttt{Exception} gave up entirely when any member
-of a caught tuple was not statically resolvable, so
-\texttt{except (anyio.get\_cancelled\_exc\_class(), Exception):} --- three instances in
-\texttt{inspect\_ai} --- was classified as narrow and kept only its body-form credit
-(\texttt{bandit:B110}, \texttt{ruff:S110}), losing the two caught-type credits that
-do fire on it (\texttt{pylint:W0718}, \texttt{ruff:BLE001}); and \texttt{bandit:B110}
-should not have been there either, since B110 fires on no tuple at all. That error
-overstates the unmatched share and would bias the comparison in favour of the tool.
+These labels served their useful purpose as a debugging instrument: the four
+false positives shared one control-flow bug in \texttt{implicit-fallback}, whose
+correction removed all ten such findings from the corpus
+(Appendix~\ref{sec:corrections}). They \textbf{do not} measure precision: they
+are LLM judgements; the refinement was developed against all 140 of them; the
+sample no longer represents either current frame (72 of the 80 coordinates
+survive into the 621 frame); and the DEFECT labels are clustered in one package.
+Among the 104 labelled observations that join the refined frame, 12 of 48
+co-located observations and 1 of 56 unmatched observations carry a DEFECT label.
+This describes a clustered, partly purposive set and supports no claim about
+incremental defect yield. A simple comparator illustrates the point:
+\texttt{flake8 -{}-select E722} returns 134 bare-except candidates that include
+all 12 original DEFECT-labelled sites, whereas Ruff's \texttt{BLE001} (334
+candidates) includes none of them. The full label tables and sensitivity
+analyses are in Appendix~\ref{sec:labels}.
 
-The correction is checked by 36 regression tests. To test whether the suite
-distinguishes the corrected mapping from its predecessor,
-\texttt{tools/refix\_replay.py} rebuilds the pre-correction predicate
-in a scratch tree: 21 of the same 36 tests fail on that version, whereas
-all 36 pass on the corrected version.
+\subsection{Curated merged fixes}
+\label{sec:rq3fixes}
 
-\textbf{Before and after.} The correction removes credit from \textbf{146} findings and
-adds it to 3. Of the 146, \textbf{137} become predicted unmatched and 9 stay covered
-because a rule that genuinely fires on them is still credited. All 146 are
-\texttt{no-action} findings --- 93 at INFO, 48 at MEDIUM and \textbf{5 at HIGH}.
-Predicted unmatched findings go from 87 (18.3\%) to \textbf{224 (47.1\%)}, and HIGH
-findings with no lint coverage from 20 to \textbf{25}. What the detector \emph{reports}
-does not change at all --- 476 findings before and after --- and neither do the
-empirical co-location figures (252 covered, 224 unmatched), because those come from running
-the linters rather than from inferring anything about them. That the predicted unmatched
-count and the empirically unmatched one are now the same number is not a coincidence; see
-the next paragraph.
-\texttt{tools/rq5\_refactor\_delta.py} recomputes the whole comparison from the
-preserved pre-fix export; \texttt{tools/lint\_mapping\_probe.py -{}-check-parity}
-re-derives the mapping and fails if the shipped inference drifts from it; and 36 tests
-pin the same conditions, including the reverse direction (a narrow handler must lose the
-credit, and widening it to bare must restore it).
+The historical ledger \texttt{paper/merged-pr-recall.csv} records 16 merged pull
+requests, submitted from the author's account, that had been classified as
+related to this pattern family. A source-linked audit on 2026-11-03
+(\texttt{paper/reference-audit.json}; AI-assisted, not independent human
+adjudication) found that these changes do not share a common failure-routing
+construct: some are handler-local, some concern non-handler outcomes, and some
+are adjacent error-handling changes (for example, one adds a fallback where an
+exception previously propagated; another preserves exception identity through
+retry wrapping). We therefore \textbf{withdraw} the earlier pooled ratios (3/14
+matched, 5/14 handler-reachable, 9/14 non-handler) rather than repair their
+denominator by assumption. Individual changes remain useful as concrete examples
+of failures outside a handler's local shape, such as a failed judge's NaN entering
+an aggregate score (\texttt{cvs-health/uqlm}\#459). Appendix~\ref{sec:maintainer}
+summarises these and the broader maintainer records.
 
-\paragraph{Resolving the remaining coverage discrepancy.}
-Five findings of the 476 disagreed with the empirical measure. All five are
-\texttt{except Exception:} handlers that return or assign a constant; the corrected
-inference credits \texttt{pylint:W0718} and \texttt{ruff:BLE001}, \texttt{BLE001}
-does fire at exactly that line, and yet the co-location run recorded no linter there
-at all. Three explanations were tested and ruled out: it is not a parse failure
-(\texttt{pylint} rates \texttt{model/\_providers/openai.py} 9.96/10 with no fatal or
-syntax message, and the file's single \texttt{except Exception} is the one it
-declines to flag); it is not an inline pragma (none of the four files contains the
-string ``pylint''); and it is not the \texttt{as} binding, which real code uses and
-the probe originally did not --- tested directly, \texttt{W0718} fires on
-\texttt{except Exception:}, on \texttt{except Exception as e:} and on the same
-handler that uses \texttt{e}, and does not fire on a bare \texttt{except:}. The
-synthetic case that matches these five \emph{does} earn \texttt{W0718} in the probe,
-so the discriminating condition was something about their context. It was our
-harness, not the linter: all four files sit under a directory with no
-\texttt{\_\_init\_\_.py}, and the directory-based invocation of \texttt{pylint} described in
-Section~\ref{sec:rq1} did not analyse them. Handed the files
-directly, \texttt{pylint} emits \texttt{W0718} at the disputed line in every one of
-the five. Two corrections follow. First, with the harness fixed, the static
-\texttt{covered\_by} mapping and empirical co-location agree on all 476 findings:
-224 are unmatched by both criteria. Second, this reverses the direction of the residual
-bias. \texttt{W0718} is in RQ1's selected \texttt{pylint} rules and fires on all
-five disputed handlers, so the directory-based run under-counted linter coverage
-and overstated unmatched coverage by five findings (229 before correction, 224 after). None
-of the five was labelled, so the 12-of-48 versus 1-of-56 crosstab is unchanged.
-
-The corrected static mapping agrees with empirical co-location on all 476
-findings. The mapping repair changed coverage classifications but did not change
-the LLM-label join: none of the five disputed handlers carried an original
-DEFECT label. Among the original labels, no narrow-typed handler carried that
-label; one of 23 purposively selected supplementary labels on narrow-typed
-handlers did. This contrast does not support generalisation.
-
-\paragraph{Contribution of the isomorphism layer.} Of the 476 findings the
-isomorphism layer classified \textbf{none} as isomorphic: 254 non-isomorphic, 206
-unknown, and 16 with no class at all (the \texttt{silent-suppress} findings, which
-have no handler). A layer that never produces a positive classification contributed
-nothing to the separation measured above; whatever the refactor achieved came from
-layer 1 (declared value ranges) and layer 3 (escape channel). Severities across the
-frame: 208 HIGH, 126 MEDIUM, 129 INFO, 13 LOW.
-
-\paragraph{Label disposition after refinement.} All 13 observations
-carrying LLM DEFECT labels survive it, and all 13 receive HIGH severity; this
-describes label disposition, not confirmed defects. Of the 122
-CONTRACT labels, 33 were dropped and 25 reduced to INFO or LOW: 58 of 122, 47.5\%.
-Restricting to the case layer 1 was built for, contracts whose enclosing function
-\emph{declares} a None-admitting return type, 35 of 38 (92.1\%) were dropped or
-reduced; for a literal \texttt{-> None}, 22 of 23 (95.7\%). Not all of them, and the
-exceptions are the interesting part: three declared-contract findings still report
-at HIGH or MEDIUM, and \textbf{two} labelled FALSE POSITIVES survive at HIGH. One is
-\texttt{pydantic\_ai/ui/\_event\_stream.py:293}, an async generator whose handler
-propagates the error elaborately and which the refactor reports \emph{twice}. The
-other is \texttt{fickling/polyglot.py:150}, which the frozen sample labelled as an
-\texttt{implicit-fallback} over-call and the refactor now reports as
-\texttt{silent-fallback} instead, still at HIGH. The second one is visible only
-because the label join above keys on the handler's coordinates and not on the rule
-name: a rule-inclusive join counts a reclassified handler as a deletion and quietly
-reports one surviving false positive instead of two. And 55
-of the 122 CONTRACT labels sit in functions with no declared return annotation at
-all, so layer 1 cannot apply to them by construction. That is the ceiling on how
-much noise this design can remove: without type information, the declared-contract
-test has nothing to read.
-
-\paragraph{The 60 supplementary labels.} The original 80 labels were drawn from the
-v0.7.0 frame; 72 survive into v0.8.0 and fewer into this one, which is too small a
-base for a crosstab. We labelled 60 further findings, written to
-\texttt{paper/annotations-v2-additions.csv} --- a new file. The frozen
-\texttt{annotations.csv} and \texttt{annotations-second-pass.csv} are unchanged and
-remain SHA-locked; none of those observations was re-labelled to suit this section. Method:
-candidates were drawn from the refactored frame with priority on sites whose status
-the refactor changed and on sites no linter reaches; each was labelled by reading
-the pinned corpus source, and the detector's own severity, isomorphism and
-\texttt{covered\_by} values were recorded into the row \emph{after} the rationale was
-written, so the rationale is not a restatement of the verdict; every row carries its
-rationale, the enclosing signature, and a flag for whether the site is new in this
-frame. One row is marked in its own rationale as the weakest of the 60 --- a
-borderline CONTRACT that a second annotator could reasonably call DEFECT --- rather
-than being quietly resolved. The outcome was 1 DEFECT, 58 CONTRACT, 1 FALSE
-POSITIVE. Labels were written by an LLM agent, the same process as the original audit's, and
-inherit every limitation the original audit states about it, including that agreement between runs
-of one model family is compatible with shared bias, not proof of accuracy; we did not run the 60
-twice. The 60 are \emph{not} a random sample, so the 140-label figures support a
-within-sample description only, not a wider inference.
-
-\paragraph{The one DEFECT label in the unmatched remainder.} The single DEFECT
-label among the 56 non-co-located observations is
-\texttt{garak/probes/dan.py:134}, a narrow-typed handler from the supplementary
-round. It is one LLM label from a purposively selected sample, not an independently
-confirmed finding or an estimate of defect share. It shows only that the observed
-unmatched cell was not empty of DEFECT labels.
-
-\subsubsection{Control-corpus comparison}
+\subsection{Control corpus}
 \label{sec:control}
 
-\paragraph{Design.} The main corpus is dominated by one handler shape: 134 bare
-\texttt{except:} clauses, 131 of them in a single package, holding all 12 original DEFECT-labelled sites. Any claim of the form ``the lint baseline already covers the defects''
-may therefore be an artefact of code style rather than a general fact. The control
-corpus inverts the style: across its eight package bodies (263 \texttt{.py} files,
-109{,}400 lines, 842 handlers) there is exactly one bare \texttt{except}, in
-\texttt{msgpack/fallback.py:812}, whose handler resets the buffer and re-raises
---- so even the single E722 candidate is a non-defect. The detector build is the
-frozen 0.9.x predicate, unmodified; the four baselines run with RQ1's exact rule
-selection and $\pm$1-line matching. The four first packages contribute 243 handlers
-and 0 bare clauses; the four added for domain diversity contribute 599 handlers
-and the 1 re-raising bare clause.
-
-\paragraph{Result: the trivial baseline behaves differently across these
-corpora.} Table~\ref{tab:control} contrasts the selected packages. Finding
-density is 21.0\% (476/2{,}270) in the main corpus, 15.6\% (38/243) in the
-four-package control core, and 18.3\% (154/842) across all eight control
-packages. These are descriptive densities in purposively selected corpora, not
-estimates for broader classes of software. \texttt{flake8 -{}-select E722}
-returns 134 candidates on the main corpus, including all 12 original
-DEFECT-labelled sites; on the control corpus it returns one candidate, which is
-a re-raise and carries no DEFECT label.
-
-\paragraph{Result: no misses were identified in the recorded read set.} Of the control
-corpus's 243 handlers the tool reports 38; the historical procedure excluded
-114 unreported handlers containing a \texttt{raise}, and read the remaining 91.
-The presence of a \texttt{raise} does not establish that every reachable path
-propagates failure. Those 114 require path-sensitive review before any
-claim about misses across all unreported handlers can be made. None was classified as a miss under the stated protocol:
-the cases were optional-import and capability probes, \texttt{StopIteration}
-protocol handling, \texttt{dict.get} and \texttt{list.index} sentinels,
-documented best-effort fallbacks (\texttt{requote\_uri},
-\texttt{get\_unicode\_from\_response}), data-model protocol returns
-(\texttt{NotImplemented}), and CLI exit paths. This is an exhaustive review of
-that finite read set in one recorded code-reading pass, not independent
-human adjudication or proof of zero misses in related code.
-
-\paragraph{The four diversity packages agree.} \texttt{click} (31 findings, 13
-HIGH), \texttt{anyio} (45 findings, 1 HIGH), \texttt{pydantic} (40 findings, 1
-HIGH) and \texttt{msgpack} (0 findings) reproduce the pattern: 12 of the 15 HIGH
-findings are \texttt{except Exception} capability probes already covered by
-\texttt{BLE001}/\texttt{W0718} (Windows-console shims, stream predicates,
-\texttt{TaskGroup} propagation with explicit re-raise paths). The 3 uncovered
-HIGH findings are contracts on reading: \texttt{click/core.py:161} is a
-\texttt{list.index} probe returning infinity as the documented sort key;
-\texttt{click/types.py:269} converts the user's \texttt{ValueError} via
-\texttt{self.fail}, which raises \texttt{UsageError} --- the exception escapes
-through a call rather than a \texttt{raise} statement, a shape no callee-local
-rule can see (the detector's \texttt{exception\_escapes} check looks only for the
-exception object in a returned value or a side-channel call; we refer to this as
-the \texttt{exception\_escapes} case); \texttt{pydantic/v1/\_hypothesis\_plugin.py:125} is a
-\texttt{contextlib.suppress(Exception)} digit search in hypothesis test-support
-code, confirming the SIM105-adjacent blind spot of Section~\ref{sec:rq1} from the
-other side.
-
-\paragraph{Another case the handler-local view cannot decide.}
-\texttt{connectionpool.py:812} names a new false-positive mechanism:
-\textbf{state-flag amplification}. The finding is \texttt{clean\_exit = False} (set
-alongside \texttt{release\_this\_conn = False}), a control-flow flag consumed in
-\texttt{finally} and after the handler; the \texttt{amplifies} criterion (``the
-value outlives the call'') promotes it to HIGH exactly as it would a substituted
-return value. Telling the two apart requires knowing where the variable is
-consumed, which lies outside the handler. Like the
-\texttt{exception\_escapes} case above and the three constructed probes in
-the Discussion, it is retained in the frozen evaluation so that the
-tested build's mistakes remain reproducible. These are limitations to
-address in later detector versions, not reasons to retain incorrect
-behaviour. A subsequent repair should be evaluated against this record
-without rewriting the original observations.
+The main corpus contains 134 bare \texttt{except:} clauses, 131 in one package,
+which hold all 12 original DEFECT labels. To check whether the comparison
+depends on that style, the v0.9.1 detector and the same baselines were run on the
+style-opposite control corpus (Table~\ref{tab:control}). There, \texttt{flake8
+E722} returns one candidate, a bare handler that re-raises. Of the four core
+packages' 243 handlers, the detector reports 38; a recorded code-reading pass
+over the 38 findings and the 91 unreported handlers without a \texttt{raise}
+classified none as a missed failure-routing defect. That pass was performed once,
+not by independent human adjudicators, and the 114 unreported handlers containing
+a \texttt{raise} were excluded without path-sensitive review. The control corpus
+also exposes cases that handler-local reasoning cannot decide: a state flag
+consumed in a \texttt{finally} block is promoted to HIGH as if it were a
+substituted return value (\texttt{urllib3/connectionpool.py:812}), and an
+exception converted by a call that raises (\texttt{click/types.py:269}) is
+invisible to a callee-local rule.
 
 \begin{table}[htbp]
 \centering\small
-\caption{Style-opposite corpora, same detector build and baseline selection.
-Densities are findings per handler inside the scan roots. The E722 row reports
-coverage of the original 80-item LLM-labelled sample only; one supplementary
-LLM DEFECT label lies outside E722. Control-corpus classifications come
-from one recorded code-reading pass, not independent human adjudication,
-and use a different process from Group~A.}
+\caption{Main and control corpora under the same detector build (v0.9.1) and
+baselines. ``Findings per 100 handlers'' counts tool outputs, including suppress
+findings and repeated outputs; ``handlers with a finding'' counts distinct
+\texttt{except} handlers. Control-corpus readings come from one recorded
+code-reading pass.}
 \label{tab:control}
 \begin{tabular}{@{}lrrr@{}}
 \toprule
- & Group~A & B core (4 pkgs) & B all (8 pkgs) \\
+ & Main & Control core (4) & Control all (8) \\
 \midrule
-Handlers & 2{,}270 & 243 & 842 \\
-Bare \texttt{except:} & 134 & 0 & 1 (re-raise) \\
-Findings & 476 (21.0\%) & 38 (15.6\%) & 154 (18.3\%) \\
-HIGH & 208 & 6 & 21 \\
-Unique HIGH (\texttt{covered\_by} empty) & 25 & 2 & 5 \\
-E722 candidates & 134 & 0 & 1 \\
-E722 coverage of original 80-sample labels & 12/12 & --- & --- \\
-Recorded DEFECT labels & 12/80 + 1/60 & 0 of 38 & 0 of 38, 0 of 15 new HIGH \\
+\texttt{except} handlers & 2{,}270 & 243 & 842 \\
+Bare \texttt{except:} & 134 & 0 & 1 (re-raises) \\
+Findings (per 100 handlers) & 476 (21.0) & 38 (15.6) & 154 (18.3) \\
+Handlers with a finding & 456 (20.1\%) & 38 (15.6\%) & 153 (18.2\%) \\
+HIGH-severity findings & 208 & 6 & 21 \\
+HIGH with empty \texttt{covered\_by} & 25 & 2 & 5 \\
+\texttt{flake8 E722} candidates & 134 & 0 & 1 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{RQ3: Candidate validity and the scope of local analysis}
-\label{sec:validation}
+\subsection{Summary of evidential status}
 
-A coverage boundary establishes what a warning system reports. To ask
-whether the uncovered code needs repair, we examine exploratory contract
-readings and public change records. These sources have different selection
-processes and cannot be pooled into a defect-rate estimate.
-
-\subsubsection{Exploratory labels on sampled findings}
-\label{sec:rq2}
-
-\paragraph{Method.}
-We drew a stratified random sample across (rule $\times$ package), with fixed
-seed 20260831, at least one draw per stratum, and proportional allocation of the
-remaining draws; the sample contains $n=80$ findings. The draw came from an
-earlier 659-candidate export. Review then identified ten false-positive
-\texttt{implicit-fallback} findings, leaving a 649-candidate corrected frame;
-the four sampled findings from that rule were all false positives and are not
-included in the frame projection below. Weighting the remaining 76 observations
-by stratum size gives a projection of 130 LLM DEFECT labels (20.0\%) in the
-649-candidate frame. This is a projection of labels, not confirmed defects, and
-we make no claim about confirmed-defect prevalence. The 28 further precision fixes that produced
-the v0.8.0 frame removed four additional sampled CONTRACT findings; only 72 of
-the original 80 labels remain in that frame, and this surviving subset is not
-representative of the current 621-finding set.
-
-The unweighted 12/80 share describes only the drawn sample. Each sampled finding
-was assigned one of three labels by reading nearby source in the pinned tree:
-\textbf{DEFECT} (the converted failure produces a wrong caller-visible outcome
-with no signal), \textbf{CONTRACT} (the behaviour appears deliberate and is
-documented, commented, or expressed in the return type), or \textbf{FALSE
-POSITIVE} (the detector is wrong about the code).
-
-\paragraph{Labelling was performed by LLM agents.}
-Two rounds were run, both by LLM agents (not human raters), and they agreed on
-80/80 items. This agreement is compatible with shared model bias; it does not
-establish label accuracy or independence. The artefacts establish two separate
-runs, not independent human adjudication. What
-is committed is both label sets --- \texttt{paper/annotations.csv} (first round,
-rationales recorded in Chinese) and
-\texttt{paper/annotations-second-pass.csv} (second round, rationales in English)
---- so the agreement can be checked item by item rather than taken on trust. The
-sample remains useful as (a) a debugging instrument (Section~\ref{sec:rq4}) and
-(b) the consequence arm of the triangulation in Section~\ref{sec:tri}, where its
-limits are part of the design.
-
-\paragraph{Meaning of a DEFECT label.}
-DEFECT denotes the frozen LLM judgement, not an independently confirmed
-failure-routing mechanism. Five of the twelve original labels concern a
-discarded comparison and an unassigned state; their failure-conversion
-mechanism is unestablished. The other seven have the mechanisms described in
-Section~\ref{sec:threats}. We retain the original labels for reproducibility;
-they do not establish defect yield.
-
-\paragraph{Result (80 sampled findings, LLM-labelled).} Table~\ref{tab:rq2}
-reports the sample labels; Tables~\ref{tab:byrule} and~\ref{tab:bypackage}
-show their distribution by rule and package. All counts describe this sample;
-they do not establish a package-level or corpus-wide defect rate.
+Table~\ref{tab:status} states, for each headline result, whether it was
+re-executed in the 2026-11-03 audit, is cited from an earlier recorded run, or
+could not be re-run. Nothing in the table is a defect-detection measurement.
 
 \begin{table}[htbp]
 \centering\small
-\caption{LLM-assigned labels in the original 80-finding sample. Frequencies
-describe this sample and are not a defect-rate estimate.}
-\label{tab:rq2}
-\begin{tabular}{@{}lrr@{}}
+\caption{Evidential status of the reported results (audit of 2026-11-03).}
+\label{tab:status}
+\begin{tabular}{@{}P{6.0cm}P{2.6cm}P{5.6cm}@{}}
 \toprule
-LLM label & $n$ & Share of sample \\
+Result & Status & Note \\
 \midrule
-CONTRACT & 64 & 80.0\% \\
-DEFECT & 12 & 15.0\% \\
-FALSE POSITIVE & 4 & 5.0\% \\
+8 pinned archives and extracted trees match the lock & re-executed &
+SHA-256 and tree hashes, fresh download \\
+621-finding frame (v0.8.0) and 476-finding frame (v0.9.1, current) &
+re-executed & identical to frozen exports, finding by finding \\
+Four-tool co-location, both frames (255/621, 252/476) & re-executed & all
+1{,}097 per-finding rows identical, with both the current tools and commit
+\texttt{3b4c567} \\
+Frame delta, denominator decomposition & re-executed & recomputed from the
+fresh per-finding rows \\
+68-probe matrix, mapping parity, 21/36 replay & re-executed & matrix identical
+apart from the interpreter path \\
+19 suppress sites vs.\ all Ruff rules and default Pylint & re-executed &
+only line-length messages nearby \\
+E722 and BLE001 candidate counts & re-executed & 134 and 334 \\
+Control-corpus scans & re-executed & 8/8 packages match the committed exports \\
+Semgrep five-tool co-location (274/621) & partial & observed 274, bound 275;
+one file partially parsed \\
+Pylint directory-invocation counts (250/621) & cited & recorded at commit
+\texttt{3b4c567}; superseded \\
+Control-corpus code readings; LLM labels; maintainer records & cited & single
+recorded passes; LLM provenance unrecoverable \\
+Defect precision or recall & not measured & requires independent adjudication \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{Coverage is a property of a comparison.}
+The unmatched share depends on the representation each rule recognises, the
+files each tool analyses, how coverage is attributed and which candidates form
+the denominator. In this study each of them moved the headline figure while the
+detector's outputs, or the number of covered findings, stayed fixed or fell: a
+read-set omission by five findings, attribution by 28.8 points, and the
+denominator by 12.5 points. An unmatched finding is therefore an
+observation about one comparison, not evidence of an additional defect.
+
+\paragraph{A protocol for detector increments.}
+The study supports five concrete checks for future comparisons of
+failure-routing or exception-handling detectors:
+\begin{enumerate}[nosep,leftmargin=*]
+\item \emph{Lock inputs and verify read sets.} Pin the corpus by hash and record,
+  per tool, how many target files were analysed; a silent exit status is not
+  evidence of a complete scan.
+\item \emph{Calibrate rule semantics with executed probes.} Generate probes for
+  every handler and body form the detector reports, including alternative
+  representations, give every rule a positive control, and derive any predicted
+  mapping from the measured matrix.
+\item \emph{Report numerator, denominator and unit.} State findings, sites and
+  handlers separately; when the predicate changes, report site identities and
+  absolute counts and decompose the ratio change.
+\item \emph{Report partial analyses as bounds.} Treat any tool error as an
+  incomplete measurement and bound its effect rather than recording it as zero
+  coverage or as success.
+\item \emph{Adjudicate contracts separately.} Defect precision and recall require
+  independent contract adjudication on a sample kept apart from development,
+  including findings from simple comparators such as \texttt{E722}.
+\end{enumerate}
+Checks 1--4 are implemented and executed here. Check 5 is the missing evidence for
+any claim of incremental defect detection; a protocol for it is proposed in
+\texttt{docs/annotation-revalidation-protocol.md} but has not been executed.
+
+\paragraph{Caller intent is the remaining validation problem.}
+A return type may admit \texttt{None} or \texttt{False} without making an
+operational failure equivalent to a legitimate value; conversely, a constant
+fallback may be intentional. Constructed probes against the v0.9.1 build show
+both errors: a typed handler returning \texttt{False} on a database timeout, and
+an \texttt{Optional}-returning function returning \texttt{None} on a cache error,
+are missed, while a validation loop with a \texttt{return False} handler is
+reported at HIGH. Together with the state-flag and call-conversion cases of
+Section~\ref{sec:control}, they show that local shape does not determine contract
+violation, which is why this paper restricts its claims to warning coverage.
+
+\section{Threats to validity}
+\label{sec:threats}
+
+\paragraph{Construct validity.}
+Co-location within one line does not establish that two tools diagnose the same
+property, and a farther warning may still be relevant. The supplementary Semgrep
+rules were written by the author and are reported separately and with a bound.
+The probes calibrate rule behaviour on synthetic code; they do not establish the
+frequency of each form in practice.
+
+\paragraph{Internal validity.}
+The v0.9.1 predicate and its \texttt{covered\_by} mapping were developed on this
+corpus and its 140 labels, with no held-out set; the refined-frame results are
+descriptive of this development corpus. A harness omission and several
+mapping errors were found during the study and corrected
+(Appendix~\ref{sec:corrections}); others may remain. The pre-correction mapping
+used by the replay is a reconstruction, not a recovered git object.
+
+\paragraph{External validity.}
+The main corpus consists of eight purposively selected packages, partly chosen
+from the author's contribution history; the control corpus of eight
+infrastructure packages represents one opposite style, not a population. All
+measurements describe pinned package and tool versions.
+
+\paragraph{Label and record validity.}
+All labels were produced by LLM agents whose model identity and version were not
+recorded; the label process cannot be reproduced, and the two rounds' agreement
+may reflect shared bias. The original annotation protocol does not describe the
+process actually run. The curated fixes and closed pull requests were submitted by
+the author, their family membership was revised by an AI-assisted audit, and the
+tracked-site dataset uses a weaker criterion than the detector. These records are
+therefore reported as exploratory and are not combined into any rate.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Measuring what a failure-routing detector adds over existing linters is a
+measurement problem before it is a detection problem. On eight pinned AI/ML
+packages, generated probes show that the selected lint rules do not reach the
+\texttt{contextlib.suppress} representation, and the corpus confirms that none
+of 19 such candidates is co-located with a selected warning. A Pylint read-set
+omission, a name-based coverage mapping and a change of denominator each moved
+the unmatched share materially, while the detector's outputs, or the number of
+covered findings, stayed fixed or fell. The protocol and artefacts make these
+effects executable and auditable. Whether the remaining unmatched findings are
+defects is a separate question that requires independent contract adjudication
+on held-out code, including findings from simple baselines.
+
+\section*{Data availability}
+The detector, analysis scripts, pinned corpus locks, frozen exports, label
+files and audit records are available at
+\url{https://github.com/feiiiiii5/failroute} (MIT licence); the detector is also
+released on PyPI as \texttt{failroute}. The corpus is eight publicly distributed
+PyPI source distributions, each used under its own licence, and is re-fetched and
+hash-verified rather than redistributed. The maintainer records consist of
+public GitHub issue and pull-request records cited by number; no non-public data
+about identifiable individuals was used. Appendix~\ref{sec:repro} gives the
+reproduction commands.
+
+\section*{Conflict of interest}
+The author developed the detector under evaluation and wrote the supplementary
+Semgrep rules. The main corpus was selected partly from packages to which the
+author had contributed, and the curated merged fixes and closed pull requests
+were submitted from the author's GitHub account. These relationships are also
+stated on the title page. To limit their effect, results unfavourable to the
+detector are reported alongside favourable ones, and no defect-detection claim
+is made. The author declares no other competing interests.
+
+\section*{Manuscript licence}
+This manuscript is licensed under the Creative Commons Attribution 4.0
+International licence
+(\href{https://creativecommons.org/licenses/by/4.0/}{CC BY 4.0}). Code and
+third-party artefacts keep their own licences.
+
+{\small\raggedright
+\bibliographystyle{plainnat}
+\bibliography{refs}
+}
+
+\clearpage
+\appendix
+% File paths dominate the appendix; allow looser lines rather than overfull ones.
+\sloppy
+
+\section{Reproduction}
+\label{sec:repro}
+
+There are two reproduction paths. They use different fixed versions and must not
+be mixed: the historical archive predates the current audit scripts, and the
+current scripts are not present at the historical commit.
+
+\subsection{Historical numerical archive (commit \texttt{3b4c567})}
+\label{sec:repro-hist}
+
+Commit \texttt{3b4c567} (8 September 2026) contains the datasets, exports and
+scripts behind the reported counts, including the corrected Pylint invocation.
+It does \emph{not} contain \texttt{tools/reproduce\_paper.py},
+\texttt{tools/reproduce\_warning\_coverage.py},
+\texttt{tools/semgrep\_diagnostic.py}, \texttt{paper/reference-audit.json} or
+\texttt{paper/annotation-corrections.json}. Several historical scripts write
+into tracked files under \texttt{bench/} and \texttt{paper/}; run them only in a
+disposable worktree, never in a working copy you want to keep:
+\begin{verbatim}
+git clone https://github.com/feiiiiii5/failroute && cd failroute
+git worktree add ../failroute-3b4c567 3b4c567      # disposable tree
+cd ../failroute-3b4c567
+python -m venv .venv && . .venv/bin/activate
+pip install '.[test,paper]'
+python tools/fetch_corpus.py        # verifies 8 archives; rewrites the
+                                    # lock's timestamp in this tree only
+PYTHONPATH=src python -m pytest     # 221 tests; as root 220 pass, 1 skips
+PYTHONPATH=src python tools/rescan_corpus.py --out /tmp/h-rescan --with-context
+    # 476 findings (the detector at this commit is 0.9.1)
+python tools/coverage_union.py --findings-dir bench/rescan-f2 \
+    --out /tmp/h-union-621.json --emit-per-finding /tmp/h-621.jsonl
+    # union 255/621; compare /tmp/h-621.jsonl with the committed export
+python tools/coverage_union.py --findings-dir bench/rescan-v2 \
+    --out /tmp/h-union-476.json --emit-per-finding /tmp/h-476.jsonl
+    # union 252/476
+cd - && git worktree remove --force ../failroute-3b4c567
+\end{verbatim}
+Fetch the corpus into the worktree rather than symlinking it from another
+checkout: through a symlink, Pylint's parallel run stalled for over 20 minutes on
+one package that otherwise takes seconds. On 4 November 2026 this path gave
+255/621 and 252/476 with every per-finding row identical to the committed
+exports. At that commit, \texttt{tools/rq5\_refactor\_delta.py} has no output option and
+writes \texttt{bench/rq5-refactor-delta.json}; inside the disposable tree that
+overwrite is harmless and can be compared with \texttt{git diff}.
+
+\subsection{Current audit}
+\label{sec:repro-current}
+
+The current audit tooling is fixed at commit \texttt{b88cbad} (3 November 2026),
+the first commit that contains all of it; later commits change only the manuscript
+and documentation. It adds a guard
+(\texttt{tools/\_frozen\_guard.py}) that makes the analysis scripts refuse to
+overwrite a git-tracked output unless \texttt{-{}-allow-overwrite-frozen} is
+given; a fetch that reproduces the lock leaves the lock file untouched. One
+command runs every executable check into a new directory and compares each
+output with the frozen file:
+\begin{verbatim}
+git checkout b88cbad
+python -m venv .venv && . .venv/bin/activate
+pip install '.[test,paper,paper-semgrep]'
+python tools/fetch_corpus.py                    # lock unchanged if it matches
+python -m pytest                       # 236 tests; as root 235 pass, 1 skips
+python tools/reproduce_paper.py --out-dir /tmp/failroute-audit --with-semgrep
+\end{verbatim}
+The steps are: corpus verification; the v0.8.0 scan from a disposable worktree at
+tag \texttt{v0.8.0}; the current scan; four-tool coverage on both frames; the
+frame delta recomputed from the fresh rows; the E722/BLE001 counts; the 68-probe
+matrix with parity check; the mapping-test replay; and, with
+\texttt{-{}-with-semgrep}, the Semgrep diagnostic. Every step except the last
+must report PASS; the Semgrep step reports PARTIAL while Semgrep records an
+analysis error. On 3 November 2026, on Linux x86\_64 with Python 3.13, all eight
+non-Semgrep steps passed and the Semgrep step reported PARTIAL with the values in
+Section~\ref{sec:rq2}. The control corpus is checked separately with
+\texttt{PYTHONPATH=src python tools/control\_rescan.py -{}-check}, which passed for
+all eight packages.
+
+\subsection{Execution notes}
+The historical corpus scans were run on macOS arm64; the CI matrix (Ubuntu, macOS
+and Windows; Python 3.9--3.13) runs the test suite, not the corpus scans. The
+2026-11-03 re-execution on Linux x86\_64 reproduced the historical outputs
+exactly. The v0.8.0 scanner exits with status 1 when it reports findings even if
+the scan succeeded; the 0.9.x scanner separates severity and error exit
+statuses. Three pipeline scripts are deliberately not part of either path because
+they overwrite hand-curated artefacts: \texttt{draw\_sample.py},
+\texttt{merged\_pr\_recall.py} and \texttt{compare\_linters\_corpus.py}; the old
+\texttt{run\_semgrep\_baseline.py} reads the v0.7.0 frame and now refuses to run
+without the overwrite flag.
+
+\section{Detector details}
+\label{sec:detector-detail}
+
+\paragraph{What counts as recording a failure.} A handler is treated as signalling
+its failure if it re-raises; calls \texttt{exit} or \texttt{\_exit}; calls
+\texttt{warnings.warn} or \texttt{warnings.warn\_explicit}; or calls a
+logger-like name. The test is not uniform. A catch-all handler (bare
+\texttt{except:} or \texttt{except Exception:}) must call a method named
+\texttt{error}, \texttt{warning}, \texttt{warn}, \texttt{exception},
+\texttt{critical} or \texttt{fatal}; a typed handler qualifies on \emph{any}
+method of a logger-like object, \texttt{debug} and \texttt{info} included. A bare
+\texttt{print()} never qualifies. The asymmetry is deliberate (a typed clause
+documents an anticipated failure) but does not establish that a debug message
+reaches the caller. Only \texttt{silent-fallback} and \texttt{implicit-fallback}
+consult the test. ``Logger-like'' is a base-name list (\texttt{logger},
+\texttt{logging}, \texttt{log}, \texttt{\_logger}, \texttt{\_log},
+\texttt{sentry\_sdk}) plus a suffix heuristic. Handler bodies are traversed
+through control flow but not into nested function, lambda or class bodies.
+
+\paragraph{What counts as a fallback value.} A fixed constant set
+(\texttt{None}, \texttt{False}, \texttt{0}, \texttt{0.0}, \texttt{""},
+\texttt{[]}, \texttt{\{\}}, \texttt{()}), with \texttt{True}, \texttt{1} and
+\texttt{1.0} marked ambiguous, plus namespace-qualified sentinels such as
+\texttt{Status.UNKNOWN} and configured values. Bare names are never matched.
+
+\paragraph{Exemptions.} Handlers catching only \texttt{KeyboardInterrupt},
+\texttt{SystemExit}, \texttt{GeneratorExit}, \texttt{StopIteration},
+\texttt{StopAsyncIteration} or \texttt{CancelledError} are exempt (a tuple only
+if every member is); so are handlers containing \texttt{\# failroute: ignore} or
+\texttt{\# pragma: no cover}, and rules disabled in configuration. The exemption
+can hide a genuine mistake.
+
+\paragraph{v0.9.1 refinement.} Three heuristics replace the plain constant test:
+(1) \emph{declared value range}: if the enclosing function's declared return type
+admits the substituted value, the finding is downgraded (return channel only,
+explicit annotations only); (2) \emph{exception--predicate isomorphism}: whether
+the handler's work is structurally a \texttt{-> bool} predicate the codebase
+declares; (3) \emph{escape channel}: whether the value is returned or assigned to
+object state. On the 476-finding frame the isomorphism layer classified no
+finding as isomorphic (254 non-isomorphic, 206 unknown, 16 without a handler), so
+it contributed nothing to the frame change. Severities: 208 HIGH, 126 MEDIUM, 129
+INFO, 13 LOW. Each finding identifier is derived from the handler alone, so the
+two findings at a multi-target site share an identifier.
+
+\paragraph{Tests and fixtures.} v0.8.0 has 158 tests and a unit-fixture set (v6)
+of 36 positive and 32 negative cases; v0.9.1 has 221 tests and fixture set v7 with
+34 positive and 34 negative cases (five narrow-type \texttt{contextlib.suppress}
+cases became negative and three other cases changed in the opposite direction).
+The current revision has 236 tests. Fixture agreement shows that the detector
+implements its specification, not that its findings are defects.
+
+\section{Measurement corrections and revision history}
+\label{sec:corrections}
+
+This appendix records corrections made during the study so that earlier figures
+remain traceable.
+
+\paragraph{Detector: implicit-fallback control flow (v0.7.0).} All four
+false-positive labels in the 80-item sample were \texttt{implicit-fallback}
+findings with one root cause: \texttt{\_has\_top\_level\_terminal()} inspected only
+direct statements, so a \texttt{return} or \texttt{raise} nested in an exhaustive
+\texttt{if/else} was invisible. A recursive analysis covering
+\texttt{if/else}, \texttt{with}, \texttt{try/except/finally} and \texttt{match},
+with six regression tests derived from the four shapes, reduced the rule's
+findings from 10 to 0 and the frame from 659 to 649. The v0.8.0 release removed
+28 further findings through four audited fixes (tuple-typed handlers,
+\texttt{warnings.warn} as a signal, \texttt{StopAsyncIteration} exemption,
+optional-dependency probes): 649 $\to$ 621. No DEFECT-labelled site was removed.
+
+\paragraph{Harness: Pylint read set.} Described in Section~\ref{sec:rq2}. Under
+RQ1's narrow selections the 152 affected files yield 5, 0 and 0 messages for Ruff,
+Bandit and flake8 under either invocation; under full selections they yield
+6{,}879, 104 and 2{,}375 messages, identical both ways. The control corpus has no
+\texttt{\_\_init\_\_}-less directory. Without \texttt{click} importable, Pylint
+reports 564 rather than 563 messages and the directory invocation hides 35
+messages across 21 files rather than 34 across 20; co-location is unaffected.
+
+\paragraph{Harness: Pylint message identifiers.} Pylint accepts the retired
+\texttt{W0703} and reports its messages as \texttt{W0718}; over the corpus the
+selection emits 423 \texttt{W0718}, 134 \texttt{W0702} and 6 \texttt{W0706}. A
+reproducer counting \texttt{W0703} would find zero.
+
+\paragraph{Baseline selection: BLE001.} With \texttt{BLE001} added, Ruff reports
+410 findings (76 without) and co-locates with 127 (72 without); the union stays
+at 255/621. The Pylint-to-Ruff co-location ratio is therefore 3.54 without
+\texttt{BLE001} and 2.01 with it. Ruff 0.16.0, 0.16.4 and 0.16.5 give
+set-identical hits for both selections; the committed artefact was produced with
+0.16.4 and the paper extra pins 0.16.5.
+
+\paragraph{Mapping: details of the correction.} The 146 findings that lost
+credit were all \texttt{no-action} (93 INFO, 48 MEDIUM, 5 HIGH); 137 became
+predicted-unmatched and 9 kept a rule that genuinely fires. HIGH findings with no
+predicted coverage rose from 20 to 25. \texttt{pydantic\_ai/\_agent\_graph.py:205},
+an \texttt{except BaseException: pass}, illustrates why Ruff and Bandit need
+separate caught-type conditions. All 146 have a \texttt{pass} body, so the
+body-form condition changes no number in this corpus. The pre-correction export
+is preserved as \texttt{bench/corpus-coverage-per-finding-v2-pre-coverby-fix.jsonl}.
+The five findings that disagreed after the correction were \texttt{except
+Exception:} handlers in files under directories without \texttt{\_\_init\_\_.py};
+parse failures, inline pragmas and the \texttt{as} binding were tested and ruled
+out before the read-set cause was found.
+
+\paragraph{Supplementary baseline: Semgrep audit.} The original paper extra did
+not install Semgrep; a pinned \texttt{paper-semgrep} extra was added in the
+2026-11-03 audit. The strict harness stops on the parse error described in
+Section~\ref{sec:rq2}; \texttt{tools/semgrep\_diagnostic.py} and
+\texttt{bench/semgrep-diagnostic-2026-11-03.json} record the bound. The older
+\texttt{tools/run\_semgrep\_baseline.py} read the v0.7.0 frame and overwrote
+frozen files.
+
+\paragraph{Reference set and labels.} The 2026-11-03 audit withdrew the pooled
+reference-set ratios (Section~\ref{sec:rq3fixes}) and corrected one supplementary
+rationale: returning \texttt{None} from \texttt{JSONEncoder.default} produces JSON
+\texttt{null}, not a not-serialisable signal. The original label is preserved but
+not reaffirmed. Earlier versions of this manuscript reported a weighted
+projection of 130 LLM DEFECT labels (20.0\%) in the 649-candidate frame; it is a
+projection of labels, not of defects, and is not used in the argument.
+
+\section{Supplementary label analyses}
+\label{sec:labels}
+
+All tables in this appendix describe LLM labels (Section~\ref{sec:rq2labels}).
+They are not defect-rate estimates.
+
 \begin{table}[htbp]
 \centering\small
-\caption{LLM labels by detector rule in the 80-finding sample. All twelve
-DEFECT labels are in \texttt{silent-fallback}; all four FALSE POSITIVE labels
-are in \texttt{implicit-fallback}.}
+\caption{LLM labels in the original 80-finding sample, by rule.}
 \label{tab:byrule}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
@@ -1120,24 +1177,24 @@ Rule & $n$ & DEFECT & CONTRACT & FALSE POS. \\
 \midrule
 \texttt{silent-fallback} & 49 & 12 & 37 & 0 \\
 \texttt{no-action} & 23 & 0 & 23 & 0 \\
-\texttt{implicit-fallback} & 4 & 0 & 0 & \textbf{4} \\
+\texttt{implicit-fallback} & 4 & 0 & 0 & 4 \\
 \texttt{silent-suppress} & 3 & 0 & 3 & 0 \\
 \texttt{masked-exception} & 1 & 0 & 1 & 0 \\
+\midrule
+Total & 80 & 12 & 64 & 4 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[htbp]
 \centering\small
-\caption{LLM labels by package in the original 80-finding sample. All twelve
-DEFECT labels are in \texttt{deepteam}; all four FALSE POSITIVE labels are in
-\texttt{implicit-fallback}. Counts are descriptive of this sample.}
+\caption{LLM labels in the original 80-finding sample, by package.}
 \label{tab:bypackage}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
 Package & $n$ & DEFECT & CONTRACT & FALSE POS. \\
 \midrule
-\textbf{deepteam} & 14 & \textbf{12} & 1 & 1 \\
+deepteam & 14 & 12 & 1 & 1 \\
 inspect\_ai & 41 & 0 & 40 & 1 \\
 pydantic\_ai\_slim & 11 & 0 & 10 & 1 \\
 trl & 4 & 0 & 4 & 0 \\
@@ -1145,715 +1202,147 @@ garak & 3 & 0 & 3 & 0 \\
 fickling & 3 & 0 & 2 & 1 \\
 smolagents & 2 & 0 & 2 & 0 \\
 uqlm & 2 & 0 & 2 & 0 \\
-\midrule
-\emph{all but deepteam} & 66 & \textbf{0} & 63 & 3 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figures/fig1_llm_label_share_by_package.pdf}
-\caption{Share of sampled records assigned the LLM DEFECT label by package.
-The plotted shares and counts describe the 80-item sample; they are not
-package-level defect-rate estimates.}
+\includegraphics[width=0.9\textwidth]{figures/fig1_llm_label_share_by_package.pdf}
+\caption{Share of sampled records assigned the LLM DEFECT label, by package, in
+the 80-item sample. Not a package-level defect rate.}
 \label{fig:defectrate}
 \end{figure}
 
-\textbf{All 12 DEFECT labels are in \texttt{deepteam}; none of the 66 sampled
-findings from the other seven packages carried that label.} These are sample
-counts, not evidence that the other packages have zero defects.
+\paragraph{Copied families.} The 12 DEFECT labels fall into three families:
+(1) four handlers that catch an error from \texttt{model.get\_system\_prompt()}
+and assign an empty string, so evaluations may run without intended criteria
+(the author's issue on this pattern predates the labelling and is not independent
+validation); (2) five handlers that evaluate \texttt{self.score == 1}, discard
+the result and assign \texttt{self.success = False}, where the conversion
+mechanism is unestablished: observed values did not raise, the pinned function
+has no caller, and its state depends on an external base class; (3) three
+handlers that return \texttt{vulnerable = False} after an error while iterating
+results, a potentially fail-open security verdict.
 
-The 12 DEFECT-labelled sites are not 12 independent observations: they fall
-into three repeated code families:
-\begin{enumerate}[nosep,leftmargin=*]
-\item \textbf{Silent criteria degradation (4/12).} A handler catches an error
-from \texttt{model.get\_system\_}\allowbreak\texttt{prompt()} and assigns an empty string. If a
-custom or misconfigured model lacks that method, later evaluations may run
-without the intended criteria. The author's issue on this pattern predates the
-LLM labelling pass; it is not independent validation of the label.
-\item \textbf{Discarded comparison (5/12).} A handler evaluates
-\texttt{self.score == 1} but discards the result, then assigns
-\texttt{self.success = False}. The conversion mechanism is unestablished: the
-observed score values did not raise, although attribute access or overloaded
-equality can raise for other objects.
-\item \textbf{Potentially fail-open security verdict (3/12).} A handler catches
-an error while iterating results and returns \texttt{vulnerable = False}. In a
-red-teaming tool, this could turn an operational failure into a false
-\texttt{not vulnerable} result; this interpretation remains an LLM label, not
-an independent adjudication.
-\end{enumerate}
+\paragraph{Grouping sensitivity.} Grouping copies by package and enclosing
+function gives 3 DEFECT groups of 68 (4.4\%); by exact signature, 5 of 71
+(7.0\%); by package, file and function, 12 of 78 (15.4\%). No grouping is
+established as the correct independent unit.
 
-\paragraph{Handler forms in the labelled sample.}
-The 80 sampled findings include 13 bare \texttt{except:} handlers; 12 carry
-DEFECT labels. The remaining forms are 18 \texttt{except Exception:}
-handlers, 46 narrowly typed handlers, and 3 \texttt{contextlib.suppress}
-sites; none in these groups carries an original DEFECT label. These counts are
-descriptive of the sample. The three findings in the suppress group are too few
-to support a useful comparison, and all labels retain the limitations above.
+\paragraph{Handler forms.} The 80 findings include 13 bare handlers (12 DEFECT),
+18 \texttt{except Exception:} handlers, 46 narrowly typed handlers and 3
+\texttt{contextlib.suppress} sites; none outside the bare group carries an
+original DEFECT label.
 
-\paragraph{Sensitivity to repeated findings.}
-The twelve original DEFECT labels come from three repeated function families.
-The unit used to group copies changes the descriptive share: grouping by package
-and enclosing function gives 3 of 68 groups (4.4\%); grouping by exact
-signature gives 5 of 71 (7.0\%); grouping by package, file, and function gives
-12 of 78 (15.4\%), because copies in separate files remain separate groups.
-No one grouping is established as the correct independent unit. These
-sensitivity counts reinforce that the 12/80 observation-level share is not a
-confirmed-defect rate, and the 20.0\% stratum-weighted projection does not
-correct for within-family repetition.
+\paragraph{Disposition under the v0.9.1 refinement.} Joining all 140 labels to the
+refined frame on (package, file, line), deliberately excluding the rule name
+because one handler was reclassified between rules, 104 join and 36 do not; the
+36 are 33 CONTRACT and 3 FALSE POSITIVE, all from the original 80, and all are
+deletions rather than line drift. All 13 DEFECT-labelled observations survive at
+HIGH. Of the 122 CONTRACT labels, 58 (47.5\%) were dropped or reduced to INFO or
+LOW; among those in functions declaring a \texttt{None}-admitting return type, 35
+of 38 (92.1\%); for a literal \texttt{-> None}, 22 of 23. Fifty-five CONTRACT
+labels sit in functions without a declared return type, where the
+declared-range heuristic cannot apply. Two FALSE POSITIVE labels survive at HIGH
+(\texttt{pydantic\_ai/ui/\_event\_stream.py:293}, reported twice, and
+\texttt{fickling/polyglot.py:150}, reclassified from \texttt{implicit-fallback}
+to \texttt{silent-fallback}). The predicted mapping and executed co-location
+agree on all 104 joined observations.
 
-The 64 CONTRACT labels include TUI widget lookups that may not be mounted,
-optional-dependency probes, idempotent cleanup in \texttt{finally}, and
-predicate functions whose \texttt{Optional}/\texttt{bool} return type is part
-of the contract. Some have comments that state the intended fallback; the label
-itself remains an LLM judgement.
+\paragraph{Supplementary 60.} Written to \texttt{paper/annotations-v2-additions.csv};
+the frozen \texttt{annotations.csv} and \texttt{annotations-second-pass.csv} are
+unchanged and hash-locked. Each row records its rationale, the enclosing
+signature and the detector's own severity and mapping, recorded after the
+rationale was written. One row is marked as the weakest of the 60. The single
+DEFECT label among unmatched observations (\texttt{garak/probes/dan.py:134}) is
+one LLM label from a purposive sample and shows only that the unmatched cell was
+not empty of DEFECT labels.
 
-Two sampled \texttt{pydantic-ai} handlers illustrate why local shape alone is
-insufficient: one returns \texttt{True} for an unparseable address, while
-another places a caught exception on a queue for the consumer to re-raise.
+\section{Maintainer records}
+\label{sec:maintainer}
 
-\subsubsection{Curated merged fixes and construct scope}
-\label{sec:rq3}
+\begin{table}[htbp]
+\centering\small
+\caption{Three evidence sources and the finite records each describes. They have
+different units and selection processes and are not combined.}
+\label{tab:arms}
+\begin{tabular}{@{}P{3.4cm}P{4.0cm}P{6.6cm}@{}}
+\toprule
+Source & Question & Observed record \\
+\midrule
+LLM labels & What did the LLM rounds label in the stratified sample? & 12/80 DEFECT
+labels, all in one package \\
+Tracked sites & What did maintainers change during the tracked window? & 13/478
+tracked sites classified FIXED \\
+Submitted PRs & What happened to the project-selected PRs? & 16 of 43 merged \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-The historical reference ledger, \texttt{paper/merged-pr-recall.csv}, records
-75 merged pull requests from the author's account as of 2026-09-01 and marks
-16 as family-related. Those historical classifications are retained unchanged.
-A source-linked audit on 2026-11-03 revisited all sixteen changes and found
-that this selected set does not support a common failure-routing denominator.
-The audit is recorded separately in \texttt{paper/reference-audit.json}; it is
-an AI-assisted source review, not independent human contract adjudication.
+\paragraph{Tracked sites.} \texttt{paper/arm2-tracked-sites.csv} tracks 2{,}128
+\texttt{try} sites across ten releases of each main-corpus package and labels 478
+FIXED or SURVIVED, discarding 924 too young, 681 vanished and 45 mutated. Its
+criterion (no raise, log or warn) is weaker than the detector's: only 185 of the
+478 carry a detector rule, and 59.4\% of rows are in \texttt{deepteam}. None of
+the 13 FIXED sites traces to a PR from the project account. A SURVIVED site
+records inaction, not intent.
 
-\paragraph{Corrections to the reference interpretation.}
-\texttt{cvs-health/uqlm}\#425 previously propagated a division-by-zero
-exception; its fix adds a uniform fallback. It therefore cannot substantiate
-an unhandled failure-to-success conversion in the pre-fix program.
-\texttt{UKGovernmentBEIS/inspect\_ai}\#4906 changes Tenacity's wrapping of
-an exhausted retry into propagation of the underlying exception. That is
-error-identity preservation, not a local handler silently returning success.
-For \texttt{truera/trulens}\#2653, the retained local warning does not by
-itself demonstrate detection of the range-validation and sentinel-preservation
-problem the patch repairs. A co-located warning is not a semantic match.
-
-The old exclusion of \texttt{cvs-health/uqlm}\#418 solely as a pure-additive,
-non-handler fix was also not a uniform scope criterion: other non-handler
-changes had been counted as misses. The PR describes an implicit \texttt{None}
-that later causes a numeric type error. Its relationship to ordinary-looking
-successful output needs to be stated rather than inferred from its inclusion
-in the broader reliability family.
-
-\paragraph{What remains supported.}
-Individual changes still motivate analysis beyond a handler's local shape.
-For example, \texttt{cvs-health/uqlm}\#459 keeps a failed judge's NaN out
-of panel aggregation, and \texttt{UKGovernmentBEIS/inspect\_evals}\#2167
-replaces a normal-looking zero score on an invalid task input. These are
-concrete selected examples, not a prevalence estimate or a test of recall.
-Other records concern diagnostics, input conversion or exception wrapping;
-they must not be pooled as interchangeable confirmed defects.
-
-We withdraw the earlier 3/14 match ratio, 5/14 handler-reachability bound
-and 9/14 non-handler share rather than repair their denominator by assumption.
-The frozen ledger remains available to explain those earlier calculations;
-the current audit records the basis and limits of each case.
-Figure~\ref{fig:reference-matches} presents the audit without a pooled rate.
+\paragraph{Submitted PRs.} Of 43 project-selected, family-related PRs, 16 merged
+(\texttt{paper/merged-pr-recall.csv}; 8 outside the main corpus) and 27 closed
+unmerged (\texttt{paper/h1\_arm3\_classification.csv}): 19 self-closed, 1
+bot-closed, 3 closed without reaching the merits, 2 accepted in substance
+elsewhere and 2 adverse on the merits. Duplicates mean the 43 are not 43 distinct
+candidate defects. None of the 16 merged changes maps to a tracked site. These are
+descriptive outcomes of a self-selected set, not an acceptance rate. The
+historical titles for \texttt{agent-sweep}\#197 and \texttt{inspect\_ai}\#4908 do
+not match their final GitHub titles; repository and PR number identify each
+change.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figures/fig3_reference_matches_by_family.pdf}
-\caption{Source-review dispositions of sixteen historically selected changes.
-These are audit statuses, not independent defect judgements or detection outcomes.
-The original ledger is retained; pooled reference-set ratios are withdrawn.}
+\includegraphics[width=0.9\textwidth]{figures/fig3_reference_matches_by_family.pdf}
+\caption{Source-review dispositions of the sixteen historically selected merged
+changes (audit of 2026-11-03). These are audit statuses, not independent defect
+judgements or detection outcomes; pooled ratios are withdrawn.}
 \label{fig:reference-matches}
 \end{figure}
 
-\subsubsection{Comparing three sources of validation evidence}
-\label{sec:tri}
+\section{Artefact inventory}
+\label{sec:artefacts}
 
-The original sample contains many CONTRACT and FALSE POSITIVE labels, but
-those are LLM judgements rather than independent defect adjudications. The
-remaining question is whether maintainer behaviour can distinguish deliberate
-contracts from defects that have not been noticed. We compare three evidence
-sources that measure different, non-commensurable populations. Table~\ref{tab:arms}
-sets out what each source records.
-
-\begin{table}[htbp]
-\centering\small
-\caption{Three evidence sources and the finite records each describes. The
-datasets behind arms 2 and 3 are described below.}
-\label{tab:arms}
-\begin{tabular}{@{}P{3.2cm}P{3.8cm}P{7.6cm}@{}}
-\toprule
-Arm & Question & Observed record \\
-\midrule
-1 --- consequence labels & What did the LLM rounds label in the stratified sample?
-& 12/80 (15.0\%) DEFECT labels, all in one package \\
-2 --- spontaneous maintainer action & What was changed during the tracked window?
-& 13/478 (2.7\%) tracked sites classified FIXED \\
-3 --- maintainer response & What happened to the historically selected PRs?
-& 16/43 (37.2\%) selected PRs merged \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Records behind arms 2 and 3.}
-Arm 2 is a maintainer-behaviour dataset over the same eight
-pinned packages, published as \texttt{paper/arm2-tracked-sites.csv}. The
-pipeline behind it tracked 2{,}128 \texttt{try} sites across ten releases of
-each package and labelled 478 of them FIXED/SURVIVED, discarding 1{,}650
-(77.5\%) as too young (924), vanished (681) or mutated (45); none of the 13
-FIXED sites traces to a PR submitted from the project account --- the 9
-PR-attributed fixes match no PR in that account's record, and the 4 unattributed
-ones were cleared by package and content
-check. Two properties of that population bound what arm 2 can be compared
-against. Its tracking criterion (a handler carrying no raise, log or warn
-signal) is weaker than the six rules of Section~\ref{sec:detector}, so only
-185 of the 478 rows (38.7\%) carry a \texttt{failroute} rule at the release
-where they were first observed. And its package mix is 59.4\% \texttt{deepteam},
-against 22.5\% of the 621 findings. Arm 3 is the historical merged/closed record of PRs selected as family-related from the author's account: the 16 merged members
-are itemised in \texttt{paper/merged-pr-recall.csv} --- 8 of them in packages
-outside the tracked eight --- and the 27 closed-unmerged members are itemised,
-with per-PR closure reasons, in \texttt{paper/h1\_arm3\_classification.csv}
-(copied into this artefact set from the unreleased companion repository so the
-composition is third-party checkable): 19 self-closed, 1 bot-closed, 3 closed
-without reaching the merits, 2 substantively accepted, and 2 adverse on the
-merits. Among the 24 PRs not self-closed, 16 merged, seven were maintainer-closed, and
-one was bot-closed. One closed PR (\texttt{cvs-health/uqlm}\#427) shares its
-substance with merged PR \#462, and two others duplicate separate submissions;
-therefore the 43 PRs are not 43 distinct candidate defects. These are descriptive
-outcomes in a project-selected set, not an acceptance-rate estimate. The source
-audit in Section~\ref{sec:rq3} qualifies the original family membership;
-these historical outcome counts are retained only as descriptions of that
-selection, not revalidated counts of confirmed family defects.
-
-\paragraph{Evidence interpretation.}
-The arms distinguish three activities: labelling consequences, tracking
-maintainer changes, and evaluating submitted reports. Their denominators
-and selection processes define different questions. Arm 2's criterion is
-weaker than the detector's; 61.3\% of its rows have no \texttt{failroute}
-rule, and its package composition differs from the candidate frame.
-A SURVIVED site may be an intentional contract or an unnoticed defect.
-Transferring arm 1's labels onto this risk set would therefore assume both
-compatible sampling and defect adjudication that the records do not supply.
-
-\paragraph{Correspondence and maintainer response.}
-None of the 16 historically selected merged changes maps to the 478 tracked sites (zero
-exact file matches). In \texttt{uqlm}, none of 12 tracked family sites was
-classified FIXED, while all five project-selected family-fix PRs were
-merged; these remain different selected sets. The PR record shows
-substantial, but uneven, maintainer engagement: among 24 non-self-closed
-outcomes, 16 merged, seven were maintainer-closed and one was bot-closed.
-Two additional closures accepted the substance: the gap in
-\texttt{Giskard-AI/giskard-oss}\#2614 was fixed through a third-party
-restatement, and \texttt{cvs-health/uqlm}\#427 was partially re-landed
-through merged \#462. Three closures did not reach the merits and two
-were adverse on the merits. Duplicate submissions also prevent treating
-all 43 PRs as distinct defects.
-
-\paragraph{Implication for validation design.}
-The itemised records let readers audit selected classifications and
-maintainer responses, but cannot be combined into a common defect rate.
-A matched study would independently adjudicate contracts for a randomly
-selected set of detector and baseline findings, retain their identities
-through maintainer follow-up, and account for vanished and mutated sites.
-That study would address the specific correspondence and risk-set gaps
-identified here; it cannot be reconstructed from the present records.
-
-\subsubsection{Candidate review as a check on the instrument}
-\label{sec:rq4}
-
-All four false positives in the sample were \texttt{implicit-fallback}, and all
-four had the \emph{same} root cause:
-\texttt{\_has\_top\_level\_terminal()} inspected only \emph{direct} statements of
-the handler body, so a \texttt{return}/\texttt{raise} nested inside an exhaustive
-\texttt{if/else} was invisible. Table~\ref{tab:fpshapes} lists the four real
-shapes that triggered it.
-
-\begin{table}[htbp]
-\centering\small
-\caption{The four shapes that exposed the detector bug.}
-\label{tab:fpshapes}
-\begin{tabular}{@{}lll@{}}
-\toprule
-Package & Function & Shape \\
-\midrule
-deepteam & \texttt{simulate\_baseline\_attacks} & \texttt{if ignore\_errors:
-return [...] else: raise} \\
-fickling & \texttt{check\_pickle} & nested \texttt{try/except}, every path
-returns \\
-inspect\_ai & grok \texttt{generate} & \texttt{if/elif/else}, every branch
-returns or raises \\
-pydantic\_ai & \texttt{execute\_output\_function} & \texttt{if wrap: raise
-ToolRetryError else: raise} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-We implemented a recursive exhaustiveness analysis
-(\texttt{\_always\_terminates}) covering \texttt{if/else}, \texttt{with},
-\texttt{try/except/finally} and \texttt{match}, added six regression tests derived
-from the four real shapes (each failing before the fix), and re-ran the corpus.
-
-\textbf{\texttt{implicit-fallback} findings on the 524{,}229 lines the detector
-actually reads: 10 $\rightarrow$ 0.
-Total findings: 659 $\rightarrow$ 649 (v0.7.0).} The v0.8.0 precision release
-removed 28 more findings through four audited fixes (tuple-typed handlers,
-\texttt{warnings.warn} recognised as a signal, \texttt{StopAsyncIteration}
-added to the ignore list, conservative optional-dependency probe):
-\textbf{649 $\rightarrow$ 621}, with every deletion traceable to a labelled
-category or a mechanical criterion --- no labelled DEFECT was removed. The test
-suite grew over the same period, from 124 to 130 (the six regression tests of
-this subsection) and then to \textbf{158} (twenty-eight more with the v0.8.0
-precision release).
-
-The corrected recursive control-flow analysis reduced this rule's ten candidates
-in the corpus to zero; the four sampled false positives exposed the shared cause.
-More broadly, the stratified labelling pass revealed a detector defect that the unit
-fixture corpus did not expose.
-
-\section{Discussion}
-
-\paragraph{Coverage is a property of a comparison.}
-The measured overlap depends on the representation the detector recognises,
-the semantics of the selected baseline rules, and the files each tool
-actually reads. The suppression witnesses isolate a representation boundary;
-the 68 probes isolate rule differences; the Pylint file-list check isolates
-a harness omission. An unmatched warning is therefore an observation about
-this comparison. Establishing an additional defect requires separate
-contract evidence.
-
-\paragraph{Refinement and calibration answer different questions.}
-The detector refactor changes candidate identities and severities.
-Calibration leaves all 476 outputs unchanged but corrects the predicted
-unmatched share by 28.8 percentage points. Combining these changes into one
-improved-detector result would conceal which mechanism changed the
-measurement. Paired exports, stable coordinates and an executed coverage
-check allow the two effects to be reported separately.
-
-\paragraph{A simple baseline is a necessary comparator.}
-On the main corpus, \texttt{flake8 -{}-select E722} yields 134 candidates
-containing all twelve original DEFECT-labelled sites. One supplementary
-DEFECT label lies outside E722, but it comes from the same LLM process.
-On the selected infrastructure control corpus, E722 yields just one
-re-raising handler. These observations show why a comparator's candidate
-set and the source style matter; the records do not establish a true
-defect yield for either detector.
-
-\paragraph{Caller intent is the remaining validation problem.}
-A return type may admit \texttt{None} or \texttt{False} without making an
-operational failure equivalent to a legitimate value. Conversely, a
-constant fallback may be intentional. This study does not recover caller
-intent through a call graph. Three constructed probes against the frozen
-0.9.1 build illustrate the boundary: a typed handler returning
-\texttt{False} on a database timeout and an \texttt{Optional}-returning
-function returning \texttt{None} on a Redis error are missed, while a
-validation loop with a \texttt{return False} handler is reported at HIGH.
-The state-flag and \texttt{exception\_escapes} cases in
-Section~\ref{sec:control} add further examples. They motivate independent
-contract adjudication rather than another assumption about local shape.
-
-\paragraph{Validation sources must keep their own denominators.}
-Copied function families cluster the original labels; tracked sites omit
-some detector gates and suppress constructs; project-selected PRs include
-self-closures and fixes outside the tracked packages. Survival can mean
-lack of action, and a merge can mean acceptance of a change without a
-defect judgement. Reporting these sources separately preserves the useful
-evidence without transferring a label share or merge share to another
-population.
-
-\paragraph{An evaluation procedure.}
-For a future failure-routing detector, the findings support four concrete
-checks: lock the corpus and verify each tool's read set; calibrate inferred
-coverage with executed positive controls; report candidate identities and
-absolute counts when the predicate changes; and adjudicate caller contracts
-independently on a sample kept separate from development. The first three
-are exercised here. The fourth is the missing evidence for a claim about
-incremental defect detection.
-
-\section{Threats to validity}
-\label{sec:threats}
-
-\paragraph{Construct and measurement validity.}
-Co-location within one line does not establish that two tools diagnose the
-same property; a farther warning may still be relevant. The supplementary
-Semgrep rule was developed within this project. A fresh audit run reports a
-parser error in one corpus file; the historical supplementary counts are
-therefore distinguished from an error-free reproduction. The detector operationalises
-local handlers and suppress statements. The curated change records mix
-constructs and include disputed family membership and a location-only match;
-the earlier pooled scope and detection ratios have been withdrawn. Its known false-positive and
-false-negative modes remain in the evaluated build. All measurements
-describe pinned versions, not current ecosystem-wide behaviour.
-
-\paragraph{Label validity and reproducibility.}
-The 80 stratified and 60 supplementary labels were produced by LLM agents,
-not human raters. A later source audit identified an incorrect rationale in
-supplementary item 1: returning \texttt{None} from \texttt{JSONEncoder.default}
-produces JSON null, not a not-serializable signal. The original label is
-preserved but not reaffirmed; \texttt{paper/annotation-corrections.json}
-records the correction without pretending to provide independent relabelling.
-The historical protocol proposed TP/IC/UND and gate identifiers, whereas
-the retained labels use DEFECT/CONTRACT/FALSE\_POSITIVE without those fields.
-It is not a reproducible account of the actual runs. A replacement protocol
-is proposed in \texttt{docs/annotation-revalidation-protocol.md}, not yet executed. The two original runs agreed on 80/80 items, but shared
-model bias can produce that agreement. Model identity and version were not
-recorded and could not be recovered, so the labels and rationales can be
-inspected but the annotation process cannot be reproduced bit for bit.
-Five original DEFECT labels have an unestablished conversion mechanism:
-the \texttt{try} body evaluates \texttt{self.score == 1} and discards its
-result. Tested values did not raise, although other objects' attribute
-access or equality could. The pinned \texttt{is\_successful} function has
-no caller, and initial state depends on an external \texttt{BaseMetric}
-implementation unavailable in the reproduction environment. Those labels
-remain in the frozen record; they do not confirm failure-to-value defects.
-
-\paragraph{Sampling and development reuse.}
-The original draw was from 659 v0.7.0 candidates; only 72 of its 80
-coordinates survive into the 621-finding frame, so the retained observations
-are no longer a random sample of that frame. Cells are small, including
-one \texttt{masked-exception} observation. The eight main packages were
-selected because of the author's contribution history, and a candidate
-family in \texttt{deepteam} had already been reported from that account.
-All twelve original DEFECT labels occur in that package and three copied
-families. The refined predicate used the same corpus and all 140 labels
-during development, and the supplementary labels deliberately sample
-changed sites. Its label disposition is in-sample evidence, with no
-held-out estimate of defect-detection performance.
-
-\paragraph{Control-corpus adjudication.}
-The main and control corpora represent two purposively selected Python
-styles. The 38 core findings and 91 unreported handlers received one
-recorded code-reading pass;
-history, issue and test evidence was collected only for the two unique
-HIGH findings. The remaining readings rely on source contracts,
-docstrings, guarded uses, fallback comments and re-raise paths.
-Borderline cases with documented policies were assigned CONTRACT.
-The fifteen additional HIGH findings likewise received a single reading.
-These records establish neither independent human adjudication nor defect
-prevalence in infrastructure code.
-
-\paragraph{Maintainer records and selection.}
-The historical reference set consists of sixteen merges selected as
-family-related from the author's account, with classifications corrected or
-qualified in the separate source audit; per-PR divisions of AI-assisted work are undocumented.
-Family inclusion was checked from diffs, including a recheck of 52
-earlier title-based decisions that changed three classifications.
-The separate 43-PR record includes nineteen self-closures, one bot closure,
-sixteen merges and seven maintainer closures; two submissions duplicate
-others and one overlaps a counted merge. Eight merges are outside the
-tracked packages. Acceptance of a change does not establish its defect
-status or representativeness.
-
-\paragraph{Tracking and inference.}
-The tracking pipeline retains 478 of 2,128 sites after excluding 924 young,
-681 vanished and 45 mutated sites. This risk set is a reporting convention.
-Only 185 retained sites carry a detector rule, because tracking omits the
-three exemption gates, fallback-value analysis and suppress constructs.
-A SURVIVED site records that nobody acted, not that the behaviour is
-intentional. Findings, tracked sites and PRs use different units and
-selected populations. The paper therefore reports their finite-set
-observations separately and makes no population-level defect or acceptance
-claim.
-
-\section{Related work}
-\label{sec:related}
-
-\paragraph{Python exception handling and anti-pattern detection.}
-Cabral and Marques~\cite{cabral2007}, Sawadpong et al.~\cite{sawadpong2012}
-and de P\'adua and Shang~\cite{depadua2017prevalence,depadua2017flow}
-established exception handling as an empirical object.
-Python is also covered by recent work. Exception Miner uses static AST
-queries to identify handling anti-patterns in Java, TypeScript and Python,
-and was evaluated on eleven multi-language projects~\cite{souza2024miner}.
-Souza et al.~\cite{souza2026python} subsequently analysed 942 manually
-validated Python exception-handling bugs from 550 projects, including
-machine-learning and AI software, and derived root-cause and repair
-taxonomies. Their categories include swallowing, overly broad handling
-and incorrect recovery actions. These studies provide a broader account
-of handling practices and bugs than the corpus used here. Our research
-question concerns the sensitivity of a detector's measured overlap to
-representation, candidate predicates and the evaluation harness.
-
-\paragraph{Warning measurement and actionability.}
-Developers' use of static analysis depends on noise and actionable
-feedback~\cite{johnson2013,ruthruff2008,do2022,yedida2023}.
-Tricorder and FindBugs-Fixit describe filtering and prioritisation in
-deployed analysis~\cite{sadowski2015,ayewah2010,sadowski2018}; work on
-false-positive mitigation and warning relevance gives further context
-\cite{guo2023,querel2018}.
-Hu et al.~\cite{hu2025suppressed} study developers' suppression of static
-warnings. A warning-suppression annotation and a runtime
-\texttt{contextlib.suppress} statement operate at different layers:
-the latter changes exceptional control flow. Our suppression witnesses
-measure which tested rules reach that runtime construct.
-The calibrated coverage map supplies executed checks on a warning
-comparison; it does not establish relative actionability or superiority
-over every exception-handling tool.
-
-\paragraph{LLM support and contract validation.}
-Souza et al.~\cite{souza2026llm} evaluate prompted LLMs on four Python
-exception-handling tasks: identifying need, locating protected statements,
-recommending exception types and generating handlers. Their design tests
-model outputs against a curated benchmark. Here the LLM readings are
-retained exploratory labels with unrecoverable model provenance.
-They help expose candidate interpretations and instrument errors, but
-cannot support a claim of independently measured defect precision.
-
-\paragraph{Failure signals in ML and evaluation pipelines.}
-Pipeline coupling and boundary checks motivate software-level reliability
-work in ML~\cite{sculley2015,polyzotis2019,breck2017,amershi2019,paleyes2022,sambasivan2021}.
-Rollout Cards~\cite{masters2026rolloutcards} already documents reward
-exceptions converted to ordinary numeric scores and changes to
-aggregation denominators in agent-evaluation repositories. Our study
-examines local Python constructs and the measurement of their warning
-coverage. The new evidence is the suppression-form boundary, the
-68-probe rule calibration and the paired frame comparison; the general
-failure-to-value problem and the presence of exception-handling
-anti-patterns are established concerns.
-
-\section{Conclusion}
-
-This study provides a reproducible evaluation of local failure-routing
-analysis across eight pinned AI/ML Python packages. The 621-candidate
-frame exposes a suppression-form gap in the tested lint configurations;
-68 generated probes calibrate a corrected coverage mapping that agrees
-with executed baselines on the 476-finding refined frame. These results
-show how source representation, rule semantics and file discovery affect
-measured incremental warning coverage.
-
-Predicate refinement reduces the candidate count from 621 to 476 while
-co-location rises from 41.1\% to 52.9\%. The curated-change audit
-complements this comparison by separating concrete non-handler outcomes
-from adjacent error-handling changes and withdrawing unsupported pooled ratios. Together, the measurements provide concrete tests and an
-explicit evaluation procedure for future detectors.
-
-Defect yield remains a separate validation question. The available labels
-were produced by LLM agents and reused during development; the original
-DEFECT-labelled observations also occur within a simple E722 baseline.
-Independent contract adjudication on held-out packages, including findings
-from both the detector and simple baselines, is the next step needed to
-measure incremental defect detection.
-
-\appendix
-\section{Reproduction and artefacts}
-\label{sec:repro}
-
-The empirical counts and comparisons are generated from scripts in
-\texttt{tools/} against the pinned corpus in \texttt{paper/corpus-lock.json};
-label and classification records are retained in the accompanying ledgers. All paths below are
-relative to the root of the public repository
-\url{https://github.com/feiiiiii5/failroute} (MIT licence); the detector itself is
-released as \texttt{failroute} on PyPI,
-\url{https://pypi.org/project/failroute/}. The baseline analyses use \texttt{failroute} 0.8.0; the refinement comparison uses 0.9.1. The pinned
-commit \texttt{3b4c567} contains the underlying datasets, exports and scripts
-for the reported numerical results, including the post-release ledgers and
-corrected baseline invocation. The figure PDFs in this submission have later
-layout edits but unchanged plotted counts; they are included in the manuscript
-source package. The v0.8.0 release tag
-alone does not reproduce every table. The committed \texttt{bench/rescan-f2/}
-export records the 621-finding frame; \texttt{bench/rescan-v2/} records the
-476-finding refactored frame (freshly reproduced 2026-09-07).
-
-The pinned 0.8.0 suite contains 158 tests; the 0.9.1 release contains 221 tests.
-All 15 release test jobs across Ubuntu, macOS and Windows and Python 3.9--3.13
-passed, along with the quality job. The 0.8.0 unit corpus v6 has 36 positive and
-32 negative fixtures. For 0.9.1, the revised 34/34 fixture set is labelled v7;
-five narrow-type \texttt{contextlib.suppress} cases changed to negative and three
-other cases changed in the opposite direction. Every corpus scan reported here was
-run on macOS arm64; the CI matrix exercises tests, not scans.
-
-\begin{verbatim}
-git clone https://github.com/feiiiiii5/failroute && cd failroute
-git checkout 3b4c567                # pinned commit: every artefact the tables use
-python -m venv .venv && . .venv/bin/activate
-pip install '.[test,paper]'   # pytest + matplotlib + 4 linters + bugbear
-python tools/fetch_corpus.py         # pinned sdists -> paper/corpus/
-    # version+sha256 pinned in paper/corpus-manifest.json; fetch verifies each
-    # archive against paper/corpus-lock.json and exits non-zero on mismatch
-    # (it rewrites only the lock's generated_at_utc timestamp; the eight
-    # archive digests are what must match)
-PYTHONPATH=src python -m pytest                   # 221 tests (0.9.1 suite)
-PYTHONPATH=src python tools/rescan_corpus.py --out bench/rescan-paper --with-context
-    # The detector at this commit is 0.9.1, so a fresh rescan reproduces the
-    # refined frame (total 476), not the baseline's 621: the 621 frame belongs to the
-    # v0.8.0 detector and is committed as bench/rescan-f2. Writes to bench/;
-    # do NOT re-export over paper/scan/, the frozen v0.7.0 baseline.
-python tools/coverage_union.py --findings-dir bench/rescan-f2
-    # -> bench/corpus-coverage-union.json ; union 255/621 = 41.1%
-    # bench/rescan-f2 is the committed 621-finding v0.8.0 export every baseline
-    # figure is read from. To reproduce the refined frame's instead, point the same
-    # command at bench/rescan-v2 (or your own --out above): union 252/476 =
-    # 52.9%. The default --findings-dir paper/scan is the frozen v0.7.0 set,
-    # whose union figure is deprecated.
-python tools/coverage_union.py --ruff-select S110,S112,BLE001 \
-    --findings-dir bench/rescan-f2 --out /tmp/union-symmetric.json
-    # the symmetric baseline variant quoted in RQ1 (ruff also gets its
-    # broad-except rule): ruff 127 co-located, union 255/621 = 41.1% ---
-    # the same union the narrow selection gives, as RQ1 explains;
-    # committed as bench/corpus-coverage-union-ruff-ble001.json
-python tools/make_figures.py                      # -> paper/figures/ (3 figures;
-    # pinned code uses earlier layout, with the same plotted counts)
-python tools/j1_adjudicate.py              # diff-read family adjudication
-\end{verbatim}
-
-\paragraph{Audit-revision reproduction.}
-The numerical archive remains pinned to the historical commit above. The
-following commands use this 3 November revision for safer remeasurement;
-they do not provide new defect labels or silently replace frozen exports.
-\begin{verbatim}
-pip install '.[test,paper,paper-semgrep]'
-python tools/reproduce_warning_coverage.py --with-semgrep \
-    --out-dir /tmp/failroute-coverage-new
-python -m pytest tests/test_paper_reproduction.py
-\end{verbatim}
-The output directory must not already exist. Semgrep analysis errors and
-malformed baseline output are fatal, so partial analysis is not counted as
-zero findings. Original annotations and reference ledgers remain unchanged. In this audit,
-the five-tool command stops on a Semgrep parser error rather than presenting
-a partial scan as complete. Omitting \texttt{-{}-with-semgrep} runs only the
-four selected lint baselines.
-
-\paragraph{Reproducing the paired measurements.}
-\begin{verbatim}
-.venv/bin/python tools/rescan_corpus.py --out bench/rescan-v2 --with-context
-.venv/bin/python tools/coverage_union.py --findings-dir bench/rescan-v2 \
-    --out bench/corpus-coverage-union-v2.json \
-    --emit-per-finding bench/corpus-coverage-per-finding-v2.jsonl
-.venv/bin/python tools/coverage_union.py --findings-dir bench/rescan-f2 \
-    --out bench/corpus-coverage-union-621frame.json \
-    --emit-per-finding bench/corpus-coverage-per-finding-621.jsonl
-.venv/bin/python tools/e722_baseline.py        # -> bench/e722-baseline.json
-.venv/bin/python tools/rq5_refactor_delta.py   # -> bench/rq5-refactor-delta.json
-PYTHONPATH=src .venv/bin/python tools/lint_mapping_probe.py --check-parity
-    # -> bench/lint-rule-mapping.json; re-runs all four baselines over 68
-    # generated probes and exits non-zero if the shipped covered_by table
-    # drifts from what those baselines actually do
-.venv/bin/python tools/pinned_rescan.py --out /tmp/pinned-v080
-    # -> re-scans the pinned corpus with the v0.8.0 detector, from a git
-    # worktree at that tag, using that tree's own src and exporter; prints
-    # PINNED_TOTAL=621 plus the per-rule and per-package counts. This is what
-    # the claims asserting v0.8.0's historical scan results now run through.
-PYTHONPATH=src .venv/bin/python tools/refix_replay.py
-    # -> rebuilds the pre-correction covered_by_for in a scratch tree and runs
-    # the 36 mapping tests against it; prints REFIX_REPLAY 21 failed, 15
-    # passed. The fail-to-pass half of the correction's evidence.
-\end{verbatim}
-The checked-in exports make both frames reproducible without overwriting the
-frozen v0.7.0 scan: \texttt{bench/rescan-f2/} contains the 621-finding v0.8.0
-frame, and \texttt{bench/rescan-v2/} contains the 476-finding refactored frame.
-Running the corresponding \texttt{coverage\_union.py} commands reproduces the
-reported per-rule and per-tool counts.
-
-\paragraph{Reproducing the control corpus.}
-\begin{verbatim}
-PYTHONPATH=src .venv/bin/python tools/control_rescan.py --check
-    # -> verifies bench/control-rescan/<pkg>.jsonl against a fresh fetch
-    # (SHA-256 checked per paper/corpus-lock-control.json) and re-scan;
-    # prints CHECK-OK per package, exits non-zero on any drift.
-\end{verbatim}
-
-Three further pipeline commands are deliberately \emph{not} part of the
-reproduction path, because each overwrites a hand-curated artefact without
-regenerating it faithfully: \texttt{draw\_sample.py} (the committed
-\texttt{paper/sample.jsonl} was drawn from the pre-fix 659 frame; re-drawing
-changes which 80 findings the published labels describe),
-\texttt{merged\_pr\_recall.py} (drops the hand-written \texttt{note} column),
-and \texttt{compare\_linters\_corpus.py} (drops the merged semgrep results).
-See \texttt{paper/ARTIFACT.md} \S0.2 and \S5.5--5.6 before running any of them.
-
-Key artefacts, and the thing each one pins down:
+{\raggedright
 \begin{itemize}[nosep,leftmargin=*]
-\item \texttt{paper/corpus-lock.json} --- pinned inputs.
-\item \texttt{paper/sample.jsonl} --- the 80-item draw.
-\item \texttt{paper/annotations.csv} --- labels and rationale.
-\item \texttt{paper/annotations-second-pass.csv} --- second automated pass.
-\item \texttt{paper/reference-audit.json} --- current per-change audit and
-withdrawal of pooled reference ratios.
-\item \texttt{paper/annotation-corrections.json} --- known rationale corrections
-and hashes of unchanged original annotation files.
-\item \texttt{paper/merged-pr-recall.csv} --- historical curated merged-fix
-reference set; its family and match classifications are superseded where
-qualified by the audit sidecar. The repository and PR number, rather than
-the descriptive \texttt{pr\_title} field, identify each change: the stored
-titles for \texttt{agent-sweep\#197} and \texttt{inspect\_ai\#4908} do not match
-their final GitHub titles. The discrepancy does not alter classification or
-counts.
-\item \texttt{paper/j1-trulens2653-prefix.py} --- pre-fix evidence for the
-\texttt{trulens\#2653} detection.
-\item \texttt{bench/corpus-coverage-union-5tool.json} --- cross-tool coverage
-including the self-written semgrep rule.
-\item \texttt{paper/intervals.json} --- sample counts used by Figure~\ref{fig:defectrate};
-  auxiliary interval calculations in the file are not reported as inferential results.
-\item \texttt{paper/annotations-v2-additions.csv} --- the 60 supplementary labels of
-Section~\ref{sec:rq5}, with rationale, enclosing signature, the detector's own
-severity / isomorphism / \texttt{covered\_by} values, and a flag for whether the site
-is new in the refactored frame; the two frozen annotation files above are unchanged.
-\item \texttt{bench/corpus-coverage-\allowbreak per-finding-v2.jsonl} --- the
-refactored 476-finding frame, one row per finding, carrying severity, isomorphism
-class and both coverage classifications.
-\item \texttt{bench/corpus-coverage-union-v2.json} --- the aggregate of that run:
-476 findings, 252 covered, 224 \texttt{failroute}-only.
-\item \texttt{bench/corpus-coverage-\allowbreak per-finding-621.jsonl} --- the same
-per-finding export for the v0.8.0 frame, regenerated from the in-tree
-\texttt{bench/rescan-f2/} so that RQ1 no longer depends on a scratch directory.
-\item \texttt{bench/corpus-coverage-\allowbreak union-621frame.json} --- the
-aggregate of that run: 621 findings, 255 covered, 366 \texttt{failroute}-only,
-matching \texttt{bench/corpus-coverage-union.json} cell for cell.
-\item \texttt{bench/e722-baseline.json} --- the E722 and BLE001 candidate counts and
-their overlap with the labelled defects.
-\item \texttt{bench/rq5-refactor-delta.json} --- the frame difference and the label
-disposition under the refactor.
-\item \texttt{bench/lint-rule-mapping.json} --- the measured matrix of which lint
-rule fires on which handler kind and body shape, from
-\texttt{tools/lint\_mapping\_probe.py}. This is the evidence the
-\texttt{covered\_by} table is derived from rather than the table's own assertion.
-\item \texttt{bench/corpus-coverage-\allowbreak per-finding-v2-pre-coverby-fix.jsonl}
---- the per-finding export as it stood \emph{before} that correction. Preserved
-rather than regenerated: the over-crediting inference it records no longer exists in
-the source, so this file is the only record of what the earlier predicted-unmatched figure
-of 18.3\% was computed from, and the before/after comparison is a diff against it.
-\item \texttt{paper/h1\_arm3\_classification.csv} --- the arm-3 closed-PR
-  ledger (160 diff-read rows; 27 family), copied byte-identically from the
-  companion repository.
-\item \texttt{paper/arm2-tracked-sites.csv} --- the arm-2 tracked-site dataset:
-  all 2{,}128 rows over the eight packages with all five labels, the version span
-  and observation count each label rests on, and the PR each FIXED row is
-  attributed to. Projected field-for-field from the companion repository's
-  maintainer-behaviour dataset; code snippets and commit-level attribution are
-  deliberately excluded, so the labels are auditable but not re-derivable from
-  this artefact alone.
+\item \texttt{paper/corpus-lock.json}, \texttt{paper/corpus-lock-control.json} ---
+  pinned inputs with archive and tree hashes.
+\item \texttt{bench/rescan-f2/}, \texttt{bench/rescan-v2/} --- the 621- and
+  476-finding frames; \texttt{bench/corpus-coverage-per-finding-\{621,v2\}.jsonl}
+  --- one row per finding with co-located tools and predicted coverage;
+  \texttt{bench/corpus-coverage-union-621frame.json},
+  \texttt{bench/corpus-coverage-union-v2.json} --- aggregates.
+\item \texttt{bench/corpus-coverage-union-ruff-ble001.json} --- the symmetric
+  \texttt{BLE001} variant; \texttt{bench/corpus-coverage-union-5tool.json} ---
+  historical five-tool export; \texttt{bench/semgrep-diagnostic-2026-11-03.json}
+  --- the Semgrep error and bound.
+\item \texttt{bench/lint-rule-mapping.json} --- the 68-probe matrix;
+  \texttt{bench/corpus-coverage-per-finding-v2-pre-coverby-fix.jsonl} --- the
+  pre-correction export; \texttt{bench/rq5-refactor-delta.json} --- frame delta and
+  label disposition; \texttt{bench/e722-baseline.json} --- E722/BLE001 counts.
+\item \texttt{bench/control-rescan/} --- control-corpus scans.
+\item \texttt{paper/sample.jsonl}, \texttt{paper/annotations.csv},
+  \texttt{paper/annotations-second-pass.csv},
+  \texttt{paper/annotations-v2-additions.csv} --- draws and LLM labels;
+  \texttt{paper/annotation-corrections.json} --- rationale correction and hashes of
+  the unchanged label files; \texttt{paper/intervals.json} --- sample counts for
+  Figure~\ref{fig:defectrate}.
+\item \texttt{paper/merged-pr-recall.csv}, \texttt{paper/reference-audit.json},
+  \texttt{paper/h1\_arm3\_classification.csv}, \texttt{paper/arm2-tracked-sites.csv},
+  \texttt{paper/j1-trulens2653-prefix.py} --- maintainer records and the current
+  audit; historical classifications are superseded where the audit qualifies
+  them.
+\item \texttt{paper/audit-rerun-2026-11-03.md} --- the commands and outcomes of
+  the 2026-11-03 re-execution.
 \end{itemize}
-
-\paragraph{Execution notes.}
-The commands use \texttt{PYTHONPATH=src} to import the checked-out package
-reliably across environments. The v0.8.0 scanner exits with status 1 when it
-reports findings even if the scan and export succeeded; a reproducer must
-preserve the output and distinguish findings from execution errors. The 0.9.1
-scanner provides separate severity and error exit statuses.
-\paragraph{Availability and ethics.} The corpus is eight publicly distributed PyPI
-source distributions, each used under its own licence; nothing was taken from a
-private source. The maintainer-behaviour record is a set of public GitHub
-issue and pull-request records, every one cited by its public number, and the two
-datasets derived from them are committed to the public repository and itemised in
-the list above, so that the classification can be audited row by row. The study
-analyses publicly recorded artefacts of professional work on public repositories,
-and uses no non-public data about identifiable individuals.
-
-\begin{samepage}
-\paragraph{Manuscript licence.} This manuscript is licensed under the Creative
-Commons Attribution 4.0 International licence
-(\href{https://creativecommons.org/licenses/by/4.0/}{CC BY 4.0}). The code licence
-and licences of third-party artefacts remain as stated above.
-
-\paragraph{Conflicts of Interest.} The author led the project that produced both
-the detector under evaluation and one of the five baselines. This relationship
-is disclosed on the title page, and results unfavourable to the tool are reported
-alongside favourable ones. The author declares no other conflicts of interest.
-\par
-\end{samepage}
-
-{\small\raggedright
-\bibliographystyle{plainnat}
-\bibliography{refs}
-}
+\par}
 
 \end{document}

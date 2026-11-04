@@ -390,15 +390,18 @@ detector cannot distinguish an intentional fallback from a bug.** failroute
 narrows where to look; a person still has to argue the failure chain. Treat its
 output as a review queue, not a defect list.
 
-The internal `tests/corpus/` fixtures (68 samples, precision = recall = 1.0 in CI)
+The internal `tests/corpus/` fixtures (68 samples, precision = recall = 1.0 in CI;
+not the same objects as the manuscript's 68 generated lint probes)
 are a **regression gate on the rules themselves** — construct validity. They say
 nothing about how the tool behaves on code it has never seen; the table above does.
 
-The [current manuscript](paper/arxiv/main.pdf) separates three research
-questions: representation-sensitive warning coverage, sensitivity to detector
-refinement and evaluation calibration, and candidate validity and construct
-scope. It includes a paired ratio decomposition, a suppression-form example
-and comparisons with recent Python exception-handling studies.
+The [current manuscript](paper/arxiv/main.pdf), *Measuring What a
+Failure-Routing Detector Adds*, is organised around a measurement protocol for a
+detector's warning increment. Its research questions cover source representation
+(the `contextlib.suppress` boundary), tool read sets and coverage attribution (68
+generated lint probes), and the denominator effect of a predicate change. It
+separates behavioural calibration on probes from tool-output coverage on the
+corpus, and does not measure defect precision or recall.
 [LaTeX source](paper/arxiv/main.tex) and
 [reproduction instructions](paper/ARTIFACT.md) accompany it. The manuscript
 is the 3 November 2026 audit revision, has not been peer reviewed, and has not
@@ -411,13 +414,18 @@ inconsistent inclusion and a location-only match. See
 [`paper/annotation-corrections.json`](paper/annotation-corrections.json).
 A proposed independent revalidation protocol is provided, not reported as completed.
 
-For a fresh warning-coverage run without overwriting the frozen exports, install
-`.[test,paper,paper-semgrep]`, fetch the pinned corpus, then run
-`python tools/reproduce_warning_coverage.py --with-semgrep --out-dir /tmp/failroute-new`.
-The output directory must be new; this remeasures warning coverage, not defect yield.
-The audit five-tool run currently stops on a Semgrep parser error in the pinned
-inspect_ai corpus. Omit `--with-semgrep` for the four-tool run; historical
-Semgrep counts are retained, not claimed as a newly completed full reproduction.
+To re-execute the manuscript's measurements without touching the frozen exports,
+install `.[test,paper,paper-semgrep]`, run `python tools/fetch_corpus.py` (it leaves
+the committed lock untouched when every archive matches), then
+`python tools/reproduce_paper.py --out-dir /tmp/failroute-audit --with-semgrep`.
+The output directory must be new; every step compares its output with the frozen
+file and the analysis scripts refuse to overwrite tracked files unless
+`--allow-overwrite-frozen` is passed. This remeasures warning coverage, not defect
+yield. Semgrep 1.175.0 parses one pinned `inspect_ai` file only partially, so the
+five-tool figure is reported as observed 274/621 with an upper bound of 275, not
+as an error-free reproduction. The historical numerical archive (commit
+`3b4c567`) is reproduced separately, in a disposable worktree; see
+[`paper/audit-rerun-2026-11-03.md`](paper/audit-rerun-2026-11-03.md).
 
 
 ### Throughput
