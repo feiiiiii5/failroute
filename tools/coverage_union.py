@@ -48,7 +48,7 @@ TOL = 1
 # committed artifact reproduces byte-for-byte apart from generated_at_utc.
 RUFF_SELECT = 'S110,S112'
 
-def sh(c, t=900):
+def sh(c, t=900, allowed_codes=(0, 1)):
     r = subprocess.run(c, capture_output=True, text=True, timeout=t)
     # 🔴 L2 fix (2026-09-02): a linter that FINDS issues exits non-zero *with*
     # stdout; a linter that failed to run (missing module / crash) exits non-zero
@@ -58,8 +58,8 @@ def sh(c, t=900):
     # the exact silent-failure mode this paper studies. Treat empty-output-on-error
     # as fatal. (_preflight_linters below catches the common missing-package case
     # first, with a better message; this is the defence-in-depth net.)
-    if r.returncode != 0 and not (r.stdout or '').strip():
-        sys.exit('error: a linter run failed with empty stdout (rc=%d): %s\nstderr: %s'
+    if r.returncode not in allowed_codes or (r.returncode != 0 and not (r.stdout or '').strip()):
+        sys.exit('error: a linter run failed or produced empty error output (rc=%d): %s\nstderr: %s'
                  % (r.returncode, ' '.join(str(x) for x in c[:5]), (r.stderr or '').strip()[:400]))
     return r
 
@@ -68,7 +68,10 @@ def ruff(r):
     return [(os.path.abspath(d['filename']), d['location']['row']) for d in json.loads(o or '[]')]
 def bandit(r):
     o = sh([PY,'-m','bandit','-r',r,'-f','json','-t','B110,B112','-q']).stdout
-    return [(os.path.abspath(d['filename']), d['line_number']) for d in json.loads(o or '{}').get('results',[])]
+    data = json.loads(o)
+    if data.get('errors'):
+        sys.exit('error: Bandit did not analyse all inputs: %s' % data['errors'])
+    return [(os.path.abspath(d['filename']), d['line_number']) for d in data['results']]
 def _pylint_targets(r):
     """The .py files pylint must be handed explicitly, sorted for determinism.
 
@@ -110,7 +113,7 @@ def pylint(r):
     for i in range(0, len(files), 500):
         o = sh([PY,'-m','pylint','--disable=all','--enable=W0702,W0703,W0705,W0706',
                 '--output-format=json','--persistent=n','--jobs=4',
-                *files[i:i + 500]], t=1800).stdout
+                *files[i:i + 500]], t=1800, allowed_codes=tuple(range(0, 32, 2))).stdout
         hits.extend((os.path.abspath(d['path']), d['line']) for d in json.loads(o or '[]'))
     return hits
 def flake8(r):
@@ -122,8 +125,10 @@ def flake8(r):
         if len(a)==2:
             try: out.append((os.path.abspath(a[0]), int(a[1])))
             except ValueError: dropped += 1
+        else:
+            dropped += 1
     if dropped:
-        print(f'  [warn] {dropped} unparseable row(s) dropped', file=__import__('sys').stderr)
+        sys.exit(f'error: flake8 produced {dropped} unparseable row(s); refusing partial coverage')
     return out
 
 TOOLS=[('ruff',ruff),('bandit',bandit),('pylint',pylint),('flake8+bugbear',flake8)]
@@ -167,9 +172,11 @@ def _preflight_linters():
 
 def semgrep(r):
     o = sh([SG,'--metrics=off','--disable-version-check','--no-git-ignore','--json',
-            '-f',RULES,r], t=1800).stdout
-    d = json.loads(o or '{}')
-    return [(os.path.abspath(x['path']), x['start']['line']) for x in d.get('results',[])]
+            '-f',RULES,r], t=1800, allowed_codes=(0,)).stdout
+    d = json.loads(o)
+    if d.get('errors'):
+        sys.exit('error: Semgrep reported analysis errors; refusing partial coverage: %s' % d['errors'])
+    return [(os.path.abspath(x['path']), x['start']['line']) for x in d['results']]
 
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -190,7 +197,14 @@ parser.add_argument('--ruff-select', default='S110,S112',
                     help="rule set ruff is invoked with (default: the paper's S110,S112). "
                          "S batch: pass 'S110,S112,BLE001' to give ruff its broad-except "
                          "rule, symmetric to the pylint W0703 the other baselines already get.")
+parser.add_argument('--allow-overwrite-frozen', action='store_true',
+                    help='permit writing over a committed output (see tools/_frozen_guard.py)')
 args = parser.parse_args()
+from _frozen_guard import guard_output
+
+guard_output(args.out, args.allow_overwrite_frozen)
+if args.emit_per_finding:
+    guard_output(args.emit_per_finding, args.allow_overwrite_frozen)
 RUFF_SELECT = args.ruff_select
 if args.with_semgrep:
     if not os.path.exists(SG):

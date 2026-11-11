@@ -1,3 +1,91 @@
+# Current audit and reproduction entrypoint (2026-11-03)
+
+> 🔴 **State after the 2026-11-11 merge.** `paper/arxiv/main.tex` and `main.pdf`
+> are now the **11 November held-out revision that was submitted to arXiv**
+> (29 pages). The 3 November audit revision (21 pages) is archived at
+> [`archive/pr4-20261103/`](archive/pr4-20261103/) and remains in git history at
+> `370c3ed`. **The submitted manuscript still reports the three curated-fix
+> ratios that the audit below withdrew**, and its Figure 3 still shows the
+> pooled split rather than reading the audit sidecar. Everything else in this
+> audit entrypoint stands. See
+> [`RECONCILIATION-20261111.md`](RECONCILIATION-20261111.md) before citing any
+> curated-fix rate, and before treating line 16 below as describing the current
+> Figure 3.
+
+The historical run log follows below. Use `paper/arxiv/main.tex` for the current
+manuscript; older paragraphs here record prior versions, not current endorsements.
+
+- Original annotation CSVs and `merged-pr-recall.csv` are preserved byte-identically.
+- `annotation-corrections.json` corrects a JSONEncoder rationale without asserting
+  a new independently validated label. It locks the original annotation hashes.
+- `reference-audit.json` records source inspection of all sixteen historically
+  selected PRs. Pooled 3/14 detection, 5/14 reachability and 9/14 non-handler
+  claims are withdrawn. These heterogeneous records do not define a consistently
+  adjudicated defect denominator. Existing `intervals.json` recall cells and
+  historical claim checks retain historical calculations, not current estimates.
+- `docs/annotation-protocol.md` is a historical proposal that does not reconstruct
+  the actual label process. Its replacement is proposed, not yet human-executed.
+- The current Figure 3 reads the audit sidecar and reports no pooled rate.
+
+Re-execution from this revision (writes only to a new directory):
+
+```sh
+pip install '.[test,paper,paper-semgrep]'
+python tools/fetch_corpus.py            # leaves paper/corpus-lock.json untouched if it matches
+python tools/reproduce_paper.py --out-dir /tmp/failroute-audit --with-semgrep
+PYTHONPATH=src python tools/control_rescan.py --check
+```
+
+`reproduce_paper.py` verifies the corpus, re-scans with v0.8.0 (disposable
+worktree at the tag) and with the current detector, re-runs the four selected
+baselines on both frozen frames, recomputes the frame delta, the E722/BLE001
+counts, the 68-probe matrix and the mapping-test replay, and compares each output
+with the committed file. Analysis scripts refuse to overwrite git-tracked outputs
+unless `--allow-overwrite-frozen` is passed (`tools/_frozen_guard.py`).
+
+The historical numerical archive is commit `3b4c567`. It predates the scripts
+above, and several of its scripts write into tracked files, so reproduce it only
+in a disposable `git worktree` (manuscript Appendix A.1).
+
+### Audit execution status (3–4 November 2026)
+
+See [`audit-rerun-2026-11-03.md`](audit-rerun-2026-11-03.md) for commands,
+comparison scope and outcomes. In short, on Linux x86_64 / Python 3.13 with the
+tools at commit `8040aeb`:
+
+* Corpus 8/8. Both scans, and both four-tool per-finding coverage files (1,097
+  rows), are byte-identical to the frozen exports. The frame delta, the E722/BLE001
+  counts and the 68-probe matrix are equal as JSON apart from timestamps and the
+  interpreter path. The mapping replay fails 21/36, as recorded.
+* The historical path at `3b4c567` (disposable worktree, `.[test,paper]` only)
+  gives byte-identical coverage files and rescan.
+* `tools/check_frozen_truth.py --corpus` checks the protected inputs by SHA-256
+  and rebuilds `intervals.json` and the three figures. A rebuilt figure must have
+  the same text tokens and the same drawn geometry (vector marks, marker
+  positions and decoded image cells relative to the axes area, read by
+  `tools/pdf_geometry.py`) within printed tolerances; text alone cannot see a
+  moved point or cell. Its regression tests need matplotlib and poppler's
+  `pdftotext`, so the project CI, which installs only `.[test]`, skips them.
+* `bench/benchmark-results.json`: corpus v7, 68 synthetic fixtures, 34 TP / 34 TN.
+  This is agreement with synthetic fixtures, not real-code defect precision.
+* Claims: eight claims need commits absent from the public history (`6eb7973`,
+  `50275e8`) or the unreleased companion repository. They are reported as `HIST`
+  with unchanged expectations; five are re-derived on public commits
+  (`06eba40`, `82734d1`) by separate `*_public` claims.
+* Semgrep 1.175.0 records a syntax error at `inspect_ai/model/_reasoning.py:62`
+  and analyses that file only partially, while printing "Scan completed
+  successfully". `tools/semgrep_diagnostic.py` observes 274/621 (upper bound
+  275), 267/476 and 284/649 (upper bound 285). Do not suppress this error to
+  obtain a "complete" five-tool count; the two claims that require one fail as
+  expected. The old `run_semgrep_baseline.py` and `semgrep_detail.py` read
+  historical frames and are not reproduction entrypoints.
+
+Note on "68": the 68 generated lint probes (`tools/lint_mapping_probe.py`) are a
+different object from the detector's 68 unit fixtures (34 positive / 34 negative,
+fixture set v7).
+
+## Historical reproduction log
+
 # ARTIFACT — reproduction notes for the failroute study
 
 The current manuscript is [`arxiv/main.pdf`](arxiv/main.pdf), with source in

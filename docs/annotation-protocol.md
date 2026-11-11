@@ -1,6 +1,17 @@
 # Annotation Protocol: Is this failure-routing finding a defect?
 
-**Version 1.0 — 2026-08-30**
+**Historical proposal, version 1.0 — 2026-08-30. Not the reproducible protocol for the published labels.**
+
+**Audit clarification (2026-11-03).** This document proposes TP/IC/UND and gate
+identifiers, but the retained CSVs use DEFECT/CONTRACT/FALSE_POSITIVE and do not
+record gates or an undecidable category. The original model versions and prompts
+were not retained. Consequently, the actual annotation procedure cannot be
+reconstructed from this document. The text below is preserved as a historical
+proposal, not evidence that its procedure was followed. In particular, its Gate 2
+(logging implies IC) is not a valid caller-visible distinguishability test.
+See `annotation-revalidation-protocol.md` for the proposed replacement and
+`../paper/annotation-corrections.json` for known rationale corrections. Neither
+constitutes a completed independent human revalidation.
 
 This document defines the decision procedure used to label `failroute` findings in the
 empirical study. It is written so that a second annotator, working independently and

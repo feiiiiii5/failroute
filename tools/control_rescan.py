@@ -92,10 +92,16 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--check", action="store_true",
                     help="verify committed outputs match a fresh recomputation (no writes)")
+    ap.add_argument("--allow-overwrite-frozen", action="store_true",
+                    help="without --check, permit replacing the committed bench/control-rescan files")
     args = ap.parse_args()
     lock = json.loads(LOCK.read_text())
     if not lock.get("packages"):
         sys.exit("error: no packages in paper/corpus-lock-control.json")
+    if not args.check:
+        from _frozen_guard import guard_dir
+        guard_dir(OUT, [f"{p['name']}.jsonl" for p in lock["packages"]],
+                  args.allow_overwrite_frozen)
     OUT.mkdir(parents=True, exist_ok=True)
     (TREES / "_archives").mkdir(parents=True, exist_ok=True)
     linters_all = {}

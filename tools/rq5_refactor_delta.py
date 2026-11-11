@@ -20,9 +20,13 @@ change, and the share of declared-contract findings the refactor silenced is bel
 the ones most worth re-running.
 
 Usage:
-    cd 新项目-failroute && .venv/bin/python tools/rq5_refactor_delta.py
-Writes bench/rq5-refactor-delta.json and prints the report.
+    .venv/bin/python tools/rq5_refactor_delta.py --out /tmp/rq5-delta.json
+    .venv/bin/python tools/rq5_refactor_delta.py --old <621.jsonl> --new <476.jsonl> --out <json>
+Prints the report and writes the JSON to --out. The committed
+bench/rq5-refactor-delta.json is frozen: writing to it is refused unless
+--allow-overwrite-frozen is passed (see tools/_frozen_guard.py).
 """
+import argparse
 import csv
 import json
 import os
@@ -91,6 +95,21 @@ def stable(counter: "Counter[str]") -> dict:
 
 
 def main():
+    global OLD, NEW, OUT
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument('--old', default=OLD, help='v0.8.0 per-finding export (default: frozen)')
+    ap.add_argument('--new', default=NEW, help='refined per-finding export (default: frozen)')
+    ap.add_argument('--out', default=OUT, help='where to write the JSON summary')
+    ap.add_argument('--allow-overwrite-frozen', action='store_true',
+                    help='permit writing over a committed output file')
+    args = ap.parse_args()
+    def norm(x):
+        x = os.path.abspath(x)
+        return os.path.relpath(x, ROOT) if x.startswith(ROOT + os.sep) else x
+    OLD, NEW, OUT = norm(args.old), norm(args.new), norm(args.out)
+    from _frozen_guard import guard_output
+    guard_output(OUT, args.allow_overwrite_frozen)
     os.chdir(ROOT)
     for p in [OLD, NEW] + [f for f, _ in LABELS]:
         if not os.path.isfile(p):

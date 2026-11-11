@@ -390,7 +390,8 @@ detector cannot distinguish an intentional fallback from a bug.** failroute
 narrows where to look; a person still has to argue the failure chain. Treat its
 output as a review queue, not a defect list.
 
-The internal `tests/corpus/` fixtures (68 samples, precision = recall = 1.0 in CI)
+The internal `tests/corpus/` fixtures (68 samples, precision = recall = 1.0 in CI;
+not the same objects as the manuscript's 68 generated lint probes)
 are a **regression gate on the rules themselves** — construct validity. They say
 nothing about how the tool behaves on code it has never seen; the table above does.
 
@@ -401,12 +402,50 @@ includes a paired ratio decomposition, a 68-probe calibration, a suppression
 form example, comparisons with recent Python exception-handling studies, and
 a held-out replication on eight unseen AI/ML packages. The share rise survives
 every single-package exclusion in both corpora; the covered-count sign does not
-survive them in either. [LaTeX source](paper/arxiv/main.tex),
+survive them in either. It separates behavioural calibration on probes from
+tool-output coverage on the corpus, and does not measure defect precision or
+recall. [LaTeX source](paper/arxiv/main.tex),
 [reproduction instructions](paper/ARTIFACT.md) and the
 [held-out record](paper/heldout-20261111/README.md) accompany it. The
-manuscript is the 11 November 2026 revision, has not been peer reviewed, and
-has not been posted to arXiv. Its warning-coverage results are executable
+manuscript is the 11 November 2026 revision and was submitted to arXiv on
+11 November 2026; it is not peer reviewed. Its warning-coverage results are executable
 measurements; the exploratory labels are not a validated defect rate.
+
+🔴 **Open discrepancy: the submitted manuscript still reports withdrawn
+curated-fix ratios.** The 11 November arXiv submission states 3/14 (21.4%),
+5/14 (35.7%) and 9/14 (64.3%) for the curated merged-fix set — in the abstract,
+Section 6.4.1, Table 9 and Figure 3. The 3 November reference audit
+**withdrew all three ratios**
+([`paper/reference-audit.json`](paper/reference-audit.json), `withdrawn_claims`).
+Its reclassification of the same sixteen rows is 10 supported, 3 excluded,
+2 uncertain and 1 location-only; `truera/trulens#2653`, counted as a detector
+match in the submitted version, is location-only, because warning proximity
+does not establish detection of the repaired semantic defect. The historical
+driver also derives candidate sites from removed Python lines, so additive
+fixes can be missed. **Do not cite those three ratios as current results.**
+The held-out replication, the read-set correction, the 68-probe calibration
+and the denominator decomposition are unaffected. See
+[`paper/RECONCILIATION-20261111.md`](paper/RECONCILIATION-20261111.md) for the
+full divergence record and what an arXiv v2 would need to change.
+The audit preserves the original labels and PR ledger, records a JSONEncoder
+rationale correction, and withdraws pooled curated-fix ratios after finding
+inconsistent inclusion and a location-only match. See
+[`paper/reference-audit.json`](paper/reference-audit.json) and
+[`paper/annotation-corrections.json`](paper/annotation-corrections.json).
+A proposed independent revalidation protocol is provided, not reported as completed.
+
+To re-execute the manuscript's measurements without touching the frozen exports,
+install `.[test,paper,paper-semgrep]`, run `python tools/fetch_corpus.py` (it leaves
+the committed lock untouched when every archive matches), then
+`python tools/reproduce_paper.py --out-dir /tmp/failroute-audit --with-semgrep`.
+The output directory must be new; every step compares its output with the frozen
+file and the analysis scripts refuse to overwrite tracked files unless
+`--allow-overwrite-frozen` is passed. This remeasures warning coverage, not defect
+yield. Semgrep 1.175.0 parses one pinned `inspect_ai` file only partially, so the
+five-tool figure is reported as observed 274/621 with an upper bound of 275, not
+as an error-free reproduction. The historical numerical archive (commit
+`3b4c567`) is reproduced separately, in a disposable worktree; see
+[`paper/audit-rerun-2026-11-03.md`](paper/audit-rerun-2026-11-03.md).
 
 
 ### Throughput

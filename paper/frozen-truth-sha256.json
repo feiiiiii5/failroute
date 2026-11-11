@@ -1,0 +1,35 @@
+{
+  "purpose": "Content hashes of the protected study inputs (red line 9). tools/check_frozen_truth.py compares the working files with these hashes; the fetched corpus tree is checked separately with tools/fetch_corpus.py --verify.",
+  "recorded": "2026-11-04, from files unchanged since the commits listed",
+  "cross_checks": "annotations.csv and annotations-second-pass.csv equal paper/annotation-corrections.json frozen_sha256; merged-pr-recall.csv equals paper/reference-audit.json historical_sha256",
+  "files": {
+    "paper/annotations.csv": {
+      "sha256": "d0dd3e44986eaffb08bfc70ce772433df26ccc783954e8e232e44ee614a18646",
+      "last_changed_commit": "ae72d5d7dd943f5c4db5f9fdbed02099cb590e63"
+    },
+    "paper/annotations-second-pass.csv": {
+      "sha256": "0ef398ba7d82d4526c0c3c3069eb41a11ab974d531f642e61bf31d4d80660c60",
+      "last_changed_commit": "ae72d5d7dd943f5c4db5f9fdbed02099cb590e63"
+    },
+    "paper/sample.jsonl": {
+      "sha256": "8be2712a58afe423bac68c8801797c57dbcb13d941820fc009bfb29327bd0a47",
+      "last_changed_commit": "ae72d5d7dd943f5c4db5f9fdbed02099cb590e63"
+    },
+    "paper/corpus-lock.json": {
+      "sha256": "6a6009623a53fb4b83a071e9f193b83d86e85daf7d245d199f0b5dc4bb13da90",
+      "last_changed_commit": "ae72d5d7dd943f5c4db5f9fdbed02099cb590e63"
+    },
+    "paper/merged-pr-recall.csv": {
+      "sha256": "2707f1380fc6d3f2097312ef60f98f7b6e6687ea955d2531efdf0260c1f6d17a",
+      "last_changed_commit": "8162a5a740a0717c925d82e5060b8e1d73832e22"
+    },
+    "paper/arm2-tracked-sites.csv": {
+      "sha256": "add9700b3460ff31f86445f8534db3edb5aab220483cd8fed43ad656b20673cb",
+      "last_changed_commit": "8d8550835b4a7734f7b3d35c9040bf3a74f38006"
+    },
+    "paper/h1_arm3_classification.csv": {
+      "sha256": "7e52ebc46ae2e545539c67358e88cbc93b8f98a794980dd0a2734c8a8026c945",
+      "last_changed_commit": "cb9c17e87ece4dfc617002bbad75ae8e8c23016a"
+    }
+  }
+}

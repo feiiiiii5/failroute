@@ -12,6 +12,20 @@
   "value": "vanished=18 appeared=0; F4-import-probe=11 F5-suppress-reraise=7",
   "cmd": "git worktree remove --force /tmp/fr-f2-base 2>/dev/null; git worktree add /tmp/fr-f2-base 6eb7973 >/dev/null 2>&1 && ln -s \"${FAILROUTE_ROOT}/paper/corpus\" /tmp/fr-f2-base/paper/corpus && git show 2e7e83c1f5fcb27e1ff15d746527140c92331fb7:tools/rescan_corpus.py > /tmp/fr-f2-base/tools/rescan_corpus.py && (cd /tmp/fr-f2-base && PYTHONPATH=src \"${FAILROUTE_ROOT}/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-f2-base-scan >/dev/null) && .venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f2-new >/dev/null && PYTHONPATH=src .venv/bin/python tools/delta_findings.py --base /tmp/fr-f2-base-scan --new /tmp/fr-f2-new | /usr/bin/grep SUMMARY; rc=$?; git worktree remove --force /tmp/fr-f2-base >/dev/null 2>&1; rm -rf /tmp/fr-f2-base; rm -rf /tmp/fr-f2-base-scan /tmp/fr-f2-new; exit $rc",
   "expect": "SUMMARY vanished=18 appeared=0 .*F4-import-probe=11 F5-suppress-reraise=7",
+  "slow": true,
+  "historical": {
+   "reason": "Commit 6eb7973 (the detector state after the F1 fixes and before F2) is not in the public history: it is absent from every branch and tag after a full unshallow fetch, GitHub reports 'No commit found for SHA', and a commit search finds nothing. The F-batch history was rewritten before publication. The expectation is kept unchanged as historical evidence; see the *_public claims for the substitute re-derivation on public commit 82734d1.",
+   "requires_git_objects": [
+    "6eb7973"
+   ]
+  }
+ },
+ {
+  "id": "F2.corpus_delta_public",
+  "stmt": "Substitute re-derivation on public history, added 2026-11-04. Same command and the same expectation as F2.corpus_delta, with the unavailable commit 6eb7973 replaced by public commit 82734d1 ('fix(f1): close three deterministic precision defects'), the F1 state in the published history. Passing shows that a public commit reproduces the recorded result; it does not prove that 82734d1 and 6eb7973 have identical trees, so F2.corpus_delta itself stays historical.",
+  "value": "vanished=18 appeared=0; F4-import-probe=11 F5-suppress-reraise=7",
+  "cmd": "git worktree remove --force /tmp/fr-pub-f2-base 2>/dev/null; git worktree add /tmp/fr-pub-f2-base 82734d1 >/dev/null 2>&1 && ln -s \"${FAILROUTE_ROOT}/paper/corpus\" /tmp/fr-pub-f2-base/paper/corpus && git show 2e7e83c1f5fcb27e1ff15d746527140c92331fb7:tools/rescan_corpus.py > /tmp/fr-pub-f2-base/tools/rescan_corpus.py && (cd /tmp/fr-pub-f2-base && PYTHONPATH=src \"${FAILROUTE_ROOT}/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-pub-f2-base-scan >/dev/null) && .venv/bin/python tools/pinned_rescan.py --out /tmp/fr-pub-f2-new >/dev/null && PYTHONPATH=src .venv/bin/python tools/delta_findings.py --base /tmp/fr-pub-f2-base-scan --new /tmp/fr-pub-f2-new | /usr/bin/grep SUMMARY; rc=$?; git worktree remove --force /tmp/fr-pub-f2-base >/dev/null 2>&1; rm -rf /tmp/fr-pub-f2-base; rm -rf /tmp/fr-pub-f2-base-scan /tmp/fr-pub-f2-new; exit $rc",
+  "expect": "SUMMARY vanished=18 appeared=0 .*F4-import-probe=11 F5-suppress-reraise=7",
   "slow": true
  },
  {
@@ -20,7 +34,16 @@
   "value": "SUPPRESSED=18 SURVIVED=1 FIXED=0 NO_TRUTH=17 → PASS",
   "cmd": "git worktree remove --force /tmp/fr-f2-tbase 2>/dev/null; git worktree add /tmp/fr-f2-tbase 6eb7973 >/dev/null 2>&1 && ln -s \"${FAILROUTE_ROOT}/paper/corpus\" /tmp/fr-f2-tbase/paper/corpus && git show 2e7e83c1f5fcb27e1ff15d746527140c92331fb7:tools/rescan_corpus.py > /tmp/fr-f2-tbase/tools/rescan_corpus.py && (cd /tmp/fr-f2-tbase && PYTHONPATH=src \"${FAILROUTE_ROOT}/.venv/bin/python\" tools/rescan_corpus.py --out /tmp/fr-f2-tbase-scan >/dev/null) && .venv/bin/python tools/pinned_rescan.py --out /tmp/fr-f2-tnew >/dev/null && git -C \"${CONTRACTLENS_ROOT}\" show b5efe7d299aaea9a78dc8a77cf314a397c393652:data/dataset.jsonl > /tmp/fr-f2-truth-dataset.jsonl && PYTHONPATH=src .venv/bin/python tools/truth_probe_check.py --mode f2 --dataset /tmp/fr-f2-truth-dataset.jsonl --base /tmp/fr-f2-tbase-scan --new /tmp/fr-f2-tnew 2>&1 | /usr/bin/grep -E 'SUPPRESSED=|PASS|FAIL'; rc=$?; git worktree remove --force /tmp/fr-f2-tbase >/dev/null 2>&1; rm -rf /tmp/fr-f2-tbase; rm -rf /tmp/fr-f2-tbase-scan /tmp/fr-f2-tnew; rm -f /tmp/fr-f2-truth-dataset.jsonl; exit $rc",
   "expect": "SUPPRESSED=18 SURVIVED=1 FIXED=0 MUTATED=0 VANISHED=0 NO_TRUTH=17.*\\nPASS",
-  "slow": true
+  "slow": true,
+  "historical": {
+   "reason": "Commit 6eb7973 (the detector state after the F1 fixes and before F2) is not in the public history: it is absent from every branch and tag after a full unshallow fetch, GitHub reports 'No commit found for SHA', and a commit search finds nothing. The F-batch history was rewritten before publication. The expectation is kept unchanged as historical evidence; see the *_public claims for the substitute re-derivation on public commit 82734d1. F2.truth_check also needs the unreleased companion repository at CONTRACTLENS_ROOT (commit b5efe7d), which is not publicly available.",
+   "requires_git_objects": [
+    "6eb7973"
+   ],
+   "requires_env_paths": [
+    "CONTRACTLENS_ROOT"
+   ]
+  }
  },
  {
   "id": "F2.ablation_no_fixed_loss",
@@ -28,7 +51,13 @@
   "value": "shipped 5 站点(1 SURV/0 FIXED); drop-cond-3 最宽 53 站点仍 0 FIXED（真值侧 pin 到 contractlens b5efe7d）",
   "cmd": "git -C \"${CONTRACTLENS_ROOT}\" show b5efe7d299aaea9a78dc8a77cf314a397c393652:data/dataset.jsonl > /tmp/fr-f2-abl-dataset.jsonl && PYTHONPATH=src .venv/bin/python tools/truth_probe_check.py --mode ablation --dataset /tmp/fr-f2-abl-dataset.jsonl | /usr/bin/grep -E 'shipped|drop cond'; rc=$?; rm -f /tmp/fr-f2-abl-dataset.jsonl; exit $rc",
   "expect": "shipped \\(all three\\) +5 +1 +0.*\\ndrop cond-1 \\(any exc type\\) +5 +1 +0.*\\ndrop cond-2 \\(any guarded body\\) +20 +5 +0.*\\ndrop cond-3 \\(any handler body\\) +53 +5 +0",
-  "slow": true
+  "slow": true,
+  "historical": {
+   "reason": "Needs the unreleased companion repository at CONTRACTLENS_ROOT (commit b5efe7d, data/dataset.jsonl), which is not publicly available, so this claim cannot be re-run from the public artefacts. The expectation is kept unchanged as historical evidence.",
+   "requires_env_paths": [
+    "CONTRACTLENS_ROOT"
+   ]
+  }
  },
  {
   "id": "F2.importerror_still_reported",

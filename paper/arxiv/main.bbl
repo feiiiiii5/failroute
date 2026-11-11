@@ -23,7 +23,7 @@ Saleema Amershi, Andrew Begel, Christian Bird, Robert DeLine, Harald Gall, Ece
 
 \bibitem[Ayewah and Pugh(2010)]{ayewah2010}
 Nathaniel Ayewah and William Pugh.
-\newblock The google findbugs fixit.
+\newblock The {Google} {FindBugs} fixit.
 \newblock In \emph{Proceedings of the 19th international symposium on Software
   testing and analysis}, pages 241--252, 2010.
 \newblock \doi{10.1145/1831708.1831738}.
@@ -45,27 +45,19 @@ Guilherme {Bicalho de P\'{a}dua} and Weiyi Shang.
 
 \bibitem[Breck et~al.(2017)Breck, Cai, Nielsen, Salib, and Sculley]{breck2017}
 Eric Breck, Shanqing Cai, Eric Nielsen, Michael Salib, and D.~Sculley.
-\newblock The ml test score: A rubric for ml production readiness and technical
-  debt reduction.
+\newblock The {ML} test score: A rubric for {ML} production readiness and
+  technical debt reduction.
 \newblock In \emph{2017 IEEE International Conference on Big Data (Big Data)},
   pages 1123--1132, 2017.
 \newblock \doi{10.1109/BigData.2017.8258038}.
 
 \bibitem[Cabral and Marques(2007)]{cabral2007}
 Bruno Cabral and Paulo Marques.
-\newblock Exception handling: A field study in java and .net.
+\newblock Exception handling: A field study in {Java} and {.NET}.
 \newblock In \emph{ECOOP 2007 --- Object-Oriented Programming}, Lecture Notes
   in Computer Science, pages 151--175. Springer Berlin Heidelberg, Berlin,
   Heidelberg, 2007.
 \newblock \doi{10.1007/978-3-540-73589-2_8}.
-
-\bibitem[Do et~al.(2022)Do, Wright, and Ali]{do2022}
-Lisa Nguyen~Quang Do, James~R. Wright, and Karim Ali.
-\newblock Why do software developers use static analysis tools? a user-centered
-  study of developer needs and motivations.
-\newblock \emph{IEEE Transactions on Software Engineering}, 48:\penalty0
-  835--847, 2022.
-\newblock \doi{10.1109/TSE.2020.3004525}.
 
 \bibitem[Guo et~al.(2023)Guo, Tan, Liu, Liu, Lai, Yang, Li, Chen, Dong, and
   Zhou]{guo2023}
@@ -95,8 +87,18 @@ Brittany Johnson, Yoonki Song, Emerson Murphy-Hill, and Robert Bowdidge.
 \bibitem[Masters et~al.(2026)Masters, Liu, and
   Albrecht]{masters2026rolloutcards}
 Charlie Masters, Ziyuan Liu, and Stefano~V. Albrecht.
-\newblock Rollout cards: A reproducibility standard for agent research.
-\newblock arXiv:2605.12131, 2026.
+\newblock {Rollout Cards}: A reproducibility standard for agent research.
+\newblock arXiv:2605.12131v1 [cs.AI], version 1, submitted 12 May, 2026.
+\newblock URL \url{https://arxiv.org/abs/2605.12131v1}.
+
+\bibitem[{Nguyen Quang Do} et~al.(2022){Nguyen Quang Do}, Wright, and
+  Ali]{do2022}
+Lisa {Nguyen Quang Do}, James~R. Wright, and Karim Ali.
+\newblock Why do software developers use static analysis tools? {A}
+  user-centered study of developer needs and motivations.
+\newblock \emph{IEEE Transactions on Software Engineering}, 48\penalty0
+  (3):\penalty0 835--847, 2022.
+\newblock \doi{10.1109/TSE.2020.3004525}.
 
 \bibitem[Paleyes et~al.(2022)Paleyes, Urma, and Lawrence]{paleyes2022}
 Andrei Paleyes, Raoul-Gabriel Urma, and Neil~D. Lawrence.
@@ -115,8 +117,8 @@ Neoklis Polyzotis, Martin Zinkevich, Sudip Roy, Eric Breck, and Steven Whang.
 
 \bibitem[Querel and Rigby(2018)]{querel2018}
 Louis-Philippe Querel and Peter~C. Rigby.
-\newblock Warningsguru: integrating statistical bug models with static analysis
-  to provide timely and specific bug warnings.
+\newblock {WarningsGuru}: integrating statistical bug models with static
+  analysis to provide timely and specific bug warnings.
 \newblock In \emph{Proceedings of the 2018 26th ACM Joint Meeting on European
   Software Engineering Conference and Symposium on the Foundations of Software
   Engineering}, pages 892--895, 2018.
@@ -144,7 +146,7 @@ Caitlin Sadowski, Jeffrey Van~Gogh, Ciera Jaspan, Emma Soderberg, and Collin
   Jaspan]{sadowski2018}
 Caitlin Sadowski, Edward Aftandilian, Alex Eagle, Liam Miller-Cushon, and Ciera
   Jaspan.
-\newblock Lessons from building static analysis tools at google.
+\newblock Lessons from building static analysis tools at {Google}.
 \newblock \emph{Communications of the ACM}, 61:\penalty0 58--66, 2018.
 \newblock \doi{10.1145/3188720}.
 
@@ -152,8 +154,8 @@ Caitlin Sadowski, Edward Aftandilian, Alex Eagle, Liam Miller-Cushon, and Ciera
   Paritosh, and Aroyo]{sambasivan2021}
 Nithya Sambasivan, Shivani Kapania, Hannah Highfill, Diana Akrong, Praveen
   Paritosh, and Lora~M Aroyo.
-\newblock ``everyone wants to do the model work, not the data work'': Data
-  cascades in high-stakes ai.
+\newblock ``{Everyone} wants to do the model work, not the data work'': Data
+  cascades in high-stakes {AI}.
 \newblock In \emph{Proceedings of the 2021 CHI Conference on Human Factors in
   Computing Systems}, pages 1--15, 2021.
 \newblock \doi{10.1145/3411764.3445518}.
@@ -180,7 +182,7 @@ D.~Sculley, Gary Holt, Daniel Golovin, Eugene Davydov, Todd Phillips, Dietmar
   Fonseca]{souza2024miner}
 Jairo Souza, Tales Alves, Robson Oliveira, Leopoldo Teixeira, and Baldoino
   Fonseca.
-\newblock Exception miner: Multi-language static analysis tool to identify
+\newblock {Exception Miner}: Multi-language static analysis tool to identify
   exception handling anti-patterns.
 \newblock In \emph{Proceedings of the XXXVIII Brazilian Symposium on Software
   Engineering}, pages 741--747, 2024.
@@ -202,8 +204,8 @@ Jairo Souza, Tales Alves, Rodrigo Lima, Ericlecio Ara{\'u}jo, Leopoldo
   Teixeira, and Fonseca]{souza2026python}
 Jairo Souza, Eric Coelho, Jo{\~a}o Correia, Rodrigo Lima, Leopoldo Teixeira,
   and Baldoino Fonseca.
-\newblock Exception handling bugs in python: An empirical study of root causes,
-  fix patterns, and anti-patterns.
+\newblock Exception handling bugs in {Python}: An empirical study of root
+  causes, fix patterns, and anti-patterns.
 \newblock \emph{Information and Software Technology}, 199:\penalty0 108264,
   2026{\natexlab{b}}.
 \newblock \doi{10.1016/j.infsof.2026.108264}.
@@ -213,7 +215,7 @@ Jairo Souza, Eric Coelho, Jo{\~a}o Correia, Rodrigo Lima, Leopoldo Teixeira,
   Menzies]{yedida2023}
 Rahul Yedida, Hong~Jin Kang, Huy Tu, Xueqi Yang, David Lo, and Tim Menzies.
 \newblock How to find actionable static analysis warnings: A case study with
-  findbugs.
+  {FindBugs}.
 \newblock \emph{IEEE Transactions on Software Engineering}, 49:\penalty0
   2856--2872, 2023.
 \newblock \doi{10.1109/TSE.2023.3234206}.

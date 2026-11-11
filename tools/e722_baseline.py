@@ -157,7 +157,11 @@ def main() -> int:
         "--annotations", default="paper/annotations.csv",
         help="labelled sample used to check defect coverage (read-only truth)",
     )
+    ap.add_argument("--allow-overwrite-frozen", action="store_true",
+                    help="permit writing over a committed output (see tools/_frozen_guard.py)")
     args = ap.parse_args()
+    from _frozen_guard import guard_output
+    guard_output(args.out, args.allow_overwrite_frozen)
 
     lock_path = "paper/corpus-lock.json"
     if not os.path.isfile(lock_path):

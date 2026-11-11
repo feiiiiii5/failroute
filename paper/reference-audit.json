@@ -1,0 +1,183 @@
+{
+  "audit_date": "2026-11-03",
+  "historical_source": "paper/merged-pr-recall.csv",
+  "historical_sha256": "2707f1380fc6d3f2097312ef60f98f7b6e6687ea955d2531efdf0260c1f6d17a",
+  "method": "AI-assisted inspection of relevant upstream production diffs for all sixteen historically selected rows, with selected tests and first-parent source checks. No new detector scan or independent human adjudication.",
+  "status_definitions": {
+    "supported": "Concrete broader failure-routing example supported by source; not membership in a uniform confirmed-defect population.",
+    "excluded": "Language-excluded or adjacent hazard, not an in-scope silent-success example.",
+    "uncertain": "Construct boundary unresolved; do not force a confirmed-defect classification.",
+    "location-only": "Historical warning proximity does not establish detection of the repaired semantic defect."
+  },
+  "withdrawn_claims": [
+    "3/14 detector matches as semantic detection",
+    "5/14 local-handler reachability bound",
+    "9/14 non-handler share"
+  ],
+  "historical_matching_limitation": "The historical driver derives candidate sites from removed Python lines. Additive changes can be omitted; proximity to changed lines does not prove semantic detection.",
+  "records": [
+    {
+      "repo": "cvs-health/uqlm",
+      "pr": 462,
+      "status": "supported",
+      "rationale": "Exhausted retries leave NaN scores; the fix warns and uses NaN-aware aggregation. NaN is distinguishable from finite success, so this is a broader sentinel-propagation example.",
+      "evidence": [
+        "https://github.com/cvs-health/uqlm/pull/462/files"
+      ],
+      "figure_summary": "Retry NaNs reach aggregates; fix warns and uses NaN-aware reductions."
+    },
+    {
+      "repo": "UKGovernmentBEIS/inspect_ai",
+      "pr": 5068,
+      "status": "supported",
+      "rationale": "The handler already warns, then sets exists=True and continues. Raising AzureAuthError repairs failure-to-continuation; this is not silently unlogged and not established as a missing local-handler shape.",
+      "evidence": [
+        "https://github.com/UKGovernmentBEIS/inspect_ai/pull/5068/files"
+      ],
+      "figure_summary": "Warning already exists; failure still becomes exists=True and continuation."
+    },
+    {
+      "repo": "cvs-health/uqlm",
+      "pr": 459,
+      "status": "supported",
+      "rationale": "Failed-judge NaNs contaminate panel aggregates; the fix warns and uses NaN-aware reductions. Supported broader propagation case, not literal indistinguishable finite success.",
+      "evidence": [
+        "https://github.com/cvs-health/uqlm/pull/459/files"
+      ],
+      "figure_summary": "Failed-judge NaNs poison aggregates; fix warns and excludes them."
+    },
+    {
+      "repo": "microsoft/PyRIT",
+      "pr": 2466,
+      "status": "supported",
+      "rationale": "Selected techniques without registered factories were silently filtered. The fix explicitly rejects missing factories.",
+      "evidence": [
+        "https://github.com/microsoft/PyRIT/pull/2466/files"
+      ],
+      "figure_summary": "Missing factories silently filter selected techniques; fix raises."
+    },
+    {
+      "repo": "microsoft/PyRIT",
+      "pr": 2460,
+      "status": "excluded",
+      "rationale": "Failure becomes an auth-disabled configuration, but the relevant implementation is TypeScript; excluded from Python detector evaluation.",
+      "evidence": [
+        "https://github.com/microsoft/PyRIT/pull/2460/files"
+      ],
+      "figure_summary": "Error becomes auth-disabled configuration; TypeScript, outside language scope."
+    },
+    {
+      "repo": "cvs-health/uqlm",
+      "pr": 450,
+      "status": "supported",
+      "rationale": "Retry failures are discarded before empty responses emerge on exhaustion. The historical no-action warning is causally relevant; the fix preserves alignment through placeholders.",
+      "evidence": [
+        "https://github.com/cvs-health/uqlm/pull/450/files"
+      ],
+      "figure_summary": "Discarded retry errors lead to empty output; local warning is relevant."
+    },
+    {
+      "repo": "UKGovernmentBEIS/inspect_ai",
+      "pr": 4906,
+      "status": "excluded",
+      "rationale": "Adding Tenacity reraise=True preserves the underlying error instead of RetryError. Failure already propagates; this is adjacent exception wrapping, not silent success or a local-handler gap.",
+      "evidence": [
+        "https://github.com/UKGovernmentBEIS/inspect_ai/pull/4906/files"
+      ],
+      "figure_summary": "RetryError becomes the underlying exception; failure already propagates."
+    },
+    {
+      "repo": "UKGovernmentBEIS/inspect_evals",
+      "pr": 2167,
+      "status": "supported",
+      "rationale": "Missing issue_id produced a numeric Score(0.0); the fix raises. The answer field already contains diagnostic information, so do not claim complete absence of a signal.",
+      "evidence": [
+        "https://github.com/UKGovernmentBEIS/inspect_evals/pull/2167/files"
+      ],
+      "figure_summary": "Missing issue_id becomes score zero, with an answer-field diagnostic."
+    },
+    {
+      "repo": "Unstructured-IO/unstructured",
+      "pr": 4438,
+      "status": "supported",
+      "rationale": "errors=ignore discarded undecodable bytes from file-like input. Strict decoding and charset fallback replace this non-handler suppression.",
+      "evidence": [
+        "https://github.com/Unstructured-IO/unstructured/pull/4438/files"
+      ],
+      "figure_summary": "errors=ignore drops undecodable bytes; fix adds strict decoding and fallback."
+    },
+    {
+      "repo": "microsoft/PyRIT",
+      "pr": 2309,
+      "status": "uncertain",
+      "rationale": "Unknown characters were dropped and are now preserved. Data loss is established; classifying unsupported input as an operational failure rather than an ordinary transform bug needs a uniform construct criterion.",
+      "evidence": [
+        "https://github.com/microsoft/PyRIT/pull/2309/files"
+      ],
+      "figure_summary": "Unknown characters are dropped; operational-failure membership is uncertain."
+    },
+    {
+      "repo": "truera/trulens",
+      "pr": 2653,
+      "status": "location-only",
+      "rationale": "Range checks and failure-sentinel preservation repair the defect. The credited except/pass site changes to continue with the same skipping behaviour. Co-location does not establish semantic detection.",
+      "evidence": [
+        "https://github.com/truera/trulens/pull/2653/files",
+        "https://github.com/truera/trulens/blob/34e10d97630b2f843b35e8a852d2a368000779ab/src/feedback/trulens/feedback/llm_provider.py#L247-L276"
+      ],
+      "figure_summary": "Local pass-to-continue match does not identify the repaired range validation."
+    },
+    {
+      "repo": "cvs-health/uqlm",
+      "pr": 425,
+      "status": "excluded",
+      "rationale": "Pre-fix division propagates ZeroDivisionError; the fix introduces a uniform fallback. This is a crash repair, not removal of pre-existing failure-to-success routing.",
+      "evidence": [
+        "https://github.com/cvs-health/uqlm/pull/425/files",
+        "https://github.com/cvs-health/uqlm/blob/1abe28f1f8759d3fb81e3b0b7b0014f579774d7a/uqlm/nli/entropy_utils.py#L57-L60"
+      ],
+      "figure_summary": "Division originally crashes; the patch introduces a uniform fallback."
+    },
+    {
+      "repo": "cvs-health/uqlm",
+      "pr": 418,
+      "status": "uncertain",
+      "rationale": "Missing logprob yields implicit None, then a downstream numeric TypeError; the fix uses NaN. Contract mismatch is supported, but success laundering is not established. Pure-additive/non-handler location is not a sufficient exclusion criterion.",
+      "evidence": [
+        "https://github.com/cvs-health/uqlm/pull/418/files",
+        "https://github.com/cvs-health/uqlm/blob/3570f9ab2d351bbaddd3dddb3f4c935ac55b4835/uqlm/white_box/p_true.py#L52-L65"
+      ],
+      "figure_summary": "Implicit None later raises TypeError; success laundering is unestablished."
+    },
+    {
+      "repo": "Ishannaik/agent-sweep",
+      "pr": 195,
+      "status": "supported",
+      "rationale": "A write failure already prints to stderr, but callers still claim successful writing. Returning a boolean and guarding success claims repairs cross-function outcome contradiction.",
+      "evidence": [
+        "https://github.com/Ishannaik/agent-sweep/pull/195/files"
+      ],
+      "figure_summary": "Error is printed, then callers claim success; fix guards those claims."
+    },
+    {
+      "repo": "Ishannaik/agent-sweep",
+      "pr": 197,
+      "status": "supported",
+      "rationale": "Unreadable files and malformed JSON lines are silently skipped; the fix records unscannable input. The historical OSError/return match is relevant; the continue case remains unmatched.",
+      "evidence": [
+        "https://github.com/Ishannaik/agent-sweep/pull/197/files"
+      ],
+      "figure_summary": "Unreadable input is silently skipped; local OSError/return warning is relevant."
+    },
+    {
+      "repo": "UKGovernmentBEIS/inspect_ai",
+      "pr": 4908,
+      "status": "supported",
+      "rationale": "Malformed multi-letter grades were reduced to a plausible first-letter grade. The fix validates accepted forms and rejects the rest.",
+      "evidence": [
+        "https://github.com/UKGovernmentBEIS/inspect_ai/pull/4908/files"
+      ],
+      "figure_summary": "Malformed grades become plausible first-letter grades; fix validates input."
+    }
+  ]
+}
