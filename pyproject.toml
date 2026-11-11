@@ -97,6 +97,11 @@ select = ["E", "F", "I", "B", "UP"]
     "F841",   # assigned-and-unused, kept for readability at a debug point
 ]
 
+# Preserve hash-pinned historical analysis scripts byte-for-byte. These are
+# cosmetic exceptions only; correctness rules remain active, as for tools/.
+"paper/heldout-20261111/scripts/analyze_heldout.py" = ["E501", "B007"]
+"paper/heldout-20261111/extensions-20261111/verify_numbers.py" = ["E741"]
+
 [tool.mypy]
 strict = true
 

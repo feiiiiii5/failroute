@@ -1,0 +1,47 @@
+[
+  {
+    "step": "corpus",
+    "status": "PASS",
+    "detail": "all locked archive and extracted-tree hashes verified"
+  },
+  {
+    "step": "scan-v0.8.0",
+    "status": "PASS",
+    "detail": "322 findings; every JSON field compared"
+  },
+  {
+    "step": "coverage-v0.8.0",
+    "status": "PASS",
+    "detail": "differing keys: []"
+  },
+  {
+    "step": "coverage-v0.8.0-novendor",
+    "status": "PASS",
+    "detail": "differing keys: []"
+  },
+  {
+    "step": "scan-v0.9.1",
+    "status": "PASS",
+    "detail": "248 findings; every JSON field compared"
+  },
+  {
+    "step": "coverage-v0.9.1",
+    "status": "PASS",
+    "detail": "differing keys: []"
+  },
+  {
+    "step": "coverage-v0.9.1-novendor",
+    "status": "PASS",
+    "detail": "differing keys: []"
+  },
+  {
+    "step": "per-finding-v0.9.1",
+    "status": "PASS",
+    "detail": "whole rows compared, including static predictions and empirical tool sets"
+  },
+  {
+    "step": "analysis",
+    "status": "PASS",
+    "detail": "all scientific fields compared; differing keys: []"
+  }
+]

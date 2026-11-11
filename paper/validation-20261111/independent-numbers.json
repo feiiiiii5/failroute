@@ -1,0 +1,142 @@
+{
+  "checks": 27,
+  "passed": 27,
+  "failed": [],
+  "detail": [
+    {
+      "check": "raw findings 322 / 248",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "raw distinct sites 317 / 245",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "raw empirical covered v0.9.1 = 88",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "comparison.json totals match raw recount",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "all 8 per-package rows match raw recount",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "table sums 322/99 -> 248/88",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "shares 30.7% and 35.5% (1dp, from exact ratios)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "primary decomposition +9.17 / -4.44 / +4.74",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "no-vendor 235/55 -> 189/56 and shares",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "exclude-dspy 147/30 -> 134/35 and shares",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "exclude-dspy equals total minus dspy row",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "sensitivity_no_vendor decomposition recomputes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "sensitivity_exclude_dspy decomposition recomputes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "held-out LOO: all 8 share changes positive, range +2.92..+5.88",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "held-out LOO: covered count reverses only for dspy",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "held-out LOO matches comparison.json",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "development LOO: all 8 share changes positive, range +9.81..+12.48",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "development LOO: covered count reverses for deepteam and inspect_ai",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "suppress 24 / 9, none covered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "held-out static/empirical 246 of 248, 2 name-shadowing at builder.py:1575,1881",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "development 476 findings, 252 covered, ITEM-LEVEL 0 disagreements",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "development 472 sites, 4 duplicated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "development decomposition +12.51 / -0.63 / +11.88",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "calibration 68 probes, 146 = 137 + 9, 87 -> 224",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "no 'pre-registered' claim remains",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "abstract frames the 19 suppress candidates as v0.8.0",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "no blanket 'covered-count result does not replicate'",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

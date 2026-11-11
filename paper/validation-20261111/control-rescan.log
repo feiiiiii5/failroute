@@ -1,0 +1,9 @@
+attrs: CHECK-OK 4 findings
+httpx: CHECK-OK 4 findings
+requests: CHECK-OK 8 findings
+urllib3: CHECK-OK 22 findings
+click: CHECK-OK 31 findings
+anyio: CHECK-OK 45 findings
+pydantic: CHECK-OK 40 findings
+msgpack: CHECK-OK 0 findings
+OK

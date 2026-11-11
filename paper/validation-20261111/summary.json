@@ -1,0 +1,185 @@
+{
+  "validated_at_utc": "2026-11-11T11:04:57.156658+00:00",
+  "manuscript_sha256": "57c03655e9c7de41a9577d173f3cd2be3f31d1cedf19c76d81d3d61a65819b09",
+  "core_reproduction": {
+    "status": "PASS",
+    "passed": 9,
+    "checks": [
+      {
+        "step": "corpus",
+        "status": "PASS",
+        "detail": "8/8 packages verified"
+      },
+      {
+        "step": "scan-v080",
+        "status": "PASS",
+        "detail": "621 findings vs bench/rescan-f2; whole rows equal=True, bytes identical=True"
+      },
+      {
+        "step": "scan-current",
+        "status": "PASS",
+        "detail": "476 findings vs bench/rescan-v2; whole rows equal=True, bytes identical=True"
+      },
+      {
+        "step": "coverage",
+        "status": "PASS",
+        "detail": "baseline: 255/621 co-located; whole rows equal=True, bytes identical=True"
+      },
+      {
+        "step": "coverage",
+        "status": "PASS",
+        "detail": "refined: 252/476 co-located; whole rows equal=True, bytes identical=True"
+      },
+      {
+        "step": "delta",
+        "status": "PASS",
+        "detail": "differing keys: none"
+      },
+      {
+        "step": "e722",
+        "status": "PASS",
+        "detail": "differing keys: none"
+      },
+      {
+        "step": "probes",
+        "status": "PASS",
+        "detail": "68-probe matrix and parity; differing keys: none"
+      },
+      {
+        "step": "refix",
+        "status": "PASS",
+        "detail": "REFIX_REPLAY 21 failed, 15 passed in 0.05s"
+      }
+    ]
+  },
+  "semgrep": {
+    "status": "PARTIAL",
+    "version": "1.175.0",
+    "reason": "Semgrep syntax error in inspect_ai/model/_reasoning.py and unscanned deepteam test file; not a clean five-tool reproduction.",
+    "baseline": {
+      "observed": 274,
+      "upper_bound": 275,
+      "findings": 621
+    },
+    "refined": {
+      "observed": 267,
+      "upper_bound": 267,
+      "findings": 476
+    }
+  },
+  "heldout_reproduction": {
+    "status": "PASS",
+    "passed": 9,
+    "detail": "both full-row detector scans, four primary/no-vendor coverage aggregates, per-finding records and analysis match frozen scientific fields",
+    "checks": [
+      {
+        "step": "corpus",
+        "status": "PASS",
+        "detail": "all locked archive and extracted-tree hashes verified"
+      },
+      {
+        "step": "scan-v0.8.0",
+        "status": "PASS",
+        "detail": "322 findings; every JSON field compared"
+      },
+      {
+        "step": "coverage-v0.8.0",
+        "status": "PASS",
+        "detail": "differing keys: []"
+      },
+      {
+        "step": "coverage-v0.8.0-novendor",
+        "status": "PASS",
+        "detail": "differing keys: []"
+      },
+      {
+        "step": "scan-v0.9.1",
+        "status": "PASS",
+        "detail": "248 findings; every JSON field compared"
+      },
+      {
+        "step": "coverage-v0.9.1",
+        "status": "PASS",
+        "detail": "differing keys: []"
+      },
+      {
+        "step": "coverage-v0.9.1-novendor",
+        "status": "PASS",
+        "detail": "differing keys: []"
+      },
+      {
+        "step": "per-finding-v0.9.1",
+        "status": "PASS",
+        "detail": "whole rows compared, including static predictions and empirical tool sets"
+      },
+      {
+        "step": "analysis",
+        "status": "PASS",
+        "detail": "all scientific fields compared; differing keys: []"
+      }
+    ]
+  },
+  "tests": {
+    "status": "PASS",
+    "passed": 269
+  },
+  "heldout_text_gate": {
+    "status": "PASS",
+    "passed": 16
+  },
+  "independent_numbers_gate": {
+    "status": "PASS",
+    "passed": 27
+  },
+  "frozen_truth": {
+    "status": "PASS",
+    "protected_changes": 0,
+    "derived_figures_match": true,
+    "corpus_verified": true
+  },
+  "control_rescan": {
+    "status": "PASS",
+    "packages": 8,
+    "findings": 154,
+    "scope": "Detector record keys: trailing file path, line, rule_id, severity, covered_by. This check does not rerun control linters or compare every JSON field."
+  },
+  "ast_parse_check": {
+    "status": "PASS",
+    "python": "3.11.15",
+    "development_files": 2124,
+    "heldout_files": 1564
+  },
+  "environment": {
+    "python": "3.11.15",
+    "platform": "macOS-27.3-arm64-arm-64bit",
+    "packages": {
+      "ruff": "0.16.4",
+      "pylint": "4.0.8",
+      "flake8": "7.3.0",
+      "bandit": "1.9.4",
+      "semgrep": "1.175.0",
+      "matplotlib": "3.11.1",
+      "flake8-bugbear": "25.11.29",
+      "pytest": "9.1.1"
+    }
+  },
+  "final_text_gates_rechecked": true,
+  "layout": {
+    "pages": 28,
+    "figures": 4,
+    "tables": 14,
+    "references": 25,
+    "overfull_boxes": 0,
+    "all_pages_visual_review": "PASS",
+    "latex_underfull_boxes": 3
+  },
+  "quality": {
+    "ruff": "PASS in clean staged published tree; unrelated untracked scripts were not published",
+    "mypy": "PASS: 15 source files",
+    "coverage": "269 passed; 89.84%, threshold88%",
+    "synthetic_benchmark": "34 TP,34 TN,0 FP,0 FN; synthetic regression only",
+    "clean_source_build": "28 pages; extracted text byte-identical to reviewed PDF",
+    "all_source_fonts_embedded": true,
+    "self_scan": "PASS high-severity gate in clean staged tree; 1 pre-existing medium finding in tools/lint_mapping_probe.py:459"
+  }
+}

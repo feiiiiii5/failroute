@@ -1,0 +1,4 @@
+  fig1_llm_label_share_by_package: text=same geometry=within tolerance [36 elements; vector marks 0.000000 of the frame; image placement 0.000000; image samples differing 0.0000%; committed by Matplotlib pdf backend v3.11.0, rebuilt by Matplotlib pdf backend v3.11.1]
+  fig2_cross_tool_coverage: text=same geometry=within tolerance [27 elements; vector marks 0.000000 of the frame; image placement 0.000000; image samples differing 0.0000%; committed by Matplotlib pdf backend v3.11.0, rebuilt by Matplotlib pdf backend v3.11.1]
+  fig3_reference_matches_by_family: text=same geometry=within tolerance [68 elements; vector marks 0.000000 of the frame; image placement 0.000000; image samples differing 0.0000%; committed by Matplotlib pdf backend v3.11.1, rebuilt by Matplotlib pdf backend v3.11.1]
+protected=0 derived_rebuilt_match=True

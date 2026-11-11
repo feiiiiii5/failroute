@@ -1,0 +1,14 @@
+{
+  "corpus_version": 7,
+  "run_at": "2026-11-11T11:06:38Z",
+  "skipped_files": [],
+  "true_positives": 34,
+  "false_positives": [],
+  "false_negatives": [],
+  "true_negatives": 34,
+  "true_negative_violations": [],
+  "precision": 1.0,
+  "recall": 1.0,
+  "fixtures": 68,
+  "scope": "Agreement with hand-labelled synthetic fixtures in tests/corpus (a regression gate on the detector's own specification). It is not defect precision or recall on real code, which this project has not measured."
+}

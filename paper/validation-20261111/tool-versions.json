@@ -1,0 +1,15 @@
+{
+  "python": "3.11.15",
+  "executable": "/Users/fei/Desktop/\u7533\u8bf7\u5b63/\u9879\u76ee/\u65b0\u9879\u76ee-failroute/.venv/bin/python",
+  "platform": "macOS-27.3-arm64-arm-64bit",
+  "packages": {
+    "ruff": "0.16.4",
+    "pylint": "4.0.8",
+    "flake8": "7.3.0",
+    "bandit": "1.9.4",
+    "semgrep": "1.175.0",
+    "matplotlib": "3.11.1",
+    "flake8-bugbear": "25.11.29",
+    "pytest": "9.1.1"
+  }
+}

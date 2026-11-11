@@ -1,0 +1,6 @@
+Semgrep 1.175.0: PARTIAL: Semgrep reported errors; five-tool counts are bounded, not reproduced
+  inspect_ai: errors=[('Syntax error', 'paper/corpus/inspect_ai-0.3.260/src/inspect_ai/model/_reasoning.py')] py_not_scanned=[]
+  deepteam: errors=[] py_not_scanned=['paper/corpus/deepteam-1.0.9/deepteam/tests/test_core/test_vulnerabilities/test_hallucination.py']
+  frame baseline: 621 findings, four-tool 255, +semgrep 274 (upper bound 275); newly {'silent-fallback': 1, 'silent-suppress': 18}; undecided ['paper/corpus/inspect_ai-0.3.260/src/inspect_ai/model/_reasoning.py:193 (silent-fallback)']
+  frame refined: 476 findings, four-tool 252, +semgrep 267 (upper bound 267); newly {'silent-suppress': 15}; undecided []
+wrote /private/tmp/failroute-final-audit-8us10I/semgrep-final/semgrep-diagnostic.json

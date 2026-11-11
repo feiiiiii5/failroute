@@ -1,0 +1,47 @@
+[
+  {
+    "step": "corpus",
+    "status": "PASS",
+    "detail": "8/8 packages verified"
+  },
+  {
+    "step": "scan-v080",
+    "status": "PASS",
+    "detail": "621 findings vs bench/rescan-f2; whole rows equal=True, bytes identical=True"
+  },
+  {
+    "step": "scan-current",
+    "status": "PASS",
+    "detail": "476 findings vs bench/rescan-v2; whole rows equal=True, bytes identical=True"
+  },
+  {
+    "step": "coverage",
+    "status": "PASS",
+    "detail": "baseline: 255/621 co-located; whole rows equal=True, bytes identical=True"
+  },
+  {
+    "step": "coverage",
+    "status": "PASS",
+    "detail": "refined: 252/476 co-located; whole rows equal=True, bytes identical=True"
+  },
+  {
+    "step": "delta",
+    "status": "PASS",
+    "detail": "differing keys: none"
+  },
+  {
+    "step": "e722",
+    "status": "PASS",
+    "detail": "differing keys: none"
+  },
+  {
+    "step": "probes",
+    "status": "PASS",
+    "detail": "68-probe matrix and parity; differing keys: none"
+  },
+  {
+    "step": "refix",
+    "status": "PASS",
+    "detail": "REFIX_REPLAY 21 failed, 15 passed in 0.05s"
+  }
+]

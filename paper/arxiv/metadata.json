@@ -1,0 +1,16 @@
+{
+  "title": "Measuring What a Failure-Routing Detector Adds: Representation, Calibration, and Validation Limits",
+  "authors": "Yufeiyang Chen",
+  "affiliation": "School of Cyber Science and Technology, Sun Yat-sen University, Shenzhen, China",
+  "correspondence_email": "fei76161@gmail.com",
+  "primary_category": "cs.SE",
+  "cross_list": null,
+  "license_in_manuscript": "CC BY 4.0",
+  "comments": "28 pages, 4 figures. Code, data and reproduction scripts: https://github.com/feiiiiii5/failroute/tree/arxiv-20261111-final",
+  "abstract": "Static detectors can identify exception handlers that turn a failed operation into an ordinary result. Establishing what such a detector adds requires separating warning coverage from contract violations, and its measured increment depends on rarely reported choices. We study them with an AST-based failure-routing detector, eight development packages, a control corpus, and eight held-out AI/ML packages. Four choices change the apparent increment. Representation: all 19 v0.8.0 contextlib.suppress candidates escape four selected lint baselines; a supplementary Semgrep rule reaches 18. Read set: Pylint's directory mode skipped 152 of 2,124 files; correcting it moves the union from 250 to 255. Calibration: a 68-probe matrix corrects a static mapping that over-credited 146 findings; predicted unmatched findings move from 87 (18.3%) to 224 (47.1%), and static and empirical co-location agree on all 476. Denominator: refining the detector from 621 to 476 findings raises overlap from 41.1% to 52.9% while the covered count falls from 255 to 252; +12.51 points come from the smaller frame and -0.63 from the covered count. On eight held-out packages (415,101 lines), findings fall 322 to 248, the share rises 30.7% to 35.5% and the covered count falls 99 to 88. The share rise survives every single-package exclusion in both corpora; the covered-count sign does not. Static/empirical agreement holds for 246 of 248 held-out findings; both exceptions are name-shadowing. Audited PRs illustrate scope but do not define a defect denominator. The results support a checklist: lock the read set, test representation variants, calibrate mappings with probes, report absolute counts and denominators, and adjudicate contracts independently. No claim of general detector superiority follows. LLM-labelled observations are exploratory and do not estimate defect precision.",
+  "abstract_characters": 1868,
+  "journal_ref": null,
+  "doi": null,
+  "report_number": null,
+  "submission_status": "Prepared only; prior submission cancelled by author; not submitted by this task."
+}

@@ -1,0 +1,27 @@
+........................................................................ [ 26%]
+........................................................................ [ 53%]
+........................................................................ [ 80%]
+.....................................................                    [100%]
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.11.15-final-0 _______________
+
+Name                                       Stmts   Miss  Cover
+--------------------------------------------------------------
+src/failroute/__init__.py                      5      0   100%
+src/failroute/analyzer.py                    154      8    95%
+src/failroute/cli.py                         135      8    94%
+src/failroute/config.py                       68     13    81%
+src/failroute/ir.py                          104      3    97%
+src/failroute/rules/__init__.py               17      1    94%
+src/failroute/rules/_shared.py               692     72    90%
+src/failroute/rules/implicit_fallback.py     120     40    67%
+src/failroute/rules/masked_exception.py       35      1    97%
+src/failroute/rules/name_shadowing.py         24      1    96%
+src/failroute/rules/no_action.py              26      1    96%
+src/failroute/rules/silent_fallback.py        80      5    94%
+src/failroute/rules/silent_suppress.py        55      2    96%
+src/failroute/sarif.py                        30      2    93%
+--------------------------------------------------------------
+TOTAL                                       1545    157    90%
+Required test coverage of 88% reached. Total coverage: 89.84%
+269 passed in 10.90s

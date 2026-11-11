@@ -1,16 +1,20 @@
-# Current audit and reproduction entrypoint (2026-11-03)
+# Current reproduction entrypoint
 
-> 🔴 **State after the 2026-11-11 merge.** `paper/arxiv/main.tex` and `main.pdf`
-> are now the **11 November held-out revision that was submitted to arXiv**
-> (29 pages). The 3 November audit revision (21 pages) is archived at
-> [`archive/pr4-20261103/`](archive/pr4-20261103/) and remains in git history at
-> `370c3ed`. **The submitted manuscript still reports the three curated-fix
-> ratios that the audit below withdrew**, and its Figure 3 still shows the
-> pooled split rather than reading the audit sidecar. Everything else in this
-> audit entrypoint stands. See
-> [`RECONCILIATION-20261111.md`](RECONCILIATION-20261111.md) before citing any
-> curated-fix rate, and before treating line 16 below as describing the current
-> Figure 3.
+The final reconciled manuscript is `paper/arxiv/main.pdf`, pinned by tag
+`arxiv-20261111-final`. The author cancelled the earlier submission; this
+revision has not been submitted by the repair task. See
+[FINAL-VALIDATION.md](FINAL-VALIDATION.md) for commands, actual outcomes and limits.
+
+The paper now withdraws the historical 3/14, 5/14 and 9/14 ratios and uses
+`reference-audit.json` for qualitative per-record evidence. Figure 3 reads that
+sidecar, not the old match classifications. The original PR ledger and label
+files remain unchanged. Semgrep partial parsing and the two held-out mapping
+failures are disclosed. The corrected PR driver measures proximity only.
+
+Use `tools/reproduce_paper.py` for the development corpus and
+`tools/reproduce_heldout.py` for the held-out corpus, both with a new output
+directory. Frozen held-out wording is interpreted through its
+[correction sidecar](heldout-20261111/CORRECTIONS.md).
 
 The historical run log follows below. Use `paper/arxiv/main.tex` for the current
 manuscript; older paragraphs here record prior versions, not current endorsements.
@@ -104,8 +108,8 @@ packages; its protocol, pins, findings and coverage records are in
 exclusion in both corpora; the covered-count sign does not survive them in
 either (held-out reverses when `dspy` is excluded, development when
 `deepteam` or `inspect_ai` is excluded). Both leave-one-out checks are
-post-hoc and live in `paper/heldout-20261111/extensions-20261111/`. Current
-TeX and the local source package produce the same 29-page manuscript.
+post-hoc and live in `paper/heldout-20261111/extensions-20261111/`. That historical TeX and source package produced a 29-page manuscript; the
+current reconciled manuscript is identified above.
 
 The dated sections below preserve earlier reproduction records, including
 superseded counts and manuscript layouts. Use the current manuscript's

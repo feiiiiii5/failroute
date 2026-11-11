@@ -1,3 +1,13 @@
+# Resolution update
+
+The author cancelled the earlier arXiv submission and authorized a complete
+revision. The final `arxiv-20261111-final` manuscript removes the active pooled
+PR claims, restores the audit figure, corrects the encoder rationale and
+Semgrep completeness, and supplies safe current reproduction drivers.
+See [FINAL-VALIDATION.md](FINAL-VALIDATION.md). The historical divergence record
+below is preserved for provenance; its “unresolved” status and proposed v2
+steps are superseded by this update. No arXiv submission was performed here.
+
 # Reconciliation — 2026-11-11
 
 Two independent lines of work on this manuscript diverged and were merged on

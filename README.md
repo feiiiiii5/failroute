@@ -275,7 +275,7 @@ Run `failroute` on its own checkout as a smoke test:
 
 ```console
 $ pip install -e .
-$ failroute --repo .     # expected: zero findings (self-hosting)
+$ failroute src     # expected: zero findings in the detector implementation
 ```
 
 ## Benchmarks & validation
@@ -301,7 +301,7 @@ Two, with different jobs:
   adds real-code regression coverage; it does not establish independently
   validated defect labels or accuracy on unseen packages.
 
-The full suite is **221 tests** across a 3 OS × Python 3.9–3.13 matrix, plus
+The v0.9.1 release suite contained **221 tests** across a 3 OS × Python 3.9–3.13 matrix, plus
 `mypy --strict`.
 
 ### What syntactic linters miss
@@ -319,8 +319,9 @@ numbers and this README's will differ. The v0.7.0 detector reported 28 more; all
 were precision fixes (this CHANGELOG's 0.8.0 entry), each one individually
 attributed in `docs/f-batch-report.md`.
 
-Compared against **four standard linters** at their default configurations
-(ruff, bandit, pylint, flake8 + bugbear), matching on ±1 line:
+Compared against **four selected lint rule sets** (Ruff S110/S112, Bandit
+B110/B112, Pylint W0702/W0703/W0705/W0706, flake8 E722/B001/B017),
+matching on ±1 line. These are not each tool’s default full configuration:
 
 | | Findings co-located | Share |
 | --- | --- | --- |
@@ -407,31 +408,28 @@ tool-output coverage on the corpus, and does not measure defect precision or
 recall. [LaTeX source](paper/arxiv/main.tex),
 [reproduction instructions](paper/ARTIFACT.md) and the
 [held-out record](paper/heldout-20261111/README.md) accompany it. The
-manuscript is the 11 November 2026 revision and was submitted to arXiv on
-11 November 2026; it is not peer reviewed. Its warning-coverage results are executable
-measurements; the exploratory labels are not a validated defect rate.
+manuscript is the reconciled 11 November 2026 revision, prepared after the
+previous submission was cancelled by the author. It is not peer reviewed and
+has not been submitted by this revision task. Its warning-coverage results
+are executable measurements; exploratory labels are not a validated defect rate.
 
-🔴 **Open discrepancy: the submitted manuscript still reports withdrawn
-curated-fix ratios.** The 11 November arXiv submission states 3/14 (21.4%),
-5/14 (35.7%) and 9/14 (64.3%) for the curated merged-fix set — in the abstract,
-Section 6.4.1, Table 9 and Figure 3. The 3 November reference audit
-**withdrew all three ratios**
-([`paper/reference-audit.json`](paper/reference-audit.json), `withdrawn_claims`).
-Its reclassification of the same sixteen rows is 10 supported, 3 excluded,
-2 uncertain and 1 location-only; `truera/trulens#2653`, counted as a detector
-match in the submitted version, is location-only, because warning proximity
-does not establish detection of the repaired semantic defect. The historical
-driver also derives candidate sites from removed Python lines, so additive
-fixes can be missed. **Do not cite those three ratios as current results.**
-The held-out replication, the read-set correction, the 68-probe calibration
-and the denominator decomposition are unaffected. See
-[`paper/RECONCILIATION-20261111.md`](paper/RECONCILIATION-20261111.md) for the
-full divergence record and what an arXiv v2 would need to change.
-The audit preserves the original labels and PR ledger, records a JSONEncoder
-rationale correction, and withdraws pooled curated-fix ratios after finding
-inconsistent inclusion and a location-only match. See
-[`paper/reference-audit.json`](paper/reference-audit.json) and
-[`paper/annotation-corrections.json`](paper/annotation-corrections.json).
+**The curated-fix discrepancy is resolved in this manuscript.** The three
+historical pooled ratios are withdrawn rather than replaced with a new,
+unadjudicated denominator. The paper and Figure 3 use the source-linked audit
+of all sixteen records: 10 supported broader examples, 3 excluded, 2 uncertain
+and 1 location-only. These are review dispositions, not detector performance.
+The corrected matching driver covers pure additions and renamed base files,
+and explicitly reports location proximity rather than semantic detection.
+The frozen annotations and historical PR ledger are preserved byte-identically.
+
+The held-out replication, baseline read-set correction, 68-probe calibration
+and denominator decomposition remain supported. Semgrep's partial-analysis
+boundary and the two held-out static-mapping failures remain explicit.
+See [final validation](paper/FINAL-VALIDATION.md),
+[reference audit](paper/reference-audit.json),
+[annotation correction](paper/annotation-corrections.json), and
+[held-out interpretation corrections](paper/heldout-20261111/CORRECTIONS.md).
+The immutable paper release is tagged `arxiv-20261111-final`.
 A proposed independent revalidation protocol is provided, not reported as completed.
 
 To re-execute the manuscript's measurements without touching the frozen exports,
