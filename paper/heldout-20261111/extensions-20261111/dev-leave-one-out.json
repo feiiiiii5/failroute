@@ -1,0 +1,139 @@
+{
+  "source_old": "bench/corpus-coverage-union.json",
+  "source_new": "bench/corpus-coverage-union-v2.json",
+  "note": "post-hoc symmetric robustness check; no detector or linter was run",
+  "primary": {
+    "n0": 621,
+    "c0": 255,
+    "n1": 476,
+    "c1": 252,
+    "share0_pct": 41.06,
+    "share1_pct": 52.94,
+    "delta_pp": 11.88,
+    "denominator_term_pp": 12.51,
+    "covered_count_term_pp": -0.63
+  },
+  "leave_one_out": [
+    {
+      "n0": 481,
+      "c0": 124,
+      "n1": 342,
+      "c1": 125,
+      "share0_pct": 25.78,
+      "share1_pct": 36.55,
+      "delta_pp": 10.77,
+      "denominator_term_pp": 10.48,
+      "covered_count_term_pp": 0.29,
+      "excluded": "deepteam",
+      "share_change_pp": 10.77,
+      "covered_change": 1
+    },
+    {
+      "n0": 611,
+      "c0": 252,
+      "n1": 469,
+      "c1": 248,
+      "share0_pct": 41.24,
+      "share1_pct": 52.88,
+      "delta_pp": 11.63,
+      "denominator_term_pp": 12.49,
+      "covered_count_term_pp": -0.85,
+      "excluded": "fickling",
+      "share_change_pp": 11.63,
+      "covered_change": -4
+    },
+    {
+      "n0": 605,
+      "c0": 248,
+      "n1": 442,
+      "c1": 233,
+      "share0_pct": 40.99,
+      "share1_pct": 52.71,
+      "delta_pp": 11.72,
+      "denominator_term_pp": 15.12,
+      "covered_count_term_pp": -3.39,
+      "excluded": "garak",
+      "share_change_pp": 11.72,
+      "covered_change": -15
+    },
+    {
+      "n0": 300,
+      "c0": 160,
+      "n1": 274,
+      "c1": 173,
+      "share0_pct": 53.33,
+      "share1_pct": 63.14,
+      "delta_pp": 9.81,
+      "denominator_term_pp": 5.06,
+      "covered_count_term_pp": 4.74,
+      "excluded": "inspect_ai",
+      "share_change_pp": 9.81,
+      "covered_change": 13
+    },
+    {
+      "n0": 539,
+      "c0": 247,
+      "n1": 429,
+      "c1": 244,
+      "share0_pct": 45.83,
+      "share1_pct": 56.88,
+      "delta_pp": 11.05,
+      "denominator_term_pp": 11.75,
+      "covered_count_term_pp": -0.7,
+      "excluded": "pydantic_ai_slim",
+      "share_change_pp": 11.05,
+      "covered_change": -3
+    },
+    {
+      "n0": 608,
+      "c0": 253,
+      "n1": 464,
+      "c1": 250,
+      "share0_pct": 41.61,
+      "share1_pct": 53.88,
+      "delta_pp": 12.27,
+      "denominator_term_pp": 12.91,
+      "covered_count_term_pp": -0.65,
+      "excluded": "smolagents",
+      "share_change_pp": 12.27,
+      "covered_change": -3
+    },
+    {
+      "n0": 595,
+      "c0": 251,
+      "n1": 450,
+      "c1": 246,
+      "share0_pct": 42.18,
+      "share1_pct": 54.67,
+      "delta_pp": 12.48,
+      "denominator_term_pp": 13.59,
+      "covered_count_term_pp": -1.11,
+      "excluded": "trl",
+      "share_change_pp": 12.48,
+      "covered_change": -5
+    },
+    {
+      "n0": 608,
+      "c0": 250,
+      "n1": 462,
+      "c1": 245,
+      "share0_pct": 41.12,
+      "share1_pct": 53.03,
+      "delta_pp": 11.91,
+      "denominator_term_pp": 12.99,
+      "covered_count_term_pp": -1.08,
+      "excluded": "uqlm",
+      "share_change_pp": 11.91,
+      "covered_change": -5
+    }
+  ],
+  "all_share_changes_positive": true,
+  "share_change_range_pp": [
+    9.81,
+    12.48
+  ],
+  "covered_count_reversals": [
+    "deepteam",
+    "inspect_ai"
+  ]
+}

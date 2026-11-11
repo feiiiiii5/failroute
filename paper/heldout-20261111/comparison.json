@@ -1,0 +1,526 @@
+{
+  "protocol_sha256": "02a108b493e057d436368f6128687e750d15af16662b9c592299d6e2e1b9afdc",
+  "generated_utc": "2026-11-11T06:32:53Z",
+  "environment": {
+    "python": "3.11.15",
+    "failroute": "0.9.1",
+    "failroute_head": "15dffaaf3550aa3903a534b45c33d1a8b605d1d8",
+    "v080_tag_commit": "a73158b8b69f94f21f77b57840d8e56df8275c16",
+    "v091_tag_commit": "1b4a56268be16828701b048f4446d4ac0de945c0",
+    "ruff": "0.16.4",
+    "bandit": "1.9.4",
+    "pylint": "4.0.8",
+    "flake8": "7.3.0",
+    "flake8_bugbear": "25.11.29"
+  },
+  "corpus": {
+    "packages": 8,
+    "py_files": 1564,
+    "lines": 415101,
+    "sdist_py_files": 1817,
+    "sdist_lines": 529073
+  },
+  "frames": {
+    "v0.8.0": {
+      "total": 322,
+      "covered": 99,
+      "only": 223,
+      "share_pct": 30.75,
+      "distinct_sites": 317,
+      "by_rule": {
+        "masked-exception": 1,
+        "name-shadowing": 2,
+        "no-action": 127,
+        "silent-fallback": 168,
+        "silent-suppress": 24
+      }
+    },
+    "v0.9.1": {
+      "total": 248,
+      "covered": 88,
+      "only": 160,
+      "share_pct": 35.48,
+      "distinct_sites": 245,
+      "by_rule": {
+        "name-shadowing": 2,
+        "no-action": 126,
+        "silent-fallback": 111,
+        "silent-suppress": 9
+      },
+      "severity": {
+        "high": 81,
+        "info": 38,
+        "low": 3,
+        "medium": 126
+      },
+      "isomorphism": {
+        "null": 11,
+        "non-isomorphic": 91,
+        "unknown": 146
+      }
+    }
+  },
+  "per_package": [
+    {
+      "name": "accelerate",
+      "version": "1.15.0",
+      "py_files": 84,
+      "lines": 36293,
+      "findings_v080": 19,
+      "covered_v080": 2,
+      "share_v080_pct": 10.53,
+      "sites_v080": 19,
+      "findings_v091": 21,
+      "covered_v091": 4,
+      "share_v091_pct": 19.05,
+      "sites_v091": 21
+    },
+    {
+      "name": "peft",
+      "version": "0.21.2",
+      "py_files": 249,
+      "lines": 65900,
+      "findings_v080": 20,
+      "covered_v080": 1,
+      "share_v080_pct": 5.0,
+      "sites_v080": 20,
+      "findings_v091": 16,
+      "covered_v091": 2,
+      "share_v091_pct": 12.5,
+      "sites_v091": 16
+    },
+    {
+      "name": "datasets",
+      "version": "5.2.0",
+      "py_files": 154,
+      "lines": 50428,
+      "findings_v080": 46,
+      "covered_v080": 7,
+      "share_v080_pct": 15.22,
+      "sites_v080": 45,
+      "findings_v091": 44,
+      "covered_v091": 8,
+      "share_v091_pct": 18.18,
+      "sites_v091": 42
+    },
+    {
+      "name": "evaluate",
+      "version": "0.4.6",
+      "py_files": 28,
+      "lines": 6288,
+      "findings_v080": 9,
+      "covered_v080": 4,
+      "share_v080_pct": 44.44,
+      "sites_v080": 9,
+      "findings_v091": 10,
+      "covered_v091": 4,
+      "share_v091_pct": 40.0,
+      "sites_v091": 10
+    },
+    {
+      "name": "sentence-transformers",
+      "version": "6.2.0",
+      "py_files": 212,
+      "lines": 53638,
+      "findings_v080": 43,
+      "covered_v080": 15,
+      "share_v080_pct": 34.88,
+      "sites_v080": 41,
+      "findings_v091": 33,
+      "covered_v091": 17,
+      "share_v091_pct": 51.52,
+      "sites_v091": 33
+    },
+    {
+      "name": "dspy",
+      "version": "3.5.0",
+      "py_files": 268,
+      "lines": 81174,
+      "findings_v080": 175,
+      "covered_v080": 69,
+      "share_v080_pct": 39.43,
+      "sites_v080": 173,
+      "findings_v091": 114,
+      "covered_v091": 53,
+      "share_v091_pct": 46.49,
+      "sites_v091": 113
+    },
+    {
+      "name": "torchmetrics",
+      "version": "1.9.0",
+      "py_files": 349,
+      "lines": 81638,
+      "findings_v080": 3,
+      "covered_v080": 0,
+      "share_v080_pct": 0.0,
+      "sites_v080": 3,
+      "findings_v091": 2,
+      "covered_v091": 0,
+      "share_v091_pct": 0.0,
+      "sites_v091": 2
+    },
+    {
+      "name": "optuna",
+      "version": "5.0.0",
+      "py_files": 220,
+      "lines": 39742,
+      "findings_v080": 7,
+      "covered_v080": 1,
+      "share_v080_pct": 14.29,
+      "sites_v080": 7,
+      "findings_v091": 8,
+      "covered_v091": 0,
+      "share_v091_pct": 0.0,
+      "sites_v091": 8
+    }
+  ],
+  "decomposition_primary": {
+    "n0": 322,
+    "c0": 99,
+    "share0_pct": 30.75,
+    "n1": 248,
+    "c1": 88,
+    "share1_pct": 35.48,
+    "delta_pp": 4.74,
+    "covered_count_term_pp": -4.44,
+    "denominator_term_pp": 9.17,
+    "sum_pp": 4.74
+  },
+  "sensitivity_no_vendor": {
+    "note": "post-hoc structural sensitivity: drop dspy/_vendor from both frames",
+    "v0.8.0": {
+      "total": 235,
+      "covered": 55,
+      "only": 180,
+      "share_pct": 23.4,
+      "distinct_sites": 231
+    },
+    "v0.9.1": {
+      "total": 189,
+      "covered": 56,
+      "only": 133,
+      "share_pct": 29.63,
+      "distinct_sites": 187
+    },
+    "decomposition": {
+      "n0": 235,
+      "c0": 55,
+      "share0_pct": 23.4,
+      "n1": 189,
+      "c1": 56,
+      "share1_pct": 29.63,
+      "delta_pp": 6.23,
+      "covered_count_term_pp": 0.53,
+      "denominator_term_pp": 5.7,
+      "sum_pp": 6.23
+    },
+    "per_package": [
+      {
+        "name": "accelerate",
+        "findings_v080": 19,
+        "covered_v080": 2,
+        "findings_v091": 21,
+        "covered_v091": 4
+      },
+      {
+        "name": "peft",
+        "findings_v080": 20,
+        "covered_v080": 1,
+        "findings_v091": 16,
+        "covered_v091": 2
+      },
+      {
+        "name": "datasets",
+        "findings_v080": 46,
+        "covered_v080": 7,
+        "findings_v091": 44,
+        "covered_v091": 8
+      },
+      {
+        "name": "evaluate",
+        "findings_v080": 9,
+        "covered_v080": 4,
+        "findings_v091": 10,
+        "covered_v091": 4
+      },
+      {
+        "name": "sentence-transformers",
+        "findings_v080": 43,
+        "covered_v080": 15,
+        "findings_v091": 33,
+        "covered_v091": 17
+      },
+      {
+        "name": "dspy",
+        "findings_v080": 88,
+        "covered_v080": 25,
+        "findings_v091": 55,
+        "covered_v091": 21
+      },
+      {
+        "name": "torchmetrics",
+        "findings_v080": 3,
+        "covered_v080": 0,
+        "findings_v091": 2,
+        "covered_v091": 0
+      },
+      {
+        "name": "optuna",
+        "findings_v080": 7,
+        "covered_v080": 1,
+        "findings_v091": 8,
+        "covered_v091": 0
+      }
+    ]
+  },
+  "sensitivity_exclude_dspy": {
+    "note": "post-hoc structural sensitivity: drop the dspy package entirely",
+    "v0.8.0": {
+      "total": 147,
+      "covered": 30,
+      "only": 117,
+      "share_pct": 20.41
+    },
+    "v0.9.1": {
+      "total": 134,
+      "covered": 35,
+      "only": 99,
+      "share_pct": 26.12
+    },
+    "decomposition": {
+      "n0": 147,
+      "c0": 30,
+      "share0_pct": 20.41,
+      "n1": 134,
+      "c1": 35,
+      "share1_pct": 26.12,
+      "delta_pp": 5.71,
+      "covered_count_term_pp": 3.73,
+      "denominator_term_pp": 1.98,
+      "sum_pp": 5.71
+    }
+  },
+  "leave_one_out": [
+    {
+      "excluded": "accelerate",
+      "v080": {
+        "total": 303,
+        "covered": 97,
+        "share_pct": 32.01
+      },
+      "v091": {
+        "total": 227,
+        "covered": 84,
+        "share_pct": 37.0
+      },
+      "share_change_pp": 4.99,
+      "covered_change": -13
+    },
+    {
+      "excluded": "peft",
+      "v080": {
+        "total": 302,
+        "covered": 98,
+        "share_pct": 32.45
+      },
+      "v091": {
+        "total": 232,
+        "covered": 86,
+        "share_pct": 37.07
+      },
+      "share_change_pp": 4.62,
+      "covered_change": -12
+    },
+    {
+      "excluded": "datasets",
+      "v080": {
+        "total": 276,
+        "covered": 92,
+        "share_pct": 33.33
+      },
+      "v091": {
+        "total": 204,
+        "covered": 80,
+        "share_pct": 39.22
+      },
+      "share_change_pp": 5.88,
+      "covered_change": -12
+    },
+    {
+      "excluded": "evaluate",
+      "v080": {
+        "total": 313,
+        "covered": 95,
+        "share_pct": 30.35
+      },
+      "v091": {
+        "total": 238,
+        "covered": 84,
+        "share_pct": 35.29
+      },
+      "share_change_pp": 4.94,
+      "covered_change": -11
+    },
+    {
+      "excluded": "sentence-transformers",
+      "v080": {
+        "total": 279,
+        "covered": 84,
+        "share_pct": 30.11
+      },
+      "v091": {
+        "total": 215,
+        "covered": 71,
+        "share_pct": 33.02
+      },
+      "share_change_pp": 2.92,
+      "covered_change": -13
+    },
+    {
+      "excluded": "dspy",
+      "v080": {
+        "total": 147,
+        "covered": 30,
+        "share_pct": 20.41
+      },
+      "v091": {
+        "total": 134,
+        "covered": 35,
+        "share_pct": 26.12
+      },
+      "share_change_pp": 5.71,
+      "covered_change": 5
+    },
+    {
+      "excluded": "torchmetrics",
+      "v080": {
+        "total": 319,
+        "covered": 99,
+        "share_pct": 31.03
+      },
+      "v091": {
+        "total": 246,
+        "covered": 88,
+        "share_pct": 35.77
+      },
+      "share_change_pp": 4.74,
+      "covered_change": -11
+    },
+    {
+      "excluded": "optuna",
+      "v080": {
+        "total": 315,
+        "covered": 98,
+        "share_pct": 31.11
+      },
+      "v091": {
+        "total": 240,
+        "covered": 88,
+        "share_pct": 36.67
+      },
+      "share_change_pp": 5.56,
+      "covered_change": -10
+    }
+  ],
+  "static_vs_empirical_v091": {
+    "rows": 248,
+    "disagreements": 2,
+    "disagreement_rate_pct": 0.81,
+    "by_rule": {
+      "name-shadowing": 2
+    },
+    "main_rules": {
+      "rows": 246,
+      "disagreements": 0
+    },
+    "items": [
+      {
+        "repo": "datasets",
+        "file": "paper/heldout-20261111/corpus/datasets-5.2.0/src/datasets/builder.py",
+        "lineno": 1575,
+        "rule": "name-shadowing",
+        "covered_by_static": [
+          "pylint:W0718",
+          "ruff:BLE001"
+        ],
+        "baseline_tools_colocated": []
+      },
+      {
+        "repo": "datasets",
+        "file": "paper/heldout-20261111/corpus/datasets-5.2.0/src/datasets/builder.py",
+        "lineno": 1881,
+        "rule": "name-shadowing",
+        "covered_by_static": [
+          "pylint:W0718",
+          "ruff:BLE001"
+        ],
+        "baseline_tools_colocated": []
+      }
+    ]
+  },
+  "suppress": {
+    "v0.8.0": {
+      "total": 24,
+      "covered": 0
+    },
+    "v0.9.1": {
+      "total": 9,
+      "covered": 0
+    },
+    "note": "four selected linters, ±1 line; no semgrep"
+  },
+  "hypotheses": {
+    "H1_pruning": {
+      "pass": true,
+      "v080": 322,
+      "v091": 248
+    },
+    "H2_share_rises": {
+      "pass": true,
+      "v080_pct": 30.75,
+      "v091_pct": 35.48
+    },
+    "H3_covered_count_falls": {
+      "pass": true,
+      "v080": 99,
+      "v091": 88,
+      "novendor_v080": 55,
+      "novendor_v091": 56
+    },
+    "H4_decomposition_signs": {
+      "pass": true,
+      "n0": 322,
+      "c0": 99,
+      "share0_pct": 30.75,
+      "n1": 248,
+      "c1": 88,
+      "share1_pct": 35.48,
+      "delta_pp": 4.74,
+      "covered_count_term_pp": -4.44,
+      "denominator_term_pp": 9.17,
+      "sum_pp": 4.74,
+      "novendor": {
+        "n0": 235,
+        "c0": 55,
+        "share0_pct": 23.4,
+        "n1": 189,
+        "c1": 56,
+        "share1_pct": 29.63,
+        "delta_pp": 6.23,
+        "covered_count_term_pp": 0.53,
+        "denominator_term_pp": 5.7,
+        "sum_pp": 6.23
+      }
+    },
+    "H5_suppress_uncovered": {
+      "pass": true,
+      "v080": "0/24",
+      "v091": "0/9"
+    },
+    "H6_static_empirical_agreement": {
+      "pass": false,
+      "disagreements": 2,
+      "rows": 248
+    }
+  }
+}

@@ -394,15 +394,18 @@ The internal `tests/corpus/` fixtures (68 samples, precision = recall = 1.0 in C
 are a **regression gate on the rules themselves** — construct validity. They say
 nothing about how the tool behaves on code it has never seen; the table above does.
 
-The [current manuscript](paper/arxiv/main.pdf) separates three research
-questions: representation-sensitive warning coverage, sensitivity to detector
-refinement and evaluation calibration, and candidate validity and construct
-scope. It includes a paired ratio decomposition, a suppression-form example
-and comparisons with recent Python exception-handling studies.
-[LaTeX source](paper/arxiv/main.tex) and
-[reproduction instructions](paper/ARTIFACT.md) accompany it. The manuscript
-is the 12 October 2026 revision, has not been peer reviewed, and has not
-been posted to arXiv. Its warning-coverage results are executable
+The [current manuscript](paper/arxiv/main.pdf) is a measurement study of
+four evaluation choices — representation, baseline read set, static-mapping
+calibration and denominator choice — plus a handler-local scope boundary. It
+includes a paired ratio decomposition, a 68-probe calibration, a suppression
+form example, comparisons with recent Python exception-handling studies, and
+a held-out replication on eight unseen AI/ML packages. The share rise survives
+every single-package exclusion in both corpora; the covered-count sign does not
+survive them in either. [LaTeX source](paper/arxiv/main.tex),
+[reproduction instructions](paper/ARTIFACT.md) and the
+[held-out record](paper/heldout-20261111/README.md) accompany it. The
+manuscript is the 11 November 2026 revision, has not been peer reviewed, and
+has not been posted to arXiv. Its warning-coverage results are executable
 measurements; the exploratory labels are not a validated defect rate.
 
 

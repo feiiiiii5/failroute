@@ -1,0 +1,27 @@
+accelerate           failroute=21    被任一工具覆盖=4     failroute-only=17
+peft                 failroute=16    被任一工具覆盖=2     failroute-only=14
+datasets             failroute=44    被任一工具覆盖=8     failroute-only=36
+evaluate             failroute=10    被任一工具覆盖=4     failroute-only=6
+sentence-transformers failroute=33    被任一工具覆盖=17    failroute-only=16
+dspy                 failroute=114   被任一工具覆盖=53    failroute-only=61
+torchmetrics         failroute=2     被任一工具覆盖=0     failroute-only=2
+optuna               failroute=8     被任一工具覆盖=0     failroute-only=8
+
+============================================================================
+failroute 总发现        : 248
+四工具并集能覆盖        : 88  (35.5%)
+🟢 failroute-only       : 160  (64.5%)
+
+按规则拆解（覆盖 / 总数）：
+  no-action              46/126   被覆盖  36.5%   → failroute-only 80
+  silent-fallback        42/111   被覆盖  37.8%   → failroute-only 69
+  silent-suppress         0/9     被覆盖   0.0%   → failroute-only 9
+  name-shadowing          0/2     被覆盖   0.0%   → failroute-only 2
+
+各工具单独覆盖到的 failroute 发现（按规则）：
+  ruff             合计 46    no-action=46
+  bandit           合计 46    no-action=46
+  pylint           合计 88    no-action=46 silent-fallback=42
+  flake8+bugbear   合计 0     
+
+wrote coverage.json

@@ -1,0 +1,118 @@
+{
+  "generated_at_utc": "2026-11-11T05:21:42Z",
+  "findings_dir": "findings-novendor",
+  "tools": [
+    "ruff",
+    "bandit",
+    "pylint",
+    "flake8+bugbear"
+  ],
+  "ruff_select": "S110,S112",
+  "line_tolerance": 1,
+  "failroute_total": 235,
+  "union_covered": 55,
+  "failroute_only": 180,
+  "union_covered_4tool_recheck": 55,
+  "union_covered_5tool": 55,
+  "by_rule": {
+    "silent-fallback": {
+      "total": 110,
+      "covered": 25,
+      "covered_4": 25,
+      "covered_5": 25,
+      "only": 85
+    },
+    "no-action": {
+      "total": 98,
+      "covered": 29,
+      "covered_4": 29,
+      "covered_5": 29,
+      "only": 69
+    },
+    "silent-suppress": {
+      "total": 24,
+      "covered": 0,
+      "covered_4": 0,
+      "covered_5": 0,
+      "only": 24
+    },
+    "name-shadowing": {
+      "total": 2,
+      "covered": 0,
+      "covered_4": 0,
+      "covered_5": 0,
+      "only": 2
+    },
+    "masked-exception": {
+      "total": 1,
+      "covered": 1,
+      "covered_4": 1,
+      "covered_5": 1,
+      "only": 0
+    }
+  },
+  "per_tool_by_rule": {
+    "ruff": {
+      "no-action": 29
+    },
+    "bandit": {
+      "no-action": 29
+    },
+    "pylint": {
+      "no-action": 29,
+      "silent-fallback": 25,
+      "masked-exception": 1
+    },
+    "flake8+bugbear": {}
+  },
+  "per_package": [
+    {
+      "name": "accelerate",
+      "failroute": 19,
+      "covered": 2,
+      "only": 17
+    },
+    {
+      "name": "peft",
+      "failroute": 20,
+      "covered": 1,
+      "only": 19
+    },
+    {
+      "name": "datasets",
+      "failroute": 46,
+      "covered": 7,
+      "only": 39
+    },
+    {
+      "name": "evaluate",
+      "failroute": 9,
+      "covered": 4,
+      "only": 5
+    },
+    {
+      "name": "sentence-transformers",
+      "failroute": 43,
+      "covered": 15,
+      "only": 28
+    },
+    {
+      "name": "dspy",
+      "failroute": 88,
+      "covered": 25,
+      "only": 63
+    },
+    {
+      "name": "torchmetrics",
+      "failroute": 3,
+      "covered": 0,
+      "only": 3
+    },
+    {
+      "name": "optuna",
+      "failroute": 7,
+      "covered": 1,
+      "only": 6
+    }
+  ]
+}

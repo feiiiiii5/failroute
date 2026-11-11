@@ -1,0 +1,118 @@
+{
+  "generated_at_utc": "2026-11-11T05:18:25Z",
+  "findings_dir": "findings",
+  "tools": [
+    "ruff",
+    "bandit",
+    "pylint",
+    "flake8+bugbear"
+  ],
+  "ruff_select": "S110,S112",
+  "line_tolerance": 1,
+  "failroute_total": 322,
+  "union_covered": 99,
+  "failroute_only": 223,
+  "union_covered_4tool_recheck": 99,
+  "union_covered_5tool": 99,
+  "by_rule": {
+    "silent-fallback": {
+      "total": 168,
+      "covered": 52,
+      "covered_4": 52,
+      "covered_5": 52,
+      "only": 116
+    },
+    "no-action": {
+      "total": 127,
+      "covered": 46,
+      "covered_4": 46,
+      "covered_5": 46,
+      "only": 81
+    },
+    "silent-suppress": {
+      "total": 24,
+      "covered": 0,
+      "covered_4": 0,
+      "covered_5": 0,
+      "only": 24
+    },
+    "name-shadowing": {
+      "total": 2,
+      "covered": 0,
+      "covered_4": 0,
+      "covered_5": 0,
+      "only": 2
+    },
+    "masked-exception": {
+      "total": 1,
+      "covered": 1,
+      "covered_4": 1,
+      "covered_5": 1,
+      "only": 0
+    }
+  },
+  "per_tool_by_rule": {
+    "ruff": {
+      "no-action": 46
+    },
+    "bandit": {
+      "no-action": 46
+    },
+    "pylint": {
+      "no-action": 46,
+      "silent-fallback": 52,
+      "masked-exception": 1
+    },
+    "flake8+bugbear": {}
+  },
+  "per_package": [
+    {
+      "name": "accelerate",
+      "failroute": 19,
+      "covered": 2,
+      "only": 17
+    },
+    {
+      "name": "peft",
+      "failroute": 20,
+      "covered": 1,
+      "only": 19
+    },
+    {
+      "name": "datasets",
+      "failroute": 46,
+      "covered": 7,
+      "only": 39
+    },
+    {
+      "name": "evaluate",
+      "failroute": 9,
+      "covered": 4,
+      "only": 5
+    },
+    {
+      "name": "sentence-transformers",
+      "failroute": 43,
+      "covered": 15,
+      "only": 28
+    },
+    {
+      "name": "dspy",
+      "failroute": 175,
+      "covered": 69,
+      "only": 106
+    },
+    {
+      "name": "torchmetrics",
+      "failroute": 3,
+      "covered": 0,
+      "only": 3
+    },
+    {
+      "name": "optuna",
+      "failroute": 7,
+      "covered": 1,
+      "only": 6
+    }
+  ]
+}

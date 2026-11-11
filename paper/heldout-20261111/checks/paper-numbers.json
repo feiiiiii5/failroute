@@ -1,0 +1,86 @@
+{
+  "checks": 16,
+  "failed": [],
+  "detail": [
+    {
+      "check": "corpus: 8 packages, 1,564 files, 415,101 lines",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "v0.8.0 total 322 / v0.9.1 total 248",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "shares 30.7% and 35.5%",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "covered count 99 to 88",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "primary decomposition +9.17, -4.44, +4.74",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "no-vendor sensitivity 235/189, 55/56, 23.4/29.6",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "exclude-dspy sensitivity 147/134, 30/35, 20.4/26.1",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "no-vendor decomposition +5.70 / +0.53",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "exclude-dspy decomposition +3.73",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "dspy dominance 175 of 322 and 114 of 248",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "dspy covered 69 to 53",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "suppress 24 and 9, 0 covered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "leave-one-out: all eight share changes positive; only dspy reverses covered count",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "static/empirical 246 of 248, two name-shadowing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "five of eight packages gain share",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "abstract contains held-out result and checklist",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "packages": [
+    {"name": "accelerate", "pypi_name": "accelerate", "source": "pypi", "version": "1.15.0", "scan_root": "src/accelerate"},
+    {"name": "peft", "pypi_name": "peft", "source": "pypi", "version": "0.21.2", "scan_root": "src/peft"},
+    {"name": "datasets", "pypi_name": "datasets", "source": "pypi", "version": "5.2.0", "scan_root": "src/datasets"},
+    {"name": "evaluate", "pypi_name": "evaluate", "source": "pypi", "version": "0.4.6", "scan_root": "src/evaluate"},
+    {"name": "sentence-transformers", "pypi_name": "sentence-transformers", "source": "pypi", "version": "6.2.0", "scan_root": "sentence_transformers"},
+    {"name": "dspy", "pypi_name": "dspy", "source": "pypi", "version": "3.5.0", "scan_root": "dspy"},
+    {"name": "torchmetrics", "pypi_name": "torchmetrics", "source": "pypi", "version": "1.9.0", "scan_root": "src/torchmetrics"},
+    {"name": "optuna", "pypi_name": "optuna", "source": "pypi", "version": "5.0.0", "scan_root": "optuna"}
+  ]
+}

@@ -1,0 +1,10 @@
+accelerate             21
+peft                   16
+datasets               44
+evaluate               10
+sentence-transformers   33
+dspy                  114
+torchmetrics            2
+optuna                  8
+total                 248
+wrote /private/var/folders/y6/7f277x5n4z14sqwsw21h8ffm0000gn/T/opencode/sandbox-current/findings

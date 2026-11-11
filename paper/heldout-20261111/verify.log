@@ -1,0 +1,10 @@
+OK    accelerate 1.15.0 (pypi)
+OK    peft 0.21.2 (pypi)
+OK    datasets 5.2.0 (pypi)
+OK    evaluate 0.4.6 (pypi)
+OK    sentence-transformers 6.2.0 (pypi)
+OK    dspy 3.5.0 (pypi)
+OK    torchmetrics 1.9.0 (pypi)
+OK    optuna 5.0.0 (pypi)
+
+8/8 packages verified

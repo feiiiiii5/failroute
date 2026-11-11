@@ -6,13 +6,18 @@ disclosure covers the author's project idea and key decisions, AI assistance,
 and the separate LLM-label provenance. Frozen DEFECT labels are not automatically
 confirmed failure-routing defects.
 
-The 10 October 2026 manuscript revision has three research questions:
-warning coverage and representation; sensitivity to detector refinement and
-evaluation calibration; and candidate validity and construct scope. The
-baseline and refined frames remain 621/255/366 and 476/252/224 respectively.
-All twelve original result tables retain their numerical entries. The new
-ratio decomposition is an interpretation of those counts, not a new scan.
-Current TeX and the local source package produce the same 25-page manuscript.
+The 11 November 2026 manuscript revision is a measurement study organized
+around four evaluation choices and a scope boundary: representation, baseline
+read set, static-mapping calibration, denominator choice, and handler-local
+scope. The baseline and refined frames remain 621/255/366 and 476/252/224
+respectively. The revision adds a held-out replication on eight unseen AI/ML
+packages; its protocol, pins, findings and coverage records are in
+`paper/heldout-20261111/`. The share rise survives every single-package
+exclusion in both corpora; the covered-count sign does not survive them in
+either (held-out reverses when `dspy` is excluded, development when
+`deepteam` or `inspect_ai` is excluded). Both leave-one-out checks are
+post-hoc and live in `paper/heldout-20261111/extensions-20261111/`. Current
+TeX and the local source package produce the same 29-page manuscript.
 
 The dated sections below preserve earlier reproduction records, including
 superseded counts and manuscript layouts. Use the current manuscript's

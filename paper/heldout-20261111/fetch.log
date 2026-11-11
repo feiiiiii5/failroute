@@ -1,0 +1,18 @@
+-> accelerate
+   pypi 1.15.0  115 .py / 48088 lines
+-> peft
+   pypi 0.21.2  310 .py / 117748 lines
+-> datasets
+   pypi 5.2.0  193 .py / 73595 lines
+-> evaluate
+   pypi 0.4.6  29 .py / 6447 lines
+-> sentence-transformers
+   pypi 6.2.0  213 .py / 54098 lines
+-> dspy
+   pypi 3.5.0  270 .py / 81420 lines
+-> torchmetrics
+   pypi 1.9.0  350 .py / 81901 lines
+-> optuna
+   pypi 5.0.0  337 .py / 65776 lines
+
+wrote paper/heldout-20261111/heldout-lock.json

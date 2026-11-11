@@ -1,0 +1,110 @@
+{
+  "generated_at_utc": "2026-11-11T05:22:24Z",
+  "findings_dir": "findings-novendor",
+  "tools": [
+    "ruff",
+    "bandit",
+    "pylint",
+    "flake8+bugbear"
+  ],
+  "ruff_select": "S110,S112",
+  "line_tolerance": 1,
+  "failroute_total": 189,
+  "union_covered": 56,
+  "failroute_only": 133,
+  "union_covered_4tool_recheck": 56,
+  "union_covered_5tool": 56,
+  "by_rule": {
+    "silent-fallback": {
+      "total": 81,
+      "covered": 27,
+      "covered_4": 27,
+      "covered_5": 27,
+      "only": 54
+    },
+    "no-action": {
+      "total": 97,
+      "covered": 29,
+      "covered_4": 29,
+      "covered_5": 29,
+      "only": 68
+    },
+    "silent-suppress": {
+      "total": 9,
+      "covered": 0,
+      "covered_4": 0,
+      "covered_5": 0,
+      "only": 9
+    },
+    "name-shadowing": {
+      "total": 2,
+      "covered": 0,
+      "covered_4": 0,
+      "covered_5": 0,
+      "only": 2
+    }
+  },
+  "per_tool_by_rule": {
+    "ruff": {
+      "no-action": 29
+    },
+    "bandit": {
+      "no-action": 29
+    },
+    "pylint": {
+      "no-action": 29,
+      "silent-fallback": 27
+    },
+    "flake8+bugbear": {}
+  },
+  "per_package": [
+    {
+      "name": "accelerate",
+      "failroute": 21,
+      "covered": 4,
+      "only": 17
+    },
+    {
+      "name": "peft",
+      "failroute": 16,
+      "covered": 2,
+      "only": 14
+    },
+    {
+      "name": "datasets",
+      "failroute": 44,
+      "covered": 8,
+      "only": 36
+    },
+    {
+      "name": "evaluate",
+      "failroute": 10,
+      "covered": 4,
+      "only": 6
+    },
+    {
+      "name": "sentence-transformers",
+      "failroute": 33,
+      "covered": 17,
+      "only": 16
+    },
+    {
+      "name": "dspy",
+      "failroute": 55,
+      "covered": 21,
+      "only": 34
+    },
+    {
+      "name": "torchmetrics",
+      "failroute": 2,
+      "covered": 0,
+      "only": 2
+    },
+    {
+      "name": "optuna",
+      "failroute": 8,
+      "covered": 0,
+      "only": 8
+    }
+  ]
+}
