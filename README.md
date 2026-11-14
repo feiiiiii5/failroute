@@ -36,7 +36,7 @@ def score_answer(prompt: str, answer: str) -> float:
 | `return 0.0` after a judge outage | invisible | flagged (`silent-fallback`) |
 | `contextlib.suppress(Exception)` | invisible — SIM105 actively *recommends* migrating into it | flagged (`silent-suppress`) |
 | Branch-dependent outcomes (conditional re-raise + fallback) | invisible | flagged (`masked-exception`) |
-| Precision target | low-noise, syntactic by design | **findings are not a defect list** — see "How often is a finding a bug?" below; they are meant to be triaged by a human |
+| Precision target | low-noise, syntactic by design | **findings are not a defect list** — see "What the exploratory labels show" below; they are meant to be triaged by a human |
 
 failroute is not a replacement: it runs alongside your linter as a separate,
 higher-scrutiny pass over eval, judge, and agent code paths.
@@ -46,8 +46,8 @@ higher-scrutiny pass over eval, judge, and agent code paths.
 While fixing correctness bugs across mainstream AI/ML open source, one defect
 family kept recurring: an LLM judge outage becoming a legitimate-looking `0.0`
 score, a network error becoming "no results", a red-team metric reporting
-success from a judge that never ran. Existing linters reason about the *shape*
-of an exception handler; the defect lives in what the handler *returns*.
+success from a judge that never ran. The selected lint rules below focus on the *shape*
+of an exception handler; these failures also depend on what the handler *returns*.
 `failroute` is an attempt to detect it at the level of the return value; its own evaluation below shows how far syntax alone gets. It is built around three principles:
 
 - **Precision over volume** — every rule has positive and negative fixtures in
@@ -82,7 +82,7 @@ return await llm_judge(prompt)
 | `masked-exception` | **catch-all** handler re-raises conditionally yet also falls through to a success-looking return |
 | `name-shadowing` | `except E as e:` whose body rebinds `e` — Python deletes the binding at handler exit, so later uses raise `NameError` |
 | `implicit-fallback` | handler body neither re-raises, returns explicitly, nor records — it falls through, and a value-returning function hands the caller its implicit `None` (bare `print(...)`, conditional raise, docstring-only bodies) |
-| `silent-suppress` | `with contextlib.suppress(...)`: semantically identical to `except` + discard, but invisible to every shipped syntactic linter — and ruff's SIM105 actively *recommends* rewriting `try-except-pass` into this form |
+| `silent-suppress` | `with contextlib.suppress(...)`: semantically identical to `except` + discard, but outside the four selected lint rule sets evaluated below — and ruff's SIM105 actively *recommends* rewriting `try-except-pass` into this form |
 
 Findings are emitted as `file:line: mode: message`, or as JSON for CI.
 
@@ -325,19 +325,19 @@ matching on ±1 line. These are not each tool’s default full configuration:
 
 | | Findings co-located | Share |
 | --- | --- | --- |
-| Union of all four linters | **252** | 52.9% |
-| **failroute only** | **224** | **47.1%** |
+| Union of four selected lint rule sets | **252** | 52.9% |
+| **Unmatched by those rule sets** | **224** | **47.1%** |
 
 Per rule, and which tool (if any) reaches it:
 
-| Rule | Total | Covered | Novel | Severity spread |
+| Rule | Total | Covered | Unmatched | Severity spread |
 | --- | --- | --- | --- | --- |
 | `silent-fallback` | 248 | 177 | 71 | high 160 / medium 78 / low 10 |
 | `no-action` | 209 | 72 | 137 | high 32 / medium 48 / info 129 |
 | `silent-suppress` | 16 | **0** | **16** | high 16 |
 | `masked-exception` | 3 | 3 | 0 | low 3 |
 
-Of the 208 `high` findings, **25 are reported by no shipped linter**.
+Of the 208 `high` findings, **25 have no co-located warning from the four selected lint rule sets**.
 
 > **`covered_by` was wrong until 0.9.0.** It inferred lint coverage from the
 > handler's *body shape* and never looked at the caught type, so every narrow
@@ -353,8 +353,8 @@ Of the 208 `high` findings, **25 are reported by no shipped linter**.
 > relative to the four-tool union. The table above uses that union rather than
 > a ruff-only comparison. A project-authored
 > semgrep ruleset targeting these patterns covers most of the `silent-suppress`
-> findings — so "no shipped linter reaches this" is a statement about *default
-> configurations*, not about what is expressible.
+> findings. The comparison measures the four explicitly selected rule sets
+> listed above; it does not cover every available rule or tool configuration.
 >
 > **And a blunter one.** All 12 sites labelled DEFECT in the original sample sit on
 > bare `except:`. `flake8 --select E722` flags 134 sites in this corpus and
@@ -363,9 +363,10 @@ Of the 208 `high` findings, **25 are reported by no shipped linter**.
 
 Re-run: see `paper/ARTIFACT.md`. Results are checked into `bench/`.
 
-### How often is a finding a bug?
+### What the exploratory labels show
 
-**Mostly, it is not — and that is the most useful thing this project measured.**
+**The sampled findings received more CONTRACT labels than DEFECT labels.**
+These are LLM-agent assessments, not an independently measured defect rate.
 
 On a stratified random sample of **80** findings drawn from the *v0.7.0*
 finding set (by rule × package, fixed seed), labelled in two LLM-agent rounds.
@@ -376,9 +377,9 @@ see `paper/ARTIFACT.md` before citing them.
 
 | Verdict | Count | Share |
 | --- | --- | --- |
-| **Deliberate design contract** | 64 | **80%** |
+| LLM CONTRACT label | 64 | **80%** |
 | LLM DEFECT label | 12 | 15% |
-| False positive | 4 | 5% |
+| LLM FP label | 4 | 5% |
 
 All 12 DEFECT labels fall inside a **single, young package**; the other
 seven packages have **0 DEFECT labels out of 66 sampled findings**. Five of
@@ -386,15 +387,15 @@ those 12 concern missing assignments whose failure-conversion mechanism is
 unestablished. These are label counts, not confirmed failure-routing defect
 rates; the paper reports the corresponding family sensitivity analysis.
 
-The conclusion is not flattering to this tool, and it is the point: **a syntactic
-detector cannot distinguish an intentional fallback from a bug.** failroute
-narrows where to look; a person still has to argue the failure chain. Treat its
-output as a review queue, not a defect list.
+failroute narrows the review queue to handlers worth inspecting. Establishing
+a defect requires checking the function's contract and tracing the failure to
+its caller; the sample labels alone do not establish that consequence chain.
 
 The internal `tests/corpus/` fixtures (68 samples, precision = recall = 1.0 in CI;
 not the same objects as the manuscript's 68 generated lint probes)
 are a **regression gate on the rules themselves** — construct validity. They say
-nothing about how the tool behaves on code it has never seen; the table above does.
+nothing about accuracy on unseen code. The sample above records exploratory
+assessments; the held-out study below measures warning coverage on other packages.
 
 The [current manuscript](paper/arxiv/main.pdf) is a measurement study of
 four evaluation choices — representation, baseline read set, static-mapping
@@ -409,8 +410,9 @@ recall. [LaTeX source](paper/arxiv/main.tex),
 [reproduction instructions](paper/ARTIFACT.md) and the
 [held-out record](paper/heldout-20261111/README.md) accompany it. The
 manuscript is the reconciled 11 November 2026 revision, prepared after the
-previous submission was cancelled by the author. It is not peer reviewed and
-has not been submitted by this revision task. Its warning-coverage results
+previous submission was cancelled by the author. **Status as of 14 November
+2026: available on GitHub; arXiv submission on hold.** It is not peer reviewed.
+Its warning-coverage results
 are executable measurements; exploratory labels are not a validated defect rate.
 
 **The curated-fix discrepancy is resolved in this manuscript.** The three
