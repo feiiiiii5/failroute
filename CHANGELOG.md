@@ -24,6 +24,23 @@ Research tooling and manuscript only; no change to the detector.
 - Manuscript restructured around the measurement protocol; reproduction split
   into a historical path (commit `3b4c567`) and the current audit path.
 
+## [0.9.3] - 2026-11-16
+
+Documentation and package metadata only. The detector's findings, severities
+and exit statuses are unchanged from 0.9.2.
+
+### Changed
+
+- Synchronize the PyPI description with the current research account: comparisons
+  use four selected lint rule sets, warning coverage is distinct from defect
+  detection, and the original LLM labelling cannot be independently repeated.
+- Use absolute GitHub URLs for README file links so the manuscript, evidence
+  and development documentation are accessible from PyPI.
+- Describe the nullable-return exemption as a detector heuristic: returning
+  `None` does not distinguish normal absence from an infrastructure failure.
+- Initialize the fallback score in the `silent-suppress` example so a judge
+  failure actually returns `0.0`, rather than raising `UnboundLocalError`.
+
 ## [0.9.2] - 2026-09-24
 
 Documentation only. No behavioural change to the detector: findings, severities

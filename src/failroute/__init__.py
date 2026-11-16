@@ -24,4 +24,4 @@ __all__ = [
     "to_sarif",
     "to_sarif_json",
 ]
-__version__ = "0.9.2"
+__version__ = "0.9.3"

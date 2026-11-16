@@ -108,14 +108,16 @@ exact-name matching misjudged every unconventional logger name.
 
 ### The predicate: value-domain membership, then isomorphism
 
-0.9.0 replaces "the handler returned a constant from a fixed set" with two
-questions asked in order:
+0.9.0 uses two local heuristics to decide which handlers need review:
 
-1. **Is the value inside the function's success domain?** `-> Optional[Doc]`
-   returning `None` is a declared outcome — the caller *can* tell. `-> float`
-   returning `0.0` is not. Return annotations, other `return` statements in the
-   same function, and whether the handler substitutes a value the `try` body
-   computed all feed this.
+1. **What outcomes does the function declare or normally return?** Return
+   annotations, other `return` statements in the same function, and whether
+   the handler substitutes a value computed by the `try` body inform the
+   detector's decision. It exempts a handler returning `None` when the declared
+   return type admits `None`, such as `Optional[Doc]`. This is a heuristic,
+   not proof that the fallback is correct: normal absence and an infrastructure
+   failure can still return the same `None`, leaving the caller unable to
+   distinguish them.
 2. **Is the caught exception the answer to the question the function asks?**
    `_is_serializable()` wrapping one `json.dumps` — the exception *is* the
    answer, so returning `False` is a contract. `is_vulnerable()` wrapping a loop
@@ -173,7 +175,7 @@ system temp dir; both produce findings identical to the serial scan.
 ```yaml
 repos:
   - repo: https://github.com/feiiiiii5/failroute
-    rev: v0.9.2
+    rev: v0.9.3
     hooks:
       - id: failroute
 ```
@@ -249,7 +251,8 @@ def fetch(url):                             # silent-fallback (assign)
     return data
 
 def evaluate(prompt):                       # silent-suppress
-    with contextlib.suppress(Exception):    # 💥 outage == silence, no trace at all
+    score = 0.0
+    with contextlib.suppress(Exception):    # 💥 judge failure leaves the fallback score
         score = judge(prompt)
     return score
 ```
@@ -397,7 +400,7 @@ are a **regression gate on the rules themselves** — construct validity. They s
 nothing about accuracy on unseen code. The sample above records exploratory
 assessments; the held-out study below measures warning coverage on other packages.
 
-The [current manuscript](paper/arxiv/main.pdf) is a measurement study of
+The [current manuscript](https://github.com/feiiiiii5/failroute/blob/main/paper/arxiv/main.pdf) is a measurement study of
 four evaluation choices — representation, baseline read set, static-mapping
 calibration and denominator choice — plus a handler-local scope boundary. It
 includes a paired ratio decomposition, a 68-probe calibration, a suppression
@@ -406,9 +409,9 @@ a held-out replication on eight unseen AI/ML packages. The share rise survives
 every single-package exclusion in both corpora; the covered-count sign does not
 survive them in either. It separates behavioural calibration on probes from
 tool-output coverage on the corpus, and does not measure defect precision or
-recall. [LaTeX source](paper/arxiv/main.tex),
-[reproduction instructions](paper/ARTIFACT.md) and the
-[held-out record](paper/heldout-20261111/README.md) accompany it. The
+recall. [LaTeX source](https://github.com/feiiiiii5/failroute/blob/main/paper/arxiv/main.tex),
+[reproduction instructions](https://github.com/feiiiiii5/failroute/blob/main/paper/ARTIFACT.md) and the
+[held-out record](https://github.com/feiiiiii5/failroute/blob/main/paper/heldout-20261111/README.md) accompany it. The
 manuscript is the reconciled 11 November 2026 revision, prepared after the
 previous submission was cancelled by the author. **Status as of 14 November
 2026: available on GitHub; arXiv submission on hold.** It is not peer reviewed.
@@ -427,10 +430,10 @@ The frozen annotations and historical PR ledger are preserved byte-identically.
 The held-out replication, baseline read-set correction, 68-probe calibration
 and denominator decomposition remain supported. Semgrep's partial-analysis
 boundary and the two held-out static-mapping failures remain explicit.
-See [final validation](paper/FINAL-VALIDATION.md),
-[reference audit](paper/reference-audit.json),
-[annotation correction](paper/annotation-corrections.json), and
-[held-out interpretation corrections](paper/heldout-20261111/CORRECTIONS.md).
+See [final validation](https://github.com/feiiiiii5/failroute/blob/main/paper/FINAL-VALIDATION.md),
+[reference audit](https://github.com/feiiiiii5/failroute/blob/main/paper/reference-audit.json),
+[annotation correction](https://github.com/feiiiiii5/failroute/blob/main/paper/annotation-corrections.json), and
+[held-out interpretation corrections](https://github.com/feiiiiii5/failroute/blob/main/paper/heldout-20261111/CORRECTIONS.md).
 The immutable paper release is tagged `arxiv-20261111-final`.
 A proposed independent revalidation protocol is provided, not reported as completed.
 
@@ -445,7 +448,7 @@ yield. Semgrep 1.175.0 parses one pinned `inspect_ai` file only partially, so th
 five-tool figure is reported as observed 274/621 with an upper bound of 275, not
 as an error-free reproduction. The historical numerical archive (commit
 `3b4c567`) is reproduced separately, in a disposable worktree; see
-[`paper/audit-rerun-2026-11-03.md`](paper/audit-rerun-2026-11-03.md).
+[`paper/audit-rerun-2026-11-03.md`](https://github.com/feiiiiii5/failroute/blob/main/paper/audit-rerun-2026-11-03.md).
 
 
 ### Throughput
@@ -474,7 +477,7 @@ makes the key decisions, including those made across successive manuscript
 revisions. Claude and other AI tools assist with implementation, tests,
 refactoring, analysis, and drafting. This is an author-led, AI-assisted project;
 the author is responsible for its claims and final manuscript. Pushes to `main` and pull requests run the
-deterministic gates in [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+deterministic gates in [`.github/workflows/ci.yml`](https://github.com/feiiiiii5/failroute/blob/main/.github/workflows/ci.yml):
 the pytest suite on Linux, macOS and Windows with Python 3.9–3.13, `ruff`, `mypy`
 in strict mode (`pyproject.toml`), a coverage floor, a self-scan of the repository with the tool
 itself, and `tools/benchmark.py`, which fails unless precision and recall on the
@@ -483,8 +486,8 @@ expectations; they do not establish that a finding is a defect. The fixture
 expectations are a regression gate, and the real-code labels in
 `bench/realworld/` come from two rounds of LLM agents with no human labelling
 pass (see "Test corpora" above). The triage process, with a worked example that
-includes a case where nothing was filed, is in [`docs/process.md`](docs/process.md).
+includes a case where nothing was filed, is in [`docs/process.md`](https://github.com/feiiiiii5/failroute/blob/main/docs/process.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/feiiiiii5/failroute/blob/main/LICENSE).
